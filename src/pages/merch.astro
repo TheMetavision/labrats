@@ -2,7 +2,10 @@
 import Layout from '../layouts/Layout.astro';
 import Navbar from '../components/Navbar.astro';
 import Footer from '../components/Footer.astro';
-import { getAllProducts, urlFor } from '../lib/sanity';
+import { getAllProducts, getSiteSettings, urlFor } from '../lib/sanity';
+
+const settings = await getSiteSettings();
+const storeOpenDate = settings?.storeOpenDate || '2026-07-01T00:00:00Z';
 
 const sanityProducts = await getAllProducts();
 const products = sanityProducts.length > 0 ? sanityProducts.map(p => ({
@@ -48,6 +51,35 @@ const products = sanityProducts.length > 0 ? sanityProducts.map(p => ({
         <span class="page-hero__label">Official Merch</span>
         <h1 class="page-hero__title">Gear Up, Rebel</h1>
         <p class="page-hero__subtitle">Official Labrats merchandise. Wear your rebellion.</p>
+      </div>
+    </section>
+
+    <section class="countdown-section">
+      <div class="container countdown__inner">
+        <span class="countdown__label">Official Drop — Season 01</span>
+        <h2 class="countdown__heading">Store Opens In</h2>
+        <div class="countdown__timer" id="countdown" data-target={storeOpenDate}>
+          <div class="countdown__block">
+            <span class="countdown__number" id="cd-days">--</span>
+            <span class="countdown__unit">Days</span>
+          </div>
+          <span class="countdown__sep">:</span>
+          <div class="countdown__block">
+            <span class="countdown__number" id="cd-hours">--</span>
+            <span class="countdown__unit">Hours</span>
+          </div>
+          <span class="countdown__sep">:</span>
+          <div class="countdown__block">
+            <span class="countdown__number" id="cd-mins">--</span>
+            <span class="countdown__unit">Mins</span>
+          </div>
+          <span class="countdown__sep">:</span>
+          <div class="countdown__block">
+            <span class="countdown__number" id="cd-secs">--</span>
+            <span class="countdown__unit">Secs</span>
+          </div>
+        </div>
+        <p class="countdown__note">Early access for newsletter subscribers</p>
       </div>
     </section>
 
@@ -161,6 +193,111 @@ const products = sanityProducts.length > 0 ? sanityProducts.map(p => ({
     font-weight: 600;
     color: var(--color-white);
     opacity: 0.8;
+  }
+
+  .countdown-section {
+    background: var(--color-black);
+    padding: 64px 0;
+    border-bottom: 2px solid var(--color-teal);
+  }
+
+  .countdown__inner {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 20px;
+  }
+
+  .countdown__label {
+    font-family: var(--font-heading);
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--color-teal);
+  }
+
+  .countdown__heading {
+    font-family: var(--font-display);
+    font-size: clamp(32px, 5vw, 56px);
+    color: var(--color-yellow);
+    line-height: 1;
+    text-transform: uppercase;
+  }
+
+  .countdown__timer {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 8px 0;
+  }
+
+  .countdown__block {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-width: 80px;
+    padding: 16px 12px;
+    background: color-mix(in srgb, var(--color-teal) 8%, var(--color-black));
+    border: 1px solid var(--color-teal);
+    border-radius: var(--radius-lg);
+  }
+
+  .countdown__number {
+    font-family: var(--font-display);
+    font-size: clamp(36px, 6vw, 56px);
+    color: var(--color-yellow);
+    line-height: 1;
+    letter-spacing: 2px;
+  }
+
+  .countdown__unit {
+    font-family: var(--font-heading);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--color-teal);
+    margin-top: 6px;
+  }
+
+  .countdown__sep {
+    font-family: var(--font-display);
+    font-size: 40px;
+    color: var(--color-teal);
+    opacity: 0.5;
+    line-height: 1;
+    padding-bottom: 20px;
+  }
+
+  .countdown__note {
+    font-family: var(--font-heading);
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--color-white);
+    opacity: 0.6;
+    letter-spacing: 0.5px;
+  }
+
+  @media (max-width: 600px) {
+    .countdown-section {
+      padding: 48px 0;
+    }
+
+    .countdown__timer {
+      gap: 8px;
+    }
+
+    .countdown__block {
+      min-width: 64px;
+      padding: 12px 8px;
+    }
+
+    .countdown__sep {
+      font-size: 28px;
+      padding-bottom: 16px;
+    }
   }
 
   .products-section {
@@ -430,3 +567,36 @@ const products = sanityProducts.length > 0 ? sanityProducts.map(p => ({
     }
   }
 </style>
+
+<script>
+  (function () {
+    const el = document.getElementById('countdown');
+    if (!el) return;
+
+    const target = new Date(el.dataset.target).getTime();
+    const days = document.getElementById('cd-days');
+    const hours = document.getElementById('cd-hours');
+    const mins = document.getElementById('cd-mins');
+    const secs = document.getElementById('cd-secs');
+
+    function pad(n) { return String(Math.max(0, Math.floor(n))).padStart(2, '0'); }
+
+    function tick() {
+      const diff = target - Date.now();
+      if (diff <= 0) {
+        days.textContent = '00';
+        hours.textContent = '00';
+        mins.textContent = '00';
+        secs.textContent = '00';
+        return;
+      }
+      days.textContent = pad(diff / 86400000);
+      hours.textContent = pad((diff % 86400000) / 3600000);
+      mins.textContent = pad((diff % 3600000) / 60000);
+      secs.textContent = pad((diff % 60000) / 1000);
+    }
+
+    tick();
+    setInterval(tick, 1000);
+  })();
+</script>

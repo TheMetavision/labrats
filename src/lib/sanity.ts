@@ -44,7 +44,7 @@ export async function getPageBySlug(slug: string) {
   return client.fetch(`*[_type == "page" && slug.current == $slug][0] { _id, title, "slug": slug.current, body, noIndex, seoTitle, seoDescription }`, { slug });
 }
 export async function getSiteSettings() {
-  return client.fetch(`*[_type == "siteSettings"][0] { siteName, tagline, siteDescription, contactEmail, youtubeChannel, socialLinks, announcementBar, logo, footerLogo, footerText, newsletterHeadline, newsletterSubtext, heroImage, heroPortrait, bookPromoImage, trailerYoutubeUrl }`);
+  return client.fetch(`*[_type == "siteSettings"][0] { siteName, tagline, siteDescription, contactEmail, youtubeChannel, socialLinks, announcementBar, logo, footerLogo, footerText, newsletterHeadline, newsletterSubtext, heroImage, heroPortrait, bookPromoImage, trailerYoutubeUrl, storeOpenDate }`);
 }
 export async function getAllBooks() {
   return client.fetch(`*[_type == "book"] | order(seriesOrder asc) { _id, title, "slug": slug.current, description, coverImage, orderUrl, seriesOrder, ageRange, pageCount, isbn, publishedAt, seoTitle, seoDescription }`);

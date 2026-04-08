@@ -17,6 +17,7 @@ export default {
     { name: 'heroPortrait', title: 'Hero Portrait Image', type: 'image', options: { hotspot: true }, description: 'Character portrait overlay on the hero (optional)' },
     { name: 'bookPromoImage', title: 'Book Promo Image', type: 'image', options: { hotspot: true }, description: 'Book series promo image shown on the homepage' },
     { name: 'trailerYoutubeUrl', title: 'Trailer YouTube URL', type: 'url', description: 'YouTube URL for the homepage trailer CTA' },
+    { name: 'storeOpenDate', title: 'Store Open Date', type: 'datetime', description: 'Countdown target date for the merch store launch' },
   ],
   __experimental_actions: ['update', 'publish'],
 };
