@@ -30,10 +30,8 @@ const characters = allChars.slice(0, 4);
                   {char.portrait ? (
                     <img
                       class="char-card__portrait-img"
-                      src={urlFor(char.portrait).width(300).height(300).format('webp').url()}
+                      src={urlFor(char.portrait).width(400).format('webp').url()}
                       alt={char.name}
-                      width="300"
-                      height="300"
                     />
                   ) : (
                     <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" class="char-card__portrait-icon">
@@ -203,8 +201,8 @@ const characters = allChars.slice(0, 4);
   }
 
   .char-card__portrait {
-    width: 200px;
-    height: 200px;
+    width: 260px;
+    height: 260px;
     border-radius: 50%;
     border: 3px solid var(--color-yellow);
     background: var(--color-teal);
@@ -224,6 +222,7 @@ const characters = allChars.slice(0, 4);
     width: 100%;
     height: 100%;
     object-fit: cover;
+    object-position: center 20%;
     border-radius: 50%;
   }
 
@@ -348,8 +347,8 @@ const characters = allChars.slice(0, 4);
     }
 
     .char-card__portrait {
-      width: 160px;
-      height: 160px;
+      width: 200px;
+      height: 200px;
     }
   }
 </style>
