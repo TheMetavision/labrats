@@ -1,0 +1,439 @@
+---
+import Layout from '../layouts/Layout.astro';
+import Navbar from '../components/Navbar.astro';
+import Footer from '../components/Footer.astro';
+
+const posts = [
+  {
+    category: 'Character Intel',
+    title: 'Nova: The Rat Who Hacked Her Own Brain',
+    excerpt: 'Before she was the team\'s intelligence officer, Nova was just another subject in Lab 7. Then she got curious about the implant they gave her. Then she started asking better questions than the scientists who built it.',
+    date: 'March 12, 2025',
+    slug: '#',
+  },
+  {
+    category: 'Mission Report',
+    title: 'Operation Cheese Heist: The Full Debrief',
+    excerpt: 'The plan was simple. It always is. Six minutes in and Bolt had already rewired the security system backwards, Rex had eaten the decoy, and Nova was explaining to Scrap why you can\'t just explode things that have other things inside them.',
+    date: 'February 28, 2025',
+    slug: '#',
+  },
+  {
+    category: 'Behind the Lab',
+    title: 'How Labrats Was Born: The Origin Story',
+    excerpt: 'Every great idea starts somewhere strange. Labrats started in a conversation about what would happen if the smartest beings in a laboratory weren\'t the scientists. The answer got complicated fast.',
+    date: 'January 15, 2025',
+    slug: '#',
+  },
+];
+---
+
+<Layout title="Rat Tales — Labrats" description="The Labrats blog. Lab dispatches, character intel, mission reports, and behind-the-scenes from The Rat Pack." canonical="/rat-tales">
+  <Navbar />
+  <main class="page">
+
+    <section class="page-hero">
+      <div class="container page-hero__content">
+        <span class="section-label">The Blog</span>
+        <h1 class="page-hero__title">Rat Tales</h1>
+        <p class="page-hero__subtitle">Intel from the lab. Dispatches from the front. Stories from the Rat Pack.</p>
+      </div>
+    </section>
+
+    <section class="posts-section">
+      <div class="container">
+        <div class="posts-grid">
+          {posts.map(post => (
+            <article class="post-card">
+              <a href={post.slug} class="post-card__img-wrap" aria-label={`Read ${post.title}`}>
+                <div class="post-card__img-placeholder">
+                  <svg class="post-card__icon" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                    <ellipse cx="32" cy="38" rx="16" ry="12" fill="currentColor" opacity="0.9"/>
+                    <circle cx="24" cy="26" r="6" fill="currentColor" opacity="0.7"/>
+                    <circle cx="40" cy="26" r="6" fill="currentColor" opacity="0.7"/>
+                    <circle cx="22" cy="24" r="2.5" fill="currentColor" opacity="0.5"/>
+                    <circle cx="42" cy="24" r="2.5" fill="currentColor" opacity="0.5"/>
+                    <path d="M16 30 Q12 20 14 14" stroke="currentColor" stroke-width="2" stroke-linecap="round" opacity="0.6" fill="none"/>
+                    <path d="M48 30 Q52 20 50 14" stroke="currentColor" stroke-width="2" stroke-linecap="round" opacity="0.6" fill="none"/>
+                    <ellipse cx="32" cy="50" rx="6" ry="2" fill="currentColor" opacity="0.3"/>
+                  </svg>
+                </div>
+                <div class="post-card__img-overlay"></div>
+              </a>
+              <div class="post-card__body">
+                <span class="post-card__category">{post.category}</span>
+                <h2 class="post-card__title">
+                  <a href={post.slug}>{post.title}</a>
+                </h2>
+                <p class="post-card__excerpt">{post.excerpt}</p>
+                <div class="post-card__footer">
+                  <a href={post.slug} class="post-card__read-more">Read More →</a>
+                  <time class="post-card__date">{post.date}</time>
+                </div>
+              </div>
+            </article>
+          ))}
+        </div>
+      </div>
+    </section>
+
+    <section class="blog-newsletter">
+      <div class="container blog-newsletter__inner">
+        <h2 class="blog-newsletter__title">Get Rat Tales Delivered</h2>
+        <p class="blog-newsletter__body">New dispatches straight to your inbox. No spam. Rat's honour.</p>
+        <form
+          class="blog-newsletter__form"
+          name="rat-tales-newsletter"
+          method="POST"
+          data-netlify="true"
+          netlify-honeypot="bot-field"
+        >
+          <input type="hidden" name="form-name" value="rat-tales-newsletter" />
+          <p hidden><label>Don't fill this out: <input name="bot-field" /></label></p>
+          <div class="blog-newsletter__input-wrap">
+            <input
+              type="email"
+              name="email"
+              placeholder="Enter your email address..."
+              class="blog-newsletter__input"
+              required
+              autocomplete="email"
+            />
+            <button type="submit" class="blog-newsletter__submit">Subscribe</button>
+          </div>
+          <p class="blog-newsletter__note">No spam, unsubscribe anytime. Rat's honour.</p>
+        </form>
+      </div>
+    </section>
+
+  </main>
+  <Footer />
+</Layout>
+
+<style>
+  .page {
+    padding-top: 80px;
+    background: var(--color-white);
+    min-height: 100vh;
+  }
+
+  .page-hero {
+    background: var(--color-black);
+    padding: 88px 0 80px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .page-hero::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(ellipse 60% 80% at 80% 50%, color-mix(in srgb, var(--color-teal) 8%, transparent), transparent);
+    pointer-events: none;
+  }
+
+  .page-hero__content {
+    position: relative;
+    z-index: 1;
+    max-width: 800px;
+  }
+
+  .page-hero .section-label {
+    color: var(--color-teal);
+  }
+
+  .page-hero__title {
+    font-family: var(--font-display);
+    font-size: clamp(72px, 12vw, 160px);
+    font-weight: 900;
+    color: var(--color-yellow);
+    line-height: 0.9;
+    letter-spacing: -1px;
+    text-transform: uppercase;
+    margin-bottom: 24px;
+  }
+
+  .page-hero__subtitle {
+    font-family: var(--font-heading);
+    font-size: clamp(16px, 2vw, 21px);
+    font-weight: 500;
+    color: var(--color-white);
+    max-width: 560px;
+    line-height: 1.5;
+  }
+
+  .posts-section {
+    padding: 80px 0 96px;
+    background: var(--color-white);
+  }
+
+  .posts-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 32px;
+  }
+
+  .post-card {
+    display: flex;
+    flex-direction: column;
+    border-radius: 12px;
+    overflow: hidden;
+    border: 1px solid color-mix(in srgb, var(--color-black) 10%, transparent);
+    background: var(--color-white);
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
+  }
+
+  .post-card:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 16px 40px color-mix(in srgb, var(--color-black) 14%, transparent);
+  }
+
+  .post-card__img-wrap {
+    position: relative;
+    display: block;
+    aspect-ratio: 16 / 9;
+    overflow: hidden;
+    background: var(--color-teal);
+  }
+
+  .post-card__img-placeholder {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, var(--color-teal) 0%, color-mix(in srgb, var(--color-teal) 70%, var(--color-black)) 100%);
+    transition: transform 0.4s ease;
+  }
+
+  .post-card:hover .post-card__img-placeholder {
+    transform: scale(1.04);
+  }
+
+  .post-card__icon {
+    width: 72px;
+    height: 72px;
+    color: var(--color-black);
+    opacity: 0.2;
+  }
+
+  .post-card__img-overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to bottom, transparent 50%, color-mix(in srgb, var(--color-black) 30%, transparent) 100%);
+  }
+
+  .post-card__body {
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    gap: 10px;
+  }
+
+  .post-card__category {
+    font-family: var(--font-heading);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--color-teal);
+  }
+
+  .post-card__title {
+    font-family: var(--font-heading);
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--color-black);
+    line-height: 1.25;
+  }
+
+  .post-card__title a {
+    color: var(--color-black);
+    transition: color 0.2s;
+  }
+
+  .post-card__title a:hover {
+    color: var(--color-teal);
+  }
+
+  .post-card__excerpt {
+    font-family: var(--font-body);
+    font-size: 14px;
+    line-height: 1.7;
+    color: color-mix(in srgb, var(--color-black) 65%, transparent);
+    flex: 1;
+  }
+
+  .post-card__footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 8px;
+    padding-top: 16px;
+    border-top: 1px solid color-mix(in srgb, var(--color-black) 8%, transparent);
+  }
+
+  .post-card__read-more {
+    font-family: var(--font-heading);
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    color: var(--color-teal);
+    text-transform: uppercase;
+    transition: letter-spacing 0.2s;
+  }
+
+  .post-card__read-more:hover {
+    letter-spacing: 2px;
+  }
+
+  .post-card__date {
+    font-family: var(--font-body);
+    font-size: 12px;
+    color: color-mix(in srgb, var(--color-black) 40%, transparent);
+  }
+
+  .blog-newsletter {
+    background: var(--color-teal);
+    padding: 96px 0;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .blog-newsletter::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.06'/%3E%3C/svg%3E");
+    background-size: 256px 256px;
+    pointer-events: none;
+  }
+
+  .blog-newsletter__inner {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    max-width: 640px;
+    margin: 0 auto;
+  }
+
+  .blog-newsletter__title {
+    font-family: var(--font-display);
+    font-size: clamp(36px, 5vw, 64px);
+    font-weight: 900;
+    color: var(--color-white);
+    text-transform: uppercase;
+    letter-spacing: -0.5px;
+    line-height: 1;
+    margin-bottom: 12px;
+  }
+
+  .blog-newsletter__body {
+    font-family: var(--font-body);
+    font-size: 17px;
+    color: var(--color-white);
+    line-height: 1.6;
+    margin-bottom: 36px;
+  }
+
+  .blog-newsletter__form {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+  }
+
+  .blog-newsletter__input-wrap {
+    display: flex;
+    width: 100%;
+    max-width: 520px;
+    border-radius: var(--radius);
+    overflow: hidden;
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-white) 30%, transparent);
+  }
+
+  .blog-newsletter__input {
+    flex: 1;
+    background: color-mix(in srgb, var(--color-white) 20%, transparent);
+    border: none;
+    padding: 16px 20px;
+    font-family: var(--font-body);
+    font-size: 15px;
+    color: var(--color-white);
+    outline: none;
+    transition: background 0.2s;
+  }
+
+  .blog-newsletter__input::placeholder {
+    color: color-mix(in srgb, var(--color-white) 70%, transparent);
+  }
+
+  .blog-newsletter__input:focus {
+    background: color-mix(in srgb, var(--color-white) 28%, transparent);
+  }
+
+  .blog-newsletter__submit {
+    flex-shrink: 0;
+    padding: 16px 28px;
+    white-space: nowrap;
+    background: var(--color-yellow);
+    color: var(--color-black);
+    font-family: var(--font-heading);
+    font-weight: 700;
+    font-size: 15px;
+    border: none;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+
+  .blog-newsletter__submit:hover {
+    background: color-mix(in srgb, var(--color-yellow) 85%, var(--color-white));
+  }
+
+  .blog-newsletter__note {
+    font-size: 13px;
+    color: color-mix(in srgb, var(--color-white) 75%, transparent);
+    font-style: italic;
+  }
+
+  @media (max-width: 960px) {
+    .posts-grid {
+      grid-template-columns: 1fr;
+      max-width: 560px;
+      margin: 0 auto;
+    }
+  }
+
+  @media (max-width: 600px) {
+    .posts-section {
+      padding: 56px 0 72px;
+    }
+
+    .blog-newsletter {
+      padding: 72px 0;
+    }
+
+    .blog-newsletter__input-wrap {
+      flex-direction: column;
+      border-radius: var(--radius-lg);
+      overflow: visible;
+      box-shadow: none;
+      gap: 8px;
+    }
+
+    .blog-newsletter__input {
+      border-radius: var(--radius);
+      box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-white) 30%, transparent);
+    }
+
+    .blog-newsletter__submit {
+      border-radius: var(--radius);
+      width: 100%;
+    }
+  }
+</style>

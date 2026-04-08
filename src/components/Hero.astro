@@ -1,0 +1,265 @@
+---
+---
+
+<section class="hero">
+  <div class="hero__media">
+    <div class="hero__cinematic-placeholder">
+      <div class="hero__grid-overlay"></div>
+      <div class="hero__scanlines"></div>
+      <div class="hero__particles" id="particles"></div>
+      <div class="hero__glow hero__glow--left"></div>
+      <div class="hero__glow hero__glow--right"></div>
+    </div>
+    <img
+      src="https://assets.zyrosite.com/cdn-cgi/image/format=auto,w=1024,h=1539,fit=crop/Aq2q3anW6qTLnbeK/4fcf55a6-c179-44e1-9d13-0da27ed83a70-mnlqDMNG58Ir1Lyo.png"
+      alt="Labrats characters"
+      class="hero__image"
+    />
+    <div class="hero__image-fade"></div>
+  </div>
+
+  <div class="container hero__content-wrap">
+    <div class="hero__content">
+      <span class="section-label">The Adventure Begins</span>
+      <h1 class="hero__title">
+        Welcome to<br />
+        <span class="hero__title-highlight">Labrats</span>
+        <span class="hero__title-sub">Where Genius Meets Mischief!</span>
+      </h1>
+      <p class="hero__body">
+        Step into the world of <strong>Labrats</strong> — an action-packed adventure bursting with daring escapes, wild inventions, and larger-than-life characters. A team of super-intelligent lab rats take on mad scientists, cybernetic threats, and epic missions in their fight for freedom.
+      </p>
+      <p class="hero__tagline">Genetically enhanced. Dangerously smart. Fighting for their freedom.</p>
+      <div class="hero__ctas">
+        <a href="https://www.youtube.com/shorts/YNnNwp2mrbA" class="hero__btn hero__btn--teal" target="_blank" rel="noopener">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
+            <path d="M3 2l10 6-10 6V2z"/>
+          </svg>
+          Watch Our Trailer
+        </a>
+        <a href="/media" class="hero__btn hero__btn--yellow-outline">Explore Books</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  .hero {
+    position: relative;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    overflow: hidden;
+    padding-top: 80px;
+  }
+
+  .hero__media {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+  }
+
+  .hero__cinematic-placeholder {
+    position: absolute;
+    inset: 0;
+    background: var(--color-black);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1;
+  }
+
+  .hero__grid-overlay {
+    position: absolute;
+    inset: 0;
+    background-image:
+      linear-gradient(color-mix(in srgb, var(--color-teal) 4%, transparent) 1px, transparent 1px),
+      linear-gradient(90deg, color-mix(in srgb, var(--color-teal) 4%, transparent) 1px, transparent 1px);
+    background-size: 64px 64px;
+    z-index: 1;
+  }
+
+  .hero__scanlines {
+    position: absolute;
+    inset: 0;
+    background: repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 2px,
+      color-mix(in srgb, var(--color-black) 15%, transparent) 2px,
+      color-mix(in srgb, var(--color-black) 15%, transparent) 4px
+    );
+    z-index: 2;
+    pointer-events: none;
+  }
+
+  .hero__particles {
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+  }
+
+  .hero__glow {
+    position: absolute;
+    width: 600px;
+    height: 600px;
+    border-radius: 50%;
+    filter: blur(120px);
+    opacity: 0.15;
+    z-index: 1;
+  }
+
+  .hero__glow--left {
+    background: var(--color-teal);
+    left: -200px;
+    bottom: -100px;
+    animation: glowPulse 6s ease-in-out infinite alternate;
+  }
+
+  .hero__glow--right {
+    background: var(--color-yellow);
+    right: -100px;
+    top: 0;
+    animation: glowPulse 8s ease-in-out infinite alternate-reverse;
+  }
+
+  @keyframes glowPulse {
+    from { opacity: 0.1; transform: scale(1); }
+    to { opacity: 0.2; transform: scale(1.1); }
+  }
+
+  .hero__image {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center top;
+    opacity: 0.3;
+    z-index: 0;
+  }
+
+  .hero__image-fade {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 40%;
+    background: linear-gradient(to top, var(--color-black) 0%, transparent 100%);
+    z-index: 2;
+    pointer-events: none;
+  }
+
+  .hero__content-wrap {
+    position: relative;
+    z-index: 10;
+    display: flex;
+    align-items: center;
+    min-height: calc(100vh - 80px);
+    padding-top: 64px;
+    padding-bottom: 80px;
+  }
+
+  .hero__content {
+    max-width: 640px;
+  }
+
+  .hero__title {
+    font-family: var(--font-display);
+    font-size: clamp(48px, 7vw, 96px);
+    font-weight: 400;
+    line-height: 1;
+    letter-spacing: 1px;
+    color: var(--color-white);
+    margin-bottom: 8px;
+  }
+
+  .hero__title-highlight {
+    display: block;
+    color: var(--color-yellow);
+    text-shadow: 0 0 40px color-mix(in srgb, var(--color-yellow) 40%, transparent);
+    font-size: clamp(64px, 11vw, 136px);
+    line-height: 0.9;
+  }
+
+  .hero__title-sub {
+    display: block;
+    font-size: clamp(28px, 4vw, 56px);
+    color: var(--color-white);
+    margin-top: 8px;
+  }
+
+  .hero__body {
+    font-size: 16px;
+    line-height: 1.7;
+    color: var(--color-white);
+    margin: 24px 0 20px;
+    max-width: 520px;
+  }
+
+  .hero__tagline {
+    font-family: var(--font-heading);
+    font-size: 18px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    color: var(--color-white);
+    margin-bottom: 32px;
+  }
+
+  .hero__ctas {
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+
+  .hero__btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    height: 48px;
+    padding: 0 28px;
+    font-family: var(--font-heading);
+    font-size: 15px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    border-radius: 8px;
+    transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+    white-space: nowrap;
+  }
+
+  .hero__btn--teal {
+    background: var(--color-teal);
+    color: var(--color-black);
+    border: 2px solid var(--color-teal);
+  }
+
+  .hero__btn--teal:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px color-mix(in srgb, var(--color-teal) 40%, transparent);
+    background: color-mix(in srgb, var(--color-teal) 85%, var(--color-white));
+  }
+
+  .hero__btn--yellow-outline {
+    background: transparent;
+    color: var(--color-yellow);
+    border: 2px solid var(--color-yellow);
+  }
+
+  .hero__btn--yellow-outline:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px color-mix(in srgb, var(--color-yellow) 30%, transparent);
+    background: color-mix(in srgb, var(--color-yellow) 10%, transparent);
+  }
+
+  @media (max-width: 768px) {
+    .hero__content-wrap {
+      align-items: flex-end;
+      padding-bottom: 64px;
+    }
+
+    .hero__image {
+      opacity: 0.2;
+    }
+  }
+</style>

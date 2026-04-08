@@ -1,0 +1,132 @@
+---
+import Layout from '../layouts/Layout.astro';
+import Navbar from '../components/Navbar.astro';
+import Footer from '../components/Footer.astro';
+---
+
+<Layout title="Privacy Policy — Labrats" description="Privacy Policy for Labrats by The Metavision." canonical="/privacy">
+  <Navbar />
+  <main class="page">
+
+    <section class="page-hero">
+      <div class="container page-hero__content">
+        <h1 class="page-hero__title">Privacy Policy</h1>
+        <p class="page-hero__meta">Last updated: April 2026</p>
+      </div>
+    </section>
+
+    <section class="legal-content">
+      <div class="container">
+        <div class="legal-body">
+
+          <p class="legal-notice">This Privacy Policy is currently being updated to reflect our latest data practices and to ensure full compliance with applicable privacy regulations. Please check back shortly for the complete policy.</p>
+
+          <h2>What We Collect</h2>
+          <p>We may collect personal information you provide to us directly, such as your name and email address when you sign up to our newsletter or contact us. We also collect certain technical data automatically when you visit our website, including your IP address, browser type, and pages visited.</p>
+
+          <h2>How We Use Your Information</h2>
+          <p>Information you provide is used solely to communicate with you about Labrats, The Metavision's products, and related updates. We do not sell, rent, or share your personal data with third parties for marketing purposes.</p>
+
+          <h2>Data Retention</h2>
+          <p>We retain your personal information only for as long as is necessary to fulfil the purposes for which it was collected, or as required by applicable law.</p>
+
+          <h2>Your Rights</h2>
+          <p>You have the right to access, correct, or request deletion of your personal data at any time. To exercise any of these rights, please contact us using the details below.</p>
+
+          <h2>Cookies</h2>
+          <p>Our website may use cookies to improve your browsing experience. You can disable cookies in your browser settings at any time, though this may affect the functionality of certain features.</p>
+
+          <h2>Contact Us</h2>
+          <p>For queries about this Privacy Policy or how we handle your data, please contact us at <a href="mailto:squeak@labrats.uk" class="legal-link">squeak@labrats.uk</a>.</p>
+
+        </div>
+      </div>
+    </section>
+
+  </main>
+  <Footer />
+</Layout>
+
+<style>
+  .page {
+    padding-top: 80px;
+    background: var(--color-white);
+    min-height: 100vh;
+  }
+
+  .page-hero {
+    padding: 64px 0 48px;
+    background: var(--color-white);
+    border-bottom: 2px solid var(--color-teal);
+  }
+
+  .page-hero__content {
+    max-width: 760px;
+  }
+
+  .page-hero__title {
+    font-family: var(--font-display);
+    font-size: clamp(40px, 5vw, 72px);
+    color: var(--color-black);
+    line-height: 1;
+    margin-bottom: 12px;
+  }
+
+  .page-hero__meta {
+    font-family: var(--font-heading);
+    font-size: 14px;
+    font-weight: 600;
+    letter-spacing: 1px;
+    color: color-mix(in srgb, var(--color-black) 50%, transparent);
+    text-transform: uppercase;
+  }
+
+  .legal-content {
+    padding: 64px 0 120px;
+    background: var(--color-white);
+  }
+
+  .legal-body {
+    max-width: 760px;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+  }
+
+  .legal-notice {
+    background: color-mix(in srgb, var(--color-teal) 10%, var(--color-white));
+    border-left: 4px solid var(--color-teal);
+    padding: 16px 20px;
+    border-radius: 0 var(--radius) var(--radius) 0;
+    font-size: 15px;
+    line-height: 1.65;
+    color: var(--color-black);
+    font-style: italic;
+  }
+
+  .legal-body h2 {
+    font-family: var(--font-heading);
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--color-black);
+    margin-top: 8px;
+    margin-bottom: 0;
+  }
+
+  .legal-body p {
+    font-size: 16px;
+    line-height: 1.75;
+    color: var(--color-black);
+    margin: 0;
+  }
+
+  .legal-link {
+    color: var(--color-teal);
+    font-weight: 600;
+    transition: color 0.2s;
+  }
+
+  .legal-link:hover {
+    color: var(--color-black);
+  }
+</style>

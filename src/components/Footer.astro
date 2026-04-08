@@ -1,0 +1,253 @@
+---
+const currentYear = new Date().getFullYear();
+
+const exploreLinks = [
+  { label: 'Home', href: '/' },
+  { label: 'Media', href: '/media' },
+  { label: 'Merch', href: '/merch' },
+  { label: 'Rat Tales', href: '/rat-tales' },
+  { label: 'Meet The Rat Pack', href: '/meet-the-rat-pack' },
+  { label: 'Contact', href: '/contact' },
+];
+
+const legalLinks = [
+  { label: 'Privacy Policy', href: '/privacy' },
+  { label: 'Terms of Use', href: '/terms' },
+];
+
+const socials = [
+  {
+    label: 'Facebook',
+    href: 'https://www.facebook.com/Labratsmm/',
+    svg: `<svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg>`,
+  },
+  {
+    label: 'YouTube',
+    href: 'https://www.youtube.com/@LabratsUK',
+    svg: `<svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>`,
+  },
+  {
+    label: 'TikTok',
+    href: 'https://www.tiktok.com/@labrats.uk',
+    svg: `<svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-2.88 2.5 2.89 2.89 0 0 1-2.89-2.89 2.89 2.89 0 0 1 2.89-2.89c.28 0 .54.04.79.1V9.01a6.27 6.27 0 0 0-.79-.05 6.34 6.34 0 0 0-6.34 6.34 6.34 6.34 0 0 0 6.34 6.34 6.34 6.34 0 0 0 6.33-6.34V8.69a8.18 8.18 0 0 0 4.78 1.52V6.75a4.85 4.85 0 0 1-1.01-.06z"/></svg>`,
+  },
+  {
+    label: 'Instagram',
+    href: 'https://www.instagram.com/labrats2025',
+    svg: `<svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 1 0 0 12.324 6.162 6.162 0 0 0 0-12.324zM12 16a4 4 0 1 1 0-8 4 4 0 0 1 0 8zm6.406-11.845a1.44 1.44 0 1 0 0 2.881 1.44 1.44 0 0 0 0-2.881z"/></svg>`,
+  },
+];
+---
+
+<footer class="footer">
+  <div class="footer__top-border"></div>
+  <div class="container footer__inner">
+    <div class="footer__brand">
+      <a href="/" class="footer__logo" aria-label="Labrats Home">
+        <img
+          src="https://assets.zyrosite.com/cdn-cgi/image/format=auto,w=1440,h=756,fit=crop,f=jpeg/Aq2q3anW6qTLnbeK/labrats-landscape-jul25-YZ9jxZw971UBgjew.png"
+          alt="Labrats logo"
+          class="footer__logo-img"
+        />
+      </a>
+      <p class="footer__tagline">
+        Join the rebellion.<br />Unleash the mischief.
+      </p>
+    </div>
+
+    <nav class="footer__nav" aria-label="Explore navigation">
+      <h3 class="footer__nav-title">Explore</h3>
+      <ul class="footer__links">
+        {exploreLinks.map(link => (
+          <li>
+            <a href={link.href} class="footer__link">{link.label}</a>
+          </li>
+        ))}
+      </ul>
+    </nav>
+
+    <nav class="footer__nav" aria-label="Legal navigation">
+      <h3 class="footer__nav-title">Legal</h3>
+      <ul class="footer__links">
+        {legalLinks.map(link => (
+          <li>
+            <a href={link.href} class="footer__link">{link.label}</a>
+          </li>
+        ))}
+      </ul>
+    </nav>
+
+    <div class="footer__connect">
+      <h3 class="footer__nav-title">Connect</h3>
+      <div class="footer__social-row">
+        {socials.map(s => (
+          <a
+            href={s.href}
+            class="footer__social-icon"
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label={s.label}
+            set:html={s.svg}
+          />
+        ))}
+      </div>
+    </div>
+  </div>
+
+  <div class="footer__bottom">
+    <div class="container footer__bottom-inner">
+      <p class="footer__copy">&copy; Labrats 2026. Part of <a href="https://www.themetavision.co.uk" target="_blank" rel="noopener noreferrer" class="footer__copy-link">The Metavision IP Universe</a>. All rights reserved.</p>
+    </div>
+  </div>
+</footer>
+
+<style>
+  .footer {
+    background: var(--color-black);
+  }
+
+  .footer__top-border {
+    height: 3px;
+    background: linear-gradient(90deg, var(--color-teal), var(--color-yellow), var(--color-teal));
+  }
+
+  .footer__inner {
+    display: grid;
+    grid-template-columns: 1fr auto auto auto;
+    gap: 64px;
+    padding-top: 60px;
+    padding-bottom: 72px;
+  }
+
+  .footer__brand {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .footer__logo-img {
+    height: 80px;
+    width: auto;
+    border-radius: 6px;
+    transition: opacity 0.2s;
+  }
+
+  .footer__logo-img:hover {
+    opacity: 0.85;
+  }
+
+  .footer__tagline {
+    font-size: 15px;
+    line-height: 1.6;
+    color: var(--color-white);
+    font-style: italic;
+  }
+
+  .footer__nav-title {
+    font-family: var(--font-heading);
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--color-yellow);
+    margin-bottom: 16px;
+  }
+
+  .footer__links {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .footer__link {
+    font-family: var(--font-heading);
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--color-white);
+    transition: color 0.2s;
+    letter-spacing: 0.5px;
+  }
+
+  .footer__link:hover {
+    color: var(--color-yellow);
+  }
+
+  .footer__connect {
+    min-width: 120px;
+  }
+
+  .footer__social-row {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+
+  .footer__social-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--color-teal);
+    transition: color 0.2s ease, transform 0.2s ease;
+  }
+
+  .footer__social-icon:hover {
+    color: var(--color-yellow);
+    transform: translateY(-2px);
+  }
+
+  .footer__bottom {
+    border-top: 1px solid var(--color-border);
+    padding: 20px 0;
+  }
+
+  .footer__bottom-inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .footer__copy {
+    font-size: 13px;
+    color: var(--color-white);
+  }
+
+  .footer__copy-link {
+    color: var(--color-black);
+    background: var(--color-yellow);
+    padding: 1px 6px;
+    border-radius: 3px;
+    text-decoration: none;
+    font-weight: 700;
+    transition: background var(--transition), color var(--transition);
+  }
+
+  .footer__copy-link:hover {
+    background: var(--color-teal);
+    color: var(--color-black);
+  }
+
+  @media (max-width: 768px) {
+    .footer__inner {
+      padding-top: 40px;
+    }
+  }
+
+  @media (max-width: 900px) {
+    .footer__inner {
+      grid-template-columns: 1fr 1fr;
+      gap: 40px;
+    }
+
+    .footer__brand {
+      grid-column: 1 / -1;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .footer__inner {
+      grid-template-columns: 1fr;
+      gap: 32px;
+    }
+  }
+</style>

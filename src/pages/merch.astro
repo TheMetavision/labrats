@@ -1,0 +1,448 @@
+---
+import Layout from '../layouts/Layout.astro';
+import Navbar from '../components/Navbar.astro';
+import Footer from '../components/Footer.astro';
+
+const products = [
+  {
+    name: 'Rat Pack Hoodie',
+    price: 'From £34',
+    image: 'https://images.pexels.com/photos/7691168/pexels-photo-7691168.jpeg?auto=compress&cs=tinysrgb&w=600&h=600&fit=crop',
+    alt: 'Labrats hoodie',
+  },
+  {
+    name: 'Escape Artist Tee',
+    price: 'From £22',
+    image: 'https://images.pexels.com/photos/5632395/pexels-photo-5632395.jpeg?auto=compress&cs=tinysrgb&w=600&h=600&fit=crop',
+    alt: 'Labrats t-shirt',
+  },
+  {
+    name: 'Lab Access Cap',
+    price: 'From £18',
+    image: 'https://images.pexels.com/photos/1878821/pexels-photo-1878821.jpeg?auto=compress&cs=tinysrgb&w=600&h=600&fit=crop',
+    alt: 'Labrats cap',
+  },
+  {
+    name: 'Rebel Rat Tote',
+    price: 'From £14',
+    image: 'https://images.pexels.com/photos/5632371/pexels-photo-5632371.jpeg?auto=compress&cs=tinysrgb&w=600&h=600&fit=crop',
+    alt: 'Labrats tote bag',
+  },
+  {
+    name: 'Lab Rat Snapback',
+    price: 'From £20',
+    image: null,
+    alt: 'Lab Rat Snapback cap',
+  },
+  {
+    name: 'Rebel Rat Poster Print',
+    price: 'From £12',
+    image: null,
+    alt: 'Rebel Rat Poster Print',
+  },
+  {
+    name: 'Rat Pack Enamel Pin Set',
+    price: 'From £8',
+    image: null,
+    alt: 'Rat Pack Enamel Pin Set',
+  },
+  {
+    name: 'Labrats Notebook',
+    price: 'From £10',
+    image: null,
+    alt: 'Labrats Notebook',
+  },
+];
+---
+
+<Layout title="Merch — Labrats" description="Official Labrats merchandise. Hoodies, tees, caps, totes and more. Wear your rebellion." canonical="/merch">
+  <Navbar />
+  <main class="page">
+
+    <section class="page-hero">
+      <div class="container page-hero__content">
+        <span class="page-hero__label">Official Merch</span>
+        <h1 class="page-hero__title">Gear Up, Rebel</h1>
+        <p class="page-hero__subtitle">Official Labrats merchandise. Wear your rebellion.</p>
+      </div>
+    </section>
+
+    <section class="products-section">
+      <div class="container">
+        <div class="products-grid">
+          {products.map(product => (
+            <article class="product-card">
+              <div class="product-card__img-wrap">
+                {product.image ? (
+                  <img
+                    src={product.image}
+                    alt={product.alt}
+                    class="product-card__img"
+                    loading="lazy"
+                  />
+                ) : (
+                  <div class="product-card__placeholder">
+                    <span class="product-card__placeholder-label">Coming Soon</span>
+                  </div>
+                )}
+                <div class="product-card__overlay">
+                  <span class="product-card__quick-view">Quick View</span>
+                </div>
+              </div>
+              <div class="product-card__body">
+                <p class="product-card__name">{product.name}</p>
+                <p class="product-card__price">{product.price}</p>
+                <button class="product-card__wishlist" type="button">Add to Wishlist</button>
+              </div>
+            </article>
+          ))}
+        </div>
+      </div>
+    </section>
+
+    <section class="coming-soon">
+      <div class="coming-soon__inner">
+        <p class="coming-soon__text">
+          Full store launching soon.&nbsp;
+          <span class="coming-soon__highlight">Join the newsletter to be first in line.</span>
+        </p>
+        <form
+          class="coming-soon__form"
+          name="merch-waitlist"
+          method="POST"
+          data-netlify="true"
+          netlify-honeypot="bot-field"
+        >
+          <input type="hidden" name="form-name" value="merch-waitlist" />
+          <p hidden><label>Don't fill this out: <input name="bot-field" /></label></p>
+          <div class="coming-soon__input-wrap">
+            <input
+              type="email"
+              name="email"
+              placeholder="Enter your email address..."
+              class="coming-soon__input"
+              required
+              autocomplete="email"
+            />
+            <button type="submit" class="coming-soon__submit">Subscribe</button>
+          </div>
+        </form>
+      </div>
+    </section>
+
+  </main>
+  <Footer />
+</Layout>
+
+<style>
+  .page {
+    padding-top: 80px;
+    background: var(--color-white);
+    min-height: 100vh;
+  }
+
+  .page-hero {
+    background: var(--color-black);
+    padding: 88px 0 72px;
+  }
+
+  .page-hero__content {
+    max-width: 700px;
+  }
+
+  .page-hero__label {
+    display: inline-block;
+    font-family: var(--font-heading);
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--color-teal);
+    margin-bottom: 12px;
+  }
+
+  .page-hero__title {
+    font-family: var(--font-display);
+    font-size: clamp(44px, 7vw, 96px);
+    font-weight: 900;
+    color: var(--color-yellow);
+    line-height: 1;
+    text-transform: uppercase;
+    margin-bottom: 16px;
+  }
+
+  .page-hero__subtitle {
+    font-family: var(--font-heading);
+    font-size: clamp(16px, 2vw, 21px);
+    font-weight: 600;
+    color: var(--color-white);
+    opacity: 0.8;
+  }
+
+  .products-section {
+    padding: 72px 0 96px;
+    background: var(--color-white);
+  }
+
+  .products-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 24px;
+  }
+
+  .product-card {
+    display: flex;
+    flex-direction: column;
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
+  }
+
+  .product-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 32px color-mix(in srgb, var(--color-black) 12%, transparent);
+  }
+
+  .product-card__img-wrap {
+    position: relative;
+    aspect-ratio: 1 / 1;
+    overflow: hidden;
+    border: 2px solid var(--color-teal);
+    border-radius: 12px;
+  }
+
+  .product-card__img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    transition: transform 0.4s ease;
+  }
+
+  .product-card:hover .product-card__img {
+    transform: scale(1.06);
+  }
+
+  .product-card__placeholder {
+    width: 100%;
+    height: 100%;
+    background: color-mix(in srgb, var(--color-teal) 8%, var(--color-white));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+  }
+
+  .product-card__placeholder::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image:
+      linear-gradient(color-mix(in srgb, var(--color-teal) 10%, transparent) 1px, transparent 1px),
+      linear-gradient(90deg, color-mix(in srgb, var(--color-teal) 10%, transparent) 1px, transparent 1px);
+    background-size: 28px 28px;
+  }
+
+  .product-card__placeholder-label {
+    position: relative;
+    z-index: 1;
+    font-family: var(--font-heading);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 2.5px;
+    text-transform: uppercase;
+    color: color-mix(in srgb, var(--color-teal) 60%, transparent);
+  }
+
+  .product-card__overlay {
+    position: absolute;
+    inset: 0;
+    background: color-mix(in srgb, var(--color-black) 50%, transparent);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity 0.25s ease;
+    border-radius: 10px;
+  }
+
+  .product-card:hover .product-card__overlay {
+    opacity: 1;
+  }
+
+  .product-card__quick-view {
+    font-family: var(--font-heading);
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--color-yellow);
+    border: 2px solid var(--color-yellow);
+    padding: 10px 18px;
+    border-radius: var(--radius);
+  }
+
+  .product-card__body {
+    padding: 14px 4px 0;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .product-card__name {
+    font-family: var(--font-heading);
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--color-black);
+    letter-spacing: 0.3px;
+  }
+
+  .product-card__price {
+    font-family: var(--font-heading);
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--color-teal);
+  }
+
+  .product-card__wishlist {
+    margin-top: 8px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    height: 36px;
+    padding: 0 16px;
+    font-family: var(--font-heading);
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--color-teal);
+    background: transparent;
+    border: 2px solid var(--color-teal);
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background 0.2s ease, color 0.2s ease;
+    width: 100%;
+  }
+
+  .product-card__wishlist:hover {
+    background: var(--color-teal);
+    color: var(--color-black);
+  }
+
+  .coming-soon {
+    background: var(--color-black);
+    padding: 64px 24px;
+    display: flex;
+    justify-content: center;
+  }
+
+  .coming-soon__inner {
+    max-width: 600px;
+    width: 100%;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 28px;
+  }
+
+  .coming-soon__text {
+    font-family: var(--font-heading);
+    font-size: clamp(16px, 2vw, 20px);
+    font-weight: 600;
+    color: var(--color-white);
+    line-height: 1.5;
+  }
+
+  .coming-soon__highlight {
+    color: var(--color-yellow);
+  }
+
+  .coming-soon__form {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0;
+  }
+
+  .coming-soon__input-wrap {
+    display: flex;
+    width: 100%;
+    max-width: 520px;
+    border-radius: var(--radius);
+    overflow: hidden;
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-teal) 40%, transparent);
+  }
+
+  .coming-soon__input {
+    flex: 1;
+    background: color-mix(in srgb, var(--color-white) 8%, var(--color-black));
+    border: none;
+    padding: 16px 20px;
+    font-family: var(--font-body);
+    font-size: 15px;
+    color: var(--color-white);
+    outline: none;
+    transition: background 0.2s;
+  }
+
+  .coming-soon__input::placeholder {
+    color: color-mix(in srgb, var(--color-white) 50%, transparent);
+  }
+
+  .coming-soon__input:focus {
+    background: color-mix(in srgb, var(--color-white) 12%, var(--color-black));
+  }
+
+  .coming-soon__submit {
+    flex-shrink: 0;
+    padding: 16px 28px;
+    white-space: nowrap;
+    background: var(--color-teal);
+    color: var(--color-black);
+    font-family: var(--font-heading);
+    font-weight: 700;
+    font-size: 15px;
+    border: none;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+
+  .coming-soon__submit:hover {
+    background: color-mix(in srgb, var(--color-teal) 80%, var(--color-white));
+  }
+
+  @media (max-width: 1024px) {
+    .products-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+
+  @media (max-width: 600px) {
+    .products-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .products-section {
+      padding: 48px 0 64px;
+    }
+
+    .coming-soon__input-wrap {
+      flex-direction: column;
+      border-radius: var(--radius-lg);
+      overflow: visible;
+      box-shadow: none;
+      gap: 8px;
+    }
+
+    .coming-soon__input {
+      border-radius: var(--radius);
+      box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-teal) 40%, transparent);
+    }
+
+    .coming-soon__submit {
+      border-radius: var(--radius);
+      width: 100%;
+    }
+  }
+</style>

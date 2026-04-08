@@ -1,0 +1,263 @@
+---
+const products = [
+  {
+    name: 'Rat Pack Hoodie',
+    price: 'From £34',
+    image: 'https://images.pexels.com/photos/7691168/pexels-photo-7691168.jpeg?auto=compress&cs=tinysrgb&w=600&h=600&fit=crop',
+    alt: 'Labrats hoodie',
+  },
+  {
+    name: 'Escape Artist Tee',
+    price: 'From £22',
+    image: 'https://images.pexels.com/photos/5632395/pexels-photo-5632395.jpeg?auto=compress&cs=tinysrgb&w=600&h=600&fit=crop',
+    alt: 'Labrats t-shirt',
+  },
+  {
+    name: 'Lab Access Cap',
+    price: 'From £18',
+    image: 'https://images.pexels.com/photos/1878821/pexels-photo-1878821.jpeg?auto=compress&cs=tinysrgb&w=600&h=600&fit=crop',
+    alt: 'Labrats cap',
+  },
+  {
+    name: 'Rebel Rat Tote',
+    price: 'From £14',
+    image: 'https://images.pexels.com/photos/5632371/pexels-photo-5632371.jpeg?auto=compress&cs=tinysrgb&w=600&h=600&fit=crop',
+    alt: 'Labrats tote bag',
+  },
+];
+---
+
+<section class="merch" id="merch">
+  <div class="merch__noise"></div>
+  <div class="container">
+    <div class="merch__header">
+      <span class="merch__label">Official Merch</span>
+      <h2 class="merch__heading">Gear Up, Rebel</h2>
+      <p class="merch__sub">Official Labrats merchandise — wear your rebellion.</p>
+    </div>
+
+    <div class="merch__grid">
+      {products.map((product) => (
+        <div class="merch__card">
+          <div class="merch__img-wrap">
+            <img
+              src={product.image}
+              alt={product.alt}
+              class="merch__img"
+              loading="lazy"
+            />
+            <div class="merch__img-overlay">
+              <span class="merch__quick-view">Quick View</span>
+            </div>
+          </div>
+          <div class="merch__card-body">
+            <p class="merch__product-name">{product.name}</p>
+            <p class="merch__price">{product.price}</p>
+          </div>
+        </div>
+      ))}
+    </div>
+
+    <div class="merch__cta-wrap">
+      <a href="#" class="merch__cta-btn">Shop The Collection</a>
+    </div>
+  </div>
+</section>
+
+<style>
+  .merch {
+    position: relative;
+    background: var(--color-yellow);
+    padding: 120px 0;
+    overflow: hidden;
+  }
+
+  .merch__noise {
+    position: absolute;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+    background-size: 256px 256px;
+    pointer-events: none;
+    z-index: 0;
+    opacity: 0.5;
+  }
+
+  .container {
+    position: relative;
+    z-index: 1;
+  }
+
+  .merch__header {
+    text-align: center;
+    margin-bottom: 64px;
+  }
+
+  .merch__label {
+    display: inline-block;
+    font-family: var(--font-heading);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--color-black);
+    background: color-mix(in srgb, var(--color-black) 12%, transparent);
+    padding: 6px 16px;
+    border-radius: 100px;
+    margin-bottom: 20px;
+  }
+
+  .merch__heading {
+    font-family: var(--font-display);
+    font-size: clamp(48px, 7vw, 88px);
+    font-weight: 900;
+    color: var(--color-black);
+    line-height: 1;
+    letter-spacing: -1px;
+    margin-bottom: 16px;
+    text-transform: uppercase;
+  }
+
+  .merch__sub {
+    font-size: clamp(15px, 2vw, 18px);
+    color: color-mix(in srgb, var(--color-black) 70%, transparent);
+    font-weight: 500;
+  }
+
+  .merch__grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 24px;
+    max-width: 800px;
+    margin: 0 auto;
+  }
+
+  .merch__card {
+    background: var(--color-white);
+    border-radius: 8px;
+    overflow: hidden;
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
+  }
+
+  .merch__card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 16px 40px color-mix(in srgb, var(--color-black) 20%, transparent);
+  }
+
+  .merch__img-wrap {
+    position: relative;
+    aspect-ratio: 1 / 1;
+    overflow: hidden;
+    border: 3px solid var(--color-teal);
+    border-radius: 8px 8px 0 0;
+  }
+
+  .merch__img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    transition: transform 0.4s ease;
+  }
+
+  .merch__card:hover .merch__img {
+    transform: scale(1.06);
+  }
+
+  .merch__img-overlay {
+    position: absolute;
+    inset: 0;
+    background: color-mix(in srgb, var(--color-black) 50%, transparent);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity 0.25s ease;
+  }
+
+  .merch__card:hover .merch__img-overlay {
+    opacity: 1;
+  }
+
+  .merch__quick-view {
+    font-family: var(--font-heading);
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--color-yellow);
+    border: 2px solid var(--color-yellow);
+    padding: 10px 20px;
+    border-radius: var(--radius);
+  }
+
+  .merch__card-body {
+    padding: 16px 20px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+  }
+
+  .merch__product-name {
+    font-family: var(--font-heading);
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--color-black);
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+  }
+
+  .merch__price {
+    font-family: var(--font-heading);
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--color-teal);
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  .merch__cta-wrap {
+    text-align: center;
+    margin-top: 56px;
+  }
+
+  .merch__cta-btn {
+    display: inline-flex;
+    align-items: center;
+    font-family: var(--font-heading);
+    font-size: 16px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--color-yellow);
+    background: var(--color-black);
+    padding: 18px 48px;
+    border-radius: var(--radius);
+    border: 3px solid var(--color-black);
+    transition: background 0.2s, color 0.2s, transform 0.2s, box-shadow 0.2s;
+    text-decoration: none;
+  }
+
+  .merch__cta-btn:hover {
+    background: var(--color-yellow);
+    color: var(--color-black);
+    border-color: var(--color-yellow);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px color-mix(in srgb, var(--color-yellow) 30%, transparent);
+  }
+
+  @media (max-width: 600px) {
+    .merch {
+      padding: 80px 0;
+    }
+
+    .merch__grid {
+      grid-template-columns: 1fr;
+      max-width: 400px;
+    }
+
+    .merch__header {
+      margin-bottom: 48px;
+    }
+  }
+</style>

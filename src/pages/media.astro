@@ -1,0 +1,485 @@
+---
+import Layout from '../layouts/Layout.astro';
+import Navbar from '../components/Navbar.astro';
+import Footer from '../components/Footer.astro';
+
+const books = [
+  {
+    title: 'Labrats: Escape from Lab Zero',
+    description: 'The Rat Pack make their first daring break for freedom, outwitting every trap the scientists have laid. When the alarms sound, the real adventure begins.',
+    order: '#',
+  },
+  {
+    title: 'Labrats: The Cybernetic Conspiracy',
+    description: "A shadowy organisation is upgrading ordinary rodents into cybernetic soldiers — and the Rat Pack are next on their list. Can they expose the plot before it's too late?",
+    order: '#',
+  },
+  {
+    title: 'Labrats: Operation Cheese Heist',
+    description: 'A mission to steal back their confiscated supplies turns into a full-scale war against the most heavily fortified facility known to ratdom. Classic overcomplicated Rat Pack chaos.',
+    order: '#',
+  },
+  {
+    title: 'Labrats: Rise of the Mad Scientist',
+    description: 'Dr Vortek has built a machine that could rewrite every living genome on Earth — and the Rat Pack are the only ones who know it. STEM skills and sharp claws required.',
+    order: '#',
+  },
+];
+
+const videos = [
+  {
+    title: 'Labrats: Origin Story',
+    description: 'How four ordinary lab rats became the most dangerous team in science.',
+    href: 'https://www.youtube.com/shorts/YNnNwp2mrbA',
+  },
+  {
+    title: 'Meet Nova — Hacker & Intelligence Officer',
+    description: "She's already three steps inside your network.",
+    href: 'https://www.youtube.com/shorts/YNnNwp2mrbA',
+  },
+  {
+    title: 'The Great Cheese Heist — Episode Trailer',
+    description: 'The mission. The chaos. The cheese.',
+    href: 'https://www.youtube.com/shorts/YNnNwp2mrbA',
+  },
+];
+---
+
+<Layout title="Media — Labrats" description="Books, animated series, and YouTube character content from the world of Labrats. Explore the full Labrats media universe." canonical="/media">
+  <Navbar />
+  <main class="page">
+
+    <section class="page-hero">
+      <div class="page-hero__bg"></div>
+      <div class="container page-hero__content">
+        <span class="page-hero__label">Explore The World</span>
+        <h1 class="page-hero__title">The Labrats Universe</h1>
+        <p class="page-hero__subtitle">Books. Animation. Every format. One rebellion.</p>
+      </div>
+    </section>
+
+    <section class="books-section">
+      <div class="container">
+        <div class="section-header">
+          <span class="section-label">Book Series</span>
+          <h2 class="section-title">The Labrats Book Series</h2>
+          <p class="section-subtitle">Adventure, science, and rebellion — one page at a time.</p>
+        </div>
+        <div class="books-grid">
+          {books.map((book, i) => (
+            <article class="book-card">
+              <div class="book-card__cover">
+                <div class="book-card__cover-inner">
+                  <span class="book-card__number">0{i + 1}</span>
+                  <span class="book-card__cover-label">Labrats</span>
+                </div>
+              </div>
+              <div class="book-card__body">
+                <h3 class="book-card__title">{book.title}</h3>
+                <p class="book-card__desc">{book.description}</p>
+                <a href={book.order} class="book-card__btn">Order Now</a>
+              </div>
+            </article>
+          ))}
+        </div>
+      </div>
+    </section>
+
+    <div class="section-divider"></div>
+
+    <section class="animation-section">
+      <div class="container">
+        <div class="section-header section-header--dark">
+          <span class="section-label">Animated Series</span>
+          <h2 class="section-title section-title--yellow">Watch the Labrats</h2>
+          <p class="section-subtitle section-subtitle--light">Episodes, character shorts, and origin stories — straight from the lab.</p>
+        </div>
+        <div class="video-grid">
+          {videos.map(video => (
+            <article class="video-card">
+              <div class="video-card__thumb">
+                <div class="video-card__play">
+                  <svg width="32" height="32" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                    <path d="M8 5v14l11-7z"/>
+                  </svg>
+                </div>
+              </div>
+              <div class="video-card__body">
+                <h3 class="video-card__title">{video.title}</h3>
+                <p class="video-card__desc">{video.description}</p>
+                <a href={video.href} class="video-card__link" target="_blank" rel="noopener">Watch Now</a>
+              </div>
+            </article>
+          ))}
+        </div>
+      </div>
+    </section>
+
+  </main>
+  <Footer />
+</Layout>
+
+<style>
+  .page {
+    padding-top: 80px;
+    background: var(--color-black);
+    min-height: 100vh;
+  }
+
+  .page-hero {
+    position: relative;
+    padding: 96px 0 80px;
+    overflow: hidden;
+    background: var(--color-black);
+  }
+
+  .page-hero__bg {
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle at 60% 50%, color-mix(in srgb, var(--color-teal) 8%, transparent) 0%, transparent 60%);
+  }
+
+  .page-hero__content {
+    position: relative;
+    z-index: 1;
+    max-width: 720px;
+  }
+
+  .page-hero__label {
+    display: inline-block;
+    font-family: var(--font-heading);
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--color-teal);
+    margin-bottom: 12px;
+  }
+
+  .page-hero__title {
+    font-family: var(--font-display);
+    font-size: clamp(40px, 6vw, 88px);
+    color: var(--color-yellow);
+    line-height: 1;
+    margin-bottom: 16px;
+  }
+
+  .page-hero__subtitle {
+    font-family: var(--font-heading);
+    font-size: clamp(17px, 2vw, 22px);
+    font-weight: 600;
+    color: var(--color-white);
+    letter-spacing: 0.5px;
+  }
+
+  .books-section {
+    padding: 80px 0 96px;
+    background: var(--color-white);
+  }
+
+  .section-header {
+    margin-bottom: 48px;
+  }
+
+  .section-label {
+    display: inline-block;
+    font-family: var(--font-heading);
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--color-teal);
+    margin-bottom: 12px;
+  }
+
+  .section-title {
+    font-family: var(--font-display);
+    font-size: clamp(32px, 4vw, 56px);
+    color: var(--color-black);
+    line-height: 1.05;
+    margin-bottom: 12px;
+  }
+
+  .section-title--yellow {
+    color: var(--color-yellow);
+  }
+
+  .section-subtitle {
+    font-family: var(--font-heading);
+    font-size: clamp(15px, 1.5vw, 18px);
+    font-weight: 500;
+    color: var(--color-black);
+  }
+
+  .section-subtitle--light {
+    color: var(--color-white);
+    opacity: 0.8;
+  }
+
+  .books-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 32px;
+  }
+
+  .book-card {
+    background: var(--color-white);
+    border: 2px solid var(--color-teal);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+  }
+
+  .book-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 16px 48px color-mix(in srgb, var(--color-teal) 25%, transparent);
+  }
+
+  .book-card__cover {
+    aspect-ratio: 3 / 2;
+    background: color-mix(in srgb, var(--color-teal) 10%, var(--color-white));
+    border-bottom: 2px solid var(--color-teal);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .book-card__cover::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image:
+      linear-gradient(color-mix(in srgb, var(--color-teal) 12%, transparent) 1px, transparent 1px),
+      linear-gradient(90deg, color-mix(in srgb, var(--color-teal) 12%, transparent) 1px, transparent 1px);
+    background-size: 32px 32px;
+  }
+
+  .book-card__cover-inner {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .book-card__number {
+    font-family: var(--font-display);
+    font-size: 72px;
+    line-height: 1;
+    color: color-mix(in srgb, var(--color-teal) 35%, transparent);
+  }
+
+  .book-card__cover-label {
+    font-family: var(--font-heading);
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    color: color-mix(in srgb, var(--color-teal) 70%, transparent);
+  }
+
+  .book-card__body {
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    flex: 1;
+    background: var(--color-white);
+  }
+
+  .book-card__title {
+    font-family: var(--font-heading);
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--color-black);
+    line-height: 1.2;
+  }
+
+  .book-card__desc {
+    font-size: 14px;
+    line-height: 1.65;
+    color: var(--color-black);
+    flex: 1;
+  }
+
+  .book-card__btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    height: 40px;
+    padding: 0 20px;
+    font-family: var(--font-heading);
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--color-black);
+    background: var(--color-teal);
+    border: 2px solid var(--color-teal);
+    border-radius: 8px;
+    align-self: flex-start;
+    transition: background 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+  }
+
+  .book-card__btn:hover {
+    background: color-mix(in srgb, var(--color-teal) 80%, var(--color-white));
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px color-mix(in srgb, var(--color-teal) 35%, transparent);
+  }
+
+  .section-divider {
+    height: 4px;
+    background: var(--color-teal);
+  }
+
+  .animation-section {
+    padding: 80px 0 96px;
+    background: var(--color-black);
+  }
+
+  .section-header--dark .section-subtitle {
+    color: color-mix(in srgb, var(--color-white) 75%, transparent);
+  }
+
+  .video-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 28px;
+  }
+
+  .video-card {
+    background: color-mix(in srgb, var(--color-white) 5%, var(--color-black));
+    border: 1px solid color-mix(in srgb, var(--color-teal) 30%, transparent);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
+  }
+
+  .video-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 16px 40px color-mix(in srgb, var(--color-teal) 20%, transparent);
+    border-color: var(--color-teal);
+  }
+
+  .video-card__thumb {
+    aspect-ratio: 16 / 9;
+    background: color-mix(in srgb, var(--color-teal) 8%, var(--color-black));
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+  }
+
+  .video-card__thumb::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image:
+      linear-gradient(color-mix(in srgb, var(--color-teal) 6%, transparent) 1px, transparent 1px),
+      linear-gradient(90deg, color-mix(in srgb, var(--color-teal) 6%, transparent) 1px, transparent 1px);
+    background-size: 40px 40px;
+  }
+
+  .video-card__play {
+    position: relative;
+    z-index: 1;
+    width: 56px;
+    height: 56px;
+    background: var(--color-teal);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--color-black);
+    transition: transform 0.2s ease, background 0.2s ease;
+  }
+
+  .video-card:hover .video-card__play {
+    transform: scale(1.1);
+    background: color-mix(in srgb, var(--color-teal) 85%, var(--color-white));
+  }
+
+  .video-card__body {
+    padding: 20px 24px 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    flex: 1;
+  }
+
+  .video-card__title {
+    font-family: var(--font-heading);
+    font-size: 17px;
+    font-weight: 700;
+    color: var(--color-white);
+    line-height: 1.3;
+  }
+
+  .video-card__desc {
+    font-size: 14px;
+    line-height: 1.6;
+    color: color-mix(in srgb, var(--color-white) 65%, transparent);
+    flex: 1;
+  }
+
+  .video-card__link {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-family: var(--font-heading);
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--color-teal);
+    margin-top: 4px;
+    transition: color 0.2s;
+  }
+
+  .video-card__link::after {
+    content: '→';
+    transition: transform 0.2s;
+  }
+
+  .video-card__link:hover {
+    color: var(--color-yellow);
+  }
+
+  .video-card__link:hover::after {
+    transform: translateX(4px);
+  }
+
+  @media (max-width: 900px) {
+    .video-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+
+  @media (max-width: 640px) {
+    .books-grid {
+      grid-template-columns: 1fr;
+      gap: 24px;
+    }
+
+    .books-section {
+      padding: 56px 0 72px;
+    }
+
+    .animation-section {
+      padding: 56px 0 72px;
+    }
+
+    .video-grid {
+      grid-template-columns: 1fr;
+      gap: 20px;
+    }
+  }
+</style>

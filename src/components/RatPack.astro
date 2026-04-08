@@ -1,0 +1,428 @@
+---
+const characters = [
+  {
+    name: 'REX',
+    role: 'Team Leader & Tactician',
+    bio: 'Cool under pressure and built for command, Rex runs every mission with surgical precision. He escaped first. He came back for the others.',
+  },
+  {
+    name: 'ZARA',
+    role: 'Chief Inventor & Engineer',
+    bio: 'Zara can build an ion disruptor from a paperclip and two batteries — and she has. Her lab-enhanced brain runs at approximately three times normal processing speed.',
+  },
+  {
+    name: 'BLITZ',
+    role: 'Infiltration Specialist',
+    bio: 'Blitz moves faster than any camera can track and slips through security systems like smoke through a keyhole. The scientists never saw him leave.',
+  },
+  {
+    name: 'NOVA',
+    role: 'Hacker & Intelligence Officer',
+    bio: 'Nova sees the world as one giant network — and she\'s already three steps inside it. She insists the real superpower is knowing which questions to ask.',
+  },
+];
+---
+
+<section class="ratpack" id="rat-pack">
+  <div class="ratpack__bg-pattern"></div>
+  <div class="container">
+    <div class="ratpack__header">
+      <span class="section-label ratpack__label">The Team</span>
+      <h2 class="ratpack__title">Meet The Rat Pack</h2>
+      <p class="ratpack__subtitle">Brains, Brawn &amp; Chaos!</p>
+    </div>
+
+    <div class="carousel" id="ratpack-carousel" tabindex="0" aria-label="Character carousel" role="region">
+      <button class="carousel__arrow carousel__arrow--prev" id="carousel-prev" aria-label="Previous character">
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+          <path d="M12.5 15L7.5 10L12.5 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </button>
+
+      <div class="carousel__viewport">
+        <div class="carousel__track" id="carousel-track">
+          {characters.map((char, i) => (
+            <div class="carousel__slide" data-index={i} role="group" aria-roledescription="slide" aria-label={`${i + 1} of ${characters.length}: ${char.name}`}>
+              <div class="char-card">
+                <div class="char-card__portrait">
+                  <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" class="char-card__portrait-icon">
+                    <ellipse cx="50" cy="62" rx="24" ry="18" fill="#0a0a0a" opacity="0.7"/>
+                    <circle cx="38" cy="42" r="9" fill="#0a0a0a" opacity="0.5"/>
+                    <circle cx="62" cy="42" r="9" fill="#0a0a0a" opacity="0.5"/>
+                    <circle cx="35" cy="39" r="3.5" fill="#0a0a0a" opacity="0.35"/>
+                    <circle cx="65" cy="39" r="3.5" fill="#0a0a0a" opacity="0.35"/>
+                    <path d="M26 50 Q20 34 23 24" stroke="#0a0a0a" stroke-width="2.5" stroke-linecap="round" opacity="0.45" fill="none"/>
+                    <path d="M74 50 Q80 34 77 24" stroke="#0a0a0a" stroke-width="2.5" stroke-linecap="round" opacity="0.45" fill="none"/>
+                    <ellipse cx="50" cy="78" rx="9" ry="3" fill="#0a0a0a" opacity="0.2"/>
+                  </svg>
+                </div>
+                <h3 class="char-card__name">{char.name}</h3>
+                <p class="char-card__role">{char.role}</p>
+                <div class="char-card__divider"></div>
+                <p class="char-card__bio">{char.bio}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <button class="carousel__arrow carousel__arrow--next" id="carousel-next" aria-label="Next character">
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+          <path d="M7.5 15L12.5 10L7.5 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </button>
+    </div>
+
+    <div class="carousel__dots" id="carousel-dots" role="tablist" aria-label="Character navigation">
+      {characters.map((char, i) => (
+        <button
+          class={`carousel__dot${i === 0 ? ' carousel__dot--active' : ''}`}
+          data-index={i}
+          role="tab"
+          aria-selected={i === 0 ? 'true' : 'false'}
+          aria-label={`Go to ${char.name}`}
+        ></button>
+      ))}
+    </div>
+
+    <div class="ratpack__cta-wrap">
+      <a href="/meet-the-rat-pack" class="ratpack__cta-btn">Meet The Full Rat Pack →</a>
+    </div>
+  </div>
+</section>
+
+<style>
+  .ratpack {
+    position: relative;
+    padding: 120px 0;
+    overflow: hidden;
+    background: #0a0a0a;
+  }
+
+  .ratpack__bg-pattern {
+    position: absolute;
+    inset: 0;
+    background-image:
+      radial-gradient(circle at 20% 80%, color-mix(in srgb, var(--color-teal) 8%, transparent) 0%, transparent 50%),
+      radial-gradient(circle at 80% 20%, color-mix(in srgb, var(--color-yellow) 6%, transparent) 0%, transparent 50%);
+    z-index: 0;
+    pointer-events: none;
+  }
+
+  .container {
+    position: relative;
+    z-index: 1;
+  }
+
+  .ratpack__header {
+    text-align: center;
+    max-width: 640px;
+    margin: 0 auto 56px;
+  }
+
+  .ratpack__label {
+    color: var(--color-teal);
+    letter-spacing: 0.15em;
+  }
+
+  .ratpack__title {
+    font-size: clamp(32px, 4.5vw, 64px);
+    color: var(--color-yellow);
+    line-height: 1.1;
+    margin-bottom: 10px;
+  }
+
+  .ratpack__subtitle {
+    font-family: var(--font-heading);
+    font-size: clamp(18px, 2.5vw, 28px);
+    font-weight: 500;
+    color: var(--color-white);
+    line-height: 1.3;
+  }
+
+  .carousel {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0;
+    outline: none;
+  }
+
+  .carousel__arrow {
+    flex-shrink: 0;
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid var(--color-teal);
+    color: var(--color-white);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background 0.2s, color 0.2s;
+    z-index: 2;
+    position: relative;
+  }
+
+  .carousel__arrow:hover {
+    background: var(--color-teal);
+    color: #0a0a0a;
+  }
+
+  .carousel__arrow--prev {
+    margin-right: 16px;
+  }
+
+  .carousel__arrow--next {
+    margin-left: 16px;
+  }
+
+  .carousel__viewport {
+    width: 100%;
+    max-width: 680px;
+    overflow: hidden;
+  }
+
+  .carousel__track {
+    display: flex;
+    transition: transform 400ms ease;
+    will-change: transform;
+  }
+
+  .carousel__slide {
+    flex: 0 0 100%;
+    display: flex;
+    justify-content: center;
+    padding: 20px 0;
+  }
+
+  .char-card {
+    width: 380px;
+    background: #111111;
+    border: 1px solid var(--color-teal);
+    border-radius: 12px;
+    padding: 32px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    transition: opacity 400ms ease, transform 400ms ease;
+  }
+
+  .char-card__portrait {
+    width: 200px;
+    height: 200px;
+    border-radius: 50%;
+    border: 3px solid var(--color-yellow);
+    background: var(--color-teal);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    flex-shrink: 0;
+  }
+
+  .char-card__portrait-icon {
+    width: 120px;
+    height: 120px;
+  }
+
+  .char-card__name {
+    font-family: var(--font-display);
+    font-size: 40px;
+    color: var(--color-yellow);
+    text-align: center;
+    margin-top: 16px;
+    letter-spacing: 2px;
+    line-height: 1;
+  }
+
+  .char-card__role {
+    font-family: var(--font-heading);
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--color-teal);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    text-align: center;
+    margin-top: 6px;
+  }
+
+  .char-card__divider {
+    width: 40%;
+    height: 1px;
+    background: var(--color-teal);
+    margin: 16px auto;
+  }
+
+  .char-card__bio {
+    font-family: var(--font-body);
+    font-size: 15px;
+    line-height: 1.6;
+    color: rgba(245, 245, 245, 0.85);
+    text-align: center;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .carousel__dots {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    margin-top: 28px;
+  }
+
+  .carousel__dot {
+    border: none;
+    cursor: pointer;
+    border-radius: 50%;
+    background: rgba(245, 245, 245, 0.3);
+    width: 8px;
+    height: 8px;
+    padding: 0;
+    transition: background 0.25s, width 0.25s, height 0.25s;
+  }
+
+  .carousel__dot--active {
+    background: var(--color-yellow);
+    width: 10px;
+    height: 10px;
+  }
+
+  .ratpack__cta-wrap {
+    text-align: center;
+    margin-top: 48px;
+  }
+
+  .ratpack__cta-btn {
+    display: inline-flex;
+    align-items: center;
+    height: 48px;
+    padding: 0 32px;
+    background: var(--color-teal);
+    color: #0a0a0a;
+    font-family: var(--font-heading);
+    font-size: 15px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    border-radius: 8px;
+    text-decoration: none;
+    transition: background 0.2s, transform 0.2s, box-shadow 0.2s;
+  }
+
+  .ratpack__cta-btn:hover {
+    background: color-mix(in srgb, var(--color-teal) 85%, white);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px color-mix(in srgb, var(--color-teal) 30%, transparent);
+  }
+
+  @media (max-width: 768px) {
+    .ratpack {
+      padding: 80px 0;
+    }
+
+    .carousel__arrow {
+      width: 40px;
+      height: 40px;
+    }
+
+    .carousel__arrow--prev {
+      margin-right: 8px;
+    }
+
+    .carousel__arrow--next {
+      margin-left: 8px;
+    }
+
+    .carousel__slide {
+      padding: 12px 0;
+    }
+
+    .char-card {
+      width: 90vw;
+      padding: 24px;
+    }
+
+    .char-card__portrait {
+      width: 160px;
+      height: 160px;
+    }
+  }
+</style>
+
+<script>
+  (function () {
+    const track = document.getElementById('carousel-track');
+    const slides = track ? Array.from(track.querySelectorAll('.carousel__slide')) : [];
+    const dots = Array.from(document.querySelectorAll('.carousel__dot'));
+    const prevBtn = document.getElementById('carousel-prev');
+    const nextBtn = document.getElementById('carousel-next');
+    const carousel = document.getElementById('ratpack-carousel');
+
+    if (!track || slides.length === 0) return;
+
+    let current = 0;
+    let autoTimer = null;
+    let touchStartX = 0;
+    let touchEndX = 0;
+
+    function goTo(index) {
+      current = (index + slides.length) % slides.length;
+      track.style.transform = `translateX(-${current * 100}%)`;
+      dots.forEach((dot, i) => {
+        dot.classList.toggle('carousel__dot--active', i === current);
+        dot.setAttribute('aria-selected', i === current ? 'true' : 'false');
+      });
+    }
+
+    function startAuto() {
+      stopAuto();
+      autoTimer = setInterval(() => goTo(current + 1), 5000);
+    }
+
+    function stopAuto() {
+      if (autoTimer) {
+        clearInterval(autoTimer);
+        autoTimer = null;
+      }
+    }
+
+    prevBtn && prevBtn.addEventListener('click', () => { goTo(current - 1); startAuto(); });
+    nextBtn && nextBtn.addEventListener('click', () => { goTo(current + 1); startAuto(); });
+
+    dots.forEach((dot, i) => {
+      dot.addEventListener('click', () => { goTo(i); startAuto(); });
+    });
+
+    carousel && carousel.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowLeft') { goTo(current - 1); startAuto(); }
+      if (e.key === 'ArrowRight') { goTo(current + 1); startAuto(); }
+    });
+
+    carousel && carousel.addEventListener('mouseenter', stopAuto);
+    carousel && carousel.addEventListener('mouseleave', startAuto);
+    carousel && carousel.addEventListener('focusin', stopAuto);
+    carousel && carousel.addEventListener('focusout', startAuto);
+
+    carousel && carousel.addEventListener('touchstart', (e) => {
+      touchStartX = e.changedTouches[0].screenX;
+    }, { passive: true });
+
+    carousel && carousel.addEventListener('touchend', (e) => {
+      touchEndX = e.changedTouches[0].screenX;
+      const diff = touchStartX - touchEndX;
+      if (Math.abs(diff) >= 50) {
+        goTo(diff > 0 ? current + 1 : current - 1);
+        startAuto();
+      }
+    }, { passive: true });
+
+    goTo(0);
+    startAuto();
+  })();
+</script>

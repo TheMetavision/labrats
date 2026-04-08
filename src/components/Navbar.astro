@@ -1,0 +1,268 @@
+---
+const navLinks = [
+  { label: 'Home', href: '/' },
+  { label: 'Meet The Rat Pack', href: '/meet-the-rat-pack' },
+  { label: 'Media', href: '/media' },
+  { label: 'Merch', href: '/merch' },
+  { label: 'Rat Tales', href: '/rat-tales' },
+  { label: 'Contact', href: '/contact' },
+];
+---
+
+<header class="navbar" id="navbar">
+  <div class="container navbar__inner">
+    <a href="/" class="navbar__logo" aria-label="Labrats Home">
+      <img
+        src="https://assets.zyrosite.com/cdn-cgi/image/format=auto,w=1440,h=756,fit=crop,f=jpeg/Aq2q3anW6qTLnbeK/labrats-landscape-jul25-YZ9jxZw971UBgjew.png"
+        alt="Labrats logo"
+        class="navbar__logo-img"
+      />
+    </a>
+
+    <nav class="navbar__nav" role="navigation" aria-label="Main navigation">
+      <ul class="navbar__links">
+        {navLinks.map(link => (
+          <li>
+            <a href={link.href} class="navbar__link">{link.label}</a>
+          </li>
+        ))}
+      </ul>
+    </nav>
+
+    <div class="navbar__right">
+      <div class="navbar__socials">
+        <a href="https://www.facebook.com/Labratsmm/" class="navbar__social-icon" target="_blank" rel="noopener noreferrer" aria-label="Facebook">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg>
+        </a>
+        <a href="https://www.youtube.com/@LabratsUK" class="navbar__social-icon" target="_blank" rel="noopener noreferrer" aria-label="YouTube">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>
+        </a>
+        <a href="https://www.tiktok.com/@labrats.uk" class="navbar__social-icon" target="_blank" rel="noopener noreferrer" aria-label="TikTok">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-2.88 2.5 2.89 2.89 0 0 1-2.89-2.89 2.89 2.89 0 0 1 2.89-2.89c.28 0 .54.04.79.1V9.01a6.27 6.27 0 0 0-.79-.05 6.34 6.34 0 0 0-6.34 6.34 6.34 6.34 0 0 0 6.34 6.34 6.34 6.34 0 0 0 6.33-6.34V8.69a8.18 8.18 0 0 0 4.78 1.52V6.75a4.85 4.85 0 0 1-1.01-.06z"/></svg>
+        </a>
+        <a href="https://www.instagram.com/labrats2025" class="navbar__social-icon" target="_blank" rel="noopener noreferrer" aria-label="Instagram">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 1 0 0 12.324 6.162 6.162 0 0 0 0-12.324zM12 16a4 4 0 1 1 0-8 4 4 0 0 1 0 8zm6.406-11.845a1.44 1.44 0 1 0 0 2.881 1.44 1.44 0 0 0 0-2.881z"/></svg>
+        </a>
+      </div>
+
+      <button class="navbar__toggle" id="navToggle" aria-label="Toggle menu" aria-expanded="false">
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+    </div>
+  </div>
+
+  <div class="navbar__mobile" id="mobileMenu">
+    <ul class="navbar__mobile-links">
+      {navLinks.map(link => (
+        <li>
+          <a href={link.href} class="navbar__mobile-link">{link.label}</a>
+        </li>
+      ))}
+    </ul>
+  </div>
+</header>
+
+<script>
+  const navbar = document.getElementById('navbar');
+  const toggle = document.getElementById('navToggle');
+  const menu = document.getElementById('mobileMenu');
+
+  window.addEventListener('scroll', () => {
+    if (window.scrollY > 60) {
+      navbar?.classList.add('navbar--scrolled');
+    } else {
+      navbar?.classList.remove('navbar--scrolled');
+    }
+  });
+
+  toggle?.addEventListener('click', () => {
+    const expanded = toggle.getAttribute('aria-expanded') === 'true';
+    toggle.setAttribute('aria-expanded', String(!expanded));
+    menu?.classList.toggle('navbar__mobile--open');
+    toggle.classList.toggle('navbar__toggle--open');
+  });
+</script>
+
+<style>
+  .navbar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 100;
+    padding: 0;
+    background: var(--color-teal);
+    transition: background 0.3s ease, box-shadow 0.3s ease;
+  }
+
+  .navbar--scrolled {
+    background: var(--color-teal);
+    backdrop-filter: blur(12px);
+    box-shadow: 0 2px 24px color-mix(in srgb, var(--color-teal) 40%, transparent);
+    border-bottom: 1px solid color-mix(in srgb, var(--color-black) 15%, transparent);
+  }
+
+  .navbar__inner {
+    display: flex;
+    align-items: center;
+    gap: 32px;
+    height: 90px;
+  }
+
+  .navbar__logo {
+    flex-shrink: 0;
+  }
+
+  .navbar__logo-img {
+    height: 68px;
+    width: auto;
+    border-radius: 6px;
+    transition: opacity 0.2s;
+  }
+
+  .navbar__logo-img:hover {
+    opacity: 0.85;
+  }
+
+  .navbar__nav {
+    flex: 1;
+  }
+
+  .navbar__links {
+    display: flex;
+    list-style: none;
+    gap: 8px;
+  }
+
+  .navbar__link {
+    font-family: var(--font-heading);
+    font-size: 15px;
+    font-weight: 600;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--color-white);
+    padding: 8px 16px;
+    border-radius: var(--radius);
+    transition: color 0.2s, background 0.2s;
+  }
+
+  .navbar__link:hover {
+    color: var(--color-yellow);
+    background: color-mix(in srgb, var(--color-black) 12%, transparent);
+  }
+
+  .navbar__right {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex-shrink: 0;
+  }
+
+  .navbar__socials {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    margin-left: 16px;
+    padding-left: 16px;
+    border-left: 1px solid color-mix(in srgb, var(--color-black) 20%, transparent);
+  }
+
+  .navbar__social-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--color-white);
+    padding: 8px;
+    border-radius: var(--radius);
+    transition: color 0.2s, background 0.2s;
+  }
+
+  .navbar__social-icon:hover {
+    color: var(--color-yellow);
+    background: color-mix(in srgb, var(--color-black) 12%, transparent);
+  }
+
+  .navbar__toggle {
+    display: none;
+    flex-direction: column;
+    gap: 5px;
+    padding: 8px;
+    cursor: pointer;
+  }
+
+  .navbar__toggle span {
+    display: block;
+    width: 24px;
+    height: 2px;
+    background: var(--color-white);
+    transition: 0.3s;
+    border-radius: 2px;
+  }
+
+  .navbar__toggle--open span:nth-child(1) {
+    transform: translateY(7px) rotate(45deg);
+  }
+
+  .navbar__toggle--open span:nth-child(2) {
+    opacity: 0;
+  }
+
+  .navbar__toggle--open span:nth-child(3) {
+    transform: translateY(-7px) rotate(-45deg);
+  }
+
+  .navbar__mobile {
+    display: none;
+    flex-direction: column;
+    gap: 8px;
+    padding: 16px 24px 24px;
+    background: var(--color-teal);
+    border-top: 1px solid color-mix(in srgb, var(--color-black) 15%, transparent);
+  }
+
+  .navbar__mobile--open {
+    display: flex;
+  }
+
+  .navbar__mobile-links {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .navbar__mobile-link {
+    display: block;
+    font-family: var(--font-heading);
+    font-size: 18px;
+    font-weight: 600;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--color-white);
+    padding: 12px 0;
+    border-bottom: 1px solid color-mix(in srgb, var(--color-black) 15%, transparent);
+    transition: color 0.2s;
+  }
+
+  .navbar__mobile-link:hover {
+    color: var(--color-yellow);
+  }
+
+  @media (max-width: 768px) {
+    .navbar__nav {
+      display: none;
+    }
+
+    .navbar__socials {
+      margin-left: 0;
+      padding-left: 0;
+      border-left: none;
+    }
+
+    .navbar__toggle {
+      display: flex;
+    }
+  }
+</style>

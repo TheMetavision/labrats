@@ -1,0 +1,247 @@
+---
+---
+
+<section class="merch-teaser">
+  <div class="merch-teaser__grid">
+
+    <div class="merch-teaser__content">
+      <div class="merch-teaser__dot merch-teaser__dot--1"></div>
+      <div class="merch-teaser__dot merch-teaser__dot--2"></div>
+      <div class="merch-teaser__dot merch-teaser__dot--3"></div>
+      <div class="merch-teaser__dot merch-teaser__dot--4"></div>
+
+      <div class="merch-teaser__content-inner">
+        <span class="merch-teaser__label">Official Merch</span>
+        <h2 class="merch-teaser__heading">Gear Up, Rebel</h2>
+        <p class="merch-teaser__sub">The Rat Pack wear their rebellion. Now you can too.</p>
+
+        <div class="merch-teaser__pills">
+          <span class="merch-teaser__pill">Rat Pack Hoodie — £34</span>
+          <span class="merch-teaser__pill">Escape Artist Tee — £22</span>
+          <span class="merch-teaser__pill">Lab Access Cap — £18</span>
+        </div>
+
+        <p class="merch-teaser__note">New drops added regularly. Never the same lab twice.</p>
+
+        <a href="/merch" class="merch-teaser__cta">Shop The Collection →</a>
+      </div>
+    </div>
+
+    <div class="merch-teaser__image-col" id="merch-hero-image" data-replace="true">
+      <div class="merch-teaser__image-placeholder">
+        <svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <rect x="4" y="10" width="40" height="28" rx="3" stroke="#0A0A0A" stroke-opacity="0.3" stroke-width="2.5" fill="none"/>
+          <circle cx="16" cy="20" r="4" stroke="#0A0A0A" stroke-opacity="0.3" stroke-width="2" fill="none"/>
+          <path d="M4 30l10-8 8 7 6-5 16 11" stroke="#0A0A0A" stroke-opacity="0.3" stroke-width="2" stroke-linejoin="round" fill="none"/>
+        </svg>
+        <p class="merch-teaser__image-label">Character merch image — replace with final artwork</p>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<style>
+  .merch-teaser {
+    position: relative;
+    background: var(--color-yellow);
+    clip-path: polygon(0 40px, 100% 0, 100% 100%, 0 100%);
+    min-height: 520px;
+    border-bottom: 3px solid rgba(10, 10, 10, 0.1);
+    overflow: hidden;
+  }
+
+  .merch-teaser__grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    min-height: 520px;
+    max-width: var(--max-width);
+    margin: 0 auto;
+  }
+
+  .merch-teaser__content {
+    position: relative;
+    display: flex;
+    align-items: center;
+    padding: 80px 60px 60px 60px;
+    overflow: hidden;
+  }
+
+  .merch-teaser__content-inner {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+  }
+
+  .merch-teaser__dot {
+    position: absolute;
+    border-radius: 50%;
+    background: rgba(10, 10, 10, 0.06);
+    pointer-events: none;
+  }
+
+  .merch-teaser__dot--1 {
+    width: 120px;
+    height: 120px;
+    top: -20px;
+    left: -30px;
+  }
+
+  .merch-teaser__dot--2 {
+    width: 80px;
+    height: 80px;
+    bottom: 40px;
+    left: 20px;
+  }
+
+  .merch-teaser__dot--3 {
+    width: 100px;
+    height: 100px;
+    top: 50%;
+    right: 30px;
+    transform: translateY(-50%);
+  }
+
+  .merch-teaser__dot--4 {
+    width: 60px;
+    height: 60px;
+    bottom: -10px;
+    right: 60px;
+  }
+
+  .merch-teaser__label {
+    display: block;
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    font-size: 12px;
+    color: #0A0A0A;
+    opacity: 0.6;
+    font-family: var(--font-heading);
+    font-weight: 600;
+    margin-bottom: 12px;
+  }
+
+  .merch-teaser__heading {
+    font-family: var(--font-display);
+    font-size: clamp(40px, 5vw, 64px);
+    font-weight: 900;
+    color: #0A0A0A;
+    line-height: 1.1;
+    margin-bottom: 12px;
+  }
+
+  .merch-teaser__sub {
+    font-family: var(--font-body);
+    font-size: 18px;
+    color: #0A0A0A;
+    line-height: 1.5;
+    margin-bottom: 24px;
+  }
+
+  .merch-teaser__pills {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 16px;
+  }
+
+  .merch-teaser__pill {
+    display: inline-block;
+    background: #0A0A0A;
+    color: var(--color-yellow);
+    border-radius: 999px;
+    padding: 6px 16px;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    font-family: var(--font-heading);
+  }
+
+  .merch-teaser__note {
+    font-family: var(--font-body);
+    font-size: 14px;
+    color: rgba(10, 10, 10, 0.7);
+    margin-bottom: 32px;
+  }
+
+  .merch-teaser__cta {
+    display: inline-block;
+    background: #0A0A0A;
+    color: var(--color-yellow);
+    font-family: var(--font-heading);
+    font-size: 16px;
+    font-weight: 700;
+    padding: 16px 36px;
+    border-radius: 8px;
+    text-decoration: none;
+    transition: background 0.2s, color 0.2s, transform 0.2s;
+    align-self: flex-start;
+  }
+
+  .merch-teaser__cta:hover {
+    background: var(--color-teal);
+    color: #0A0A0A;
+    transform: translateY(-2px);
+  }
+
+  .merch-teaser__image-col {
+    position: relative;
+    background: var(--color-teal);
+    clip-path: polygon(40px 0, 100% 0, 100% 100%, 0 100%);
+    min-height: 520px;
+    overflow: hidden;
+  }
+
+  .merch-teaser__image-col::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: rgba(10, 10, 10, 0.15);
+    pointer-events: none;
+  }
+
+  .merch-teaser__image-placeholder {
+    position: absolute;
+    inset: 32px;
+    border: 2px dashed rgba(10, 10, 10, 0.3);
+    border-radius: 8px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    z-index: 1;
+  }
+
+  .merch-teaser__image-label {
+    font-family: var(--font-body);
+    font-size: 14px;
+    color: rgba(10, 10, 10, 0.4);
+    text-align: center;
+    max-width: 220px;
+  }
+
+  @media (max-width: 768px) {
+    .merch-teaser {
+      clip-path: polygon(0 24px, 100% 0, 100% 100%, 0 100%);
+      min-height: unset;
+    }
+
+    .merch-teaser__grid {
+      grid-template-columns: 1fr;
+      min-height: unset;
+    }
+
+    .merch-teaser__image-col {
+      order: -1;
+      min-height: 280px;
+      clip-path: none;
+    }
+
+    .merch-teaser__content {
+      padding: 32px 24px 40px;
+    }
+  }
+</style>

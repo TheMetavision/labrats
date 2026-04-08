@@ -1,0 +1,227 @@
+---
+import Layout from '../layouts/Layout.astro';
+import Navbar from '../components/Navbar.astro';
+import Footer from '../components/Footer.astro';
+
+const characters = [
+  {
+    name: 'Rex',
+    role: 'Team Leader & Tactician',
+    bio: 'Cool under pressure and built for command, Rex runs every mission with surgical precision. He escaped the lab first — and has never stopped running since. Where others see dead ends, Rex sees routes.',
+  },
+  {
+    name: 'Zara',
+    role: 'Chief Inventor & Engineer',
+    bio: "Zara can build an ion disruptor from a paperclip and two batteries — and she has. Her lab-enhanced brain processes engineering problems in milliseconds, though her creations have a habit of exploding at the worst possible moment.",
+  },
+  {
+    name: 'Blitz',
+    role: 'Infiltration Specialist',
+    bio: "Blitz moves faster than any camera can track and slips through security systems like smoke through a keyhole. He's never met a laser grid he couldn't navigate — or a mission briefing he could sit still through.",
+  },
+  {
+    name: 'Nova',
+    role: 'Hacker & Intelligence Officer',
+    bio: "Nova sees the world as one giant network — and she's already three steps inside it. Her cybernetic neural implant gives her direct interface with any digital system. She insists the real superpower is knowing which questions to ask.",
+  },
+];
+---
+
+<Layout title="Meet The Rat Pack" description="Meet the characters behind Labrats — a team of genetically enhanced rats fighting for their freedom." canonical="/meet-the-rat-pack">
+  <Navbar />
+  <main class="page">
+
+    <section class="page-hero">
+      <div class="page-hero__bg"></div>
+      <div class="container page-hero__content">
+        <span class="section-label">The Characters</span>
+        <h1 class="page-hero__title">Meet The Rat Pack</h1>
+        <p class="page-hero__subtitle">They didn't ask to be enhanced. Now they won't stop until they're free.</p>
+      </div>
+    </section>
+
+    <section class="characters-section">
+      <div class="container">
+        <div class="characters-grid">
+          {characters.map(char => (
+            <article class="char-card">
+              <div class="char-card__portrait">
+                <div class="char-card__portrait-inner">
+                  <span class="char-card__initial">{char.name[0]}</span>
+                </div>
+              </div>
+              <div class="char-card__body">
+                <h2 class="char-card__name">{char.name}</h2>
+                <p class="char-card__role">{char.role}</p>
+                <p class="char-card__bio">{char.bio}</p>
+              </div>
+            </article>
+          ))}
+        </div>
+      </div>
+    </section>
+
+  </main>
+  <Footer />
+</Layout>
+
+<style>
+  .page {
+    padding-top: 80px;
+    background: var(--color-black);
+    min-height: 100vh;
+  }
+
+  .page-hero {
+    position: relative;
+    padding: 96px 0 80px;
+    overflow: hidden;
+    background: var(--color-black);
+  }
+
+  .page-hero__bg {
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle at 30% 50%, color-mix(in srgb, var(--color-yellow) 6%, transparent) 0%, transparent 55%);
+  }
+
+  .page-hero__content {
+    position: relative;
+    z-index: 1;
+    max-width: 680px;
+  }
+
+  .page-hero__title {
+    font-family: var(--font-display);
+    font-size: clamp(40px, 6vw, 80px);
+    color: var(--color-yellow);
+    line-height: 1;
+    margin-bottom: 16px;
+  }
+
+  .page-hero__subtitle {
+    font-family: var(--font-heading);
+    font-size: clamp(17px, 2vw, 22px);
+    font-weight: 600;
+    color: var(--color-white);
+    letter-spacing: 0.5px;
+    font-style: italic;
+  }
+
+  .characters-section {
+    padding: 64px 0 120px;
+    background: var(--color-black);
+  }
+
+  .characters-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 24px;
+  }
+
+  .char-card {
+    background: var(--color-black);
+    border: 2px solid var(--color-teal);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+  }
+
+  .char-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 16px 48px color-mix(in srgb, var(--color-teal) 20%, transparent);
+  }
+
+  .char-card__portrait {
+    position: relative;
+    aspect-ratio: 1 / 1;
+    background: color-mix(in srgb, var(--color-teal) 8%, var(--color-black));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    border-bottom: 2px solid var(--color-teal);
+    border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+  }
+
+  .char-card__portrait::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image:
+      linear-gradient(color-mix(in srgb, var(--color-teal) 8%, transparent) 1px, transparent 1px),
+      linear-gradient(90deg, color-mix(in srgb, var(--color-teal) 8%, transparent) 1px, transparent 1px);
+    background-size: 32px 32px;
+  }
+
+  .char-card__portrait-inner {
+    position: relative;
+    z-index: 1;
+    width: 96px;
+    height: 96px;
+    border-radius: 50%;
+    border: 2px solid var(--color-teal);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: color-mix(in srgb, var(--color-teal) 12%, var(--color-black));
+  }
+
+  .char-card__initial {
+    font-family: var(--font-display);
+    font-size: 48px;
+    line-height: 1;
+    color: var(--color-teal);
+  }
+
+  .char-card__body {
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    flex: 1;
+  }
+
+  .char-card__name {
+    font-family: var(--font-display);
+    font-size: 28px;
+    color: var(--color-yellow);
+    line-height: 1;
+    letter-spacing: 1px;
+  }
+
+  .char-card__role {
+    font-family: var(--font-heading);
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--color-teal);
+    margin-bottom: 4px;
+  }
+
+  .char-card__bio {
+    font-size: 14px;
+    line-height: 1.65;
+    color: var(--color-white);
+  }
+
+  @media (max-width: 900px) {
+    .characters-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+
+  @media (max-width: 560px) {
+    .characters-grid {
+      grid-template-columns: 1fr;
+      gap: 20px;
+    }
+
+    .characters-section {
+      padding: 48px 0 80px;
+    }
+  }
+</style>

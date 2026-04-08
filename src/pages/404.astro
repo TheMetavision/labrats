@@ -1,0 +1,237 @@
+---
+import Layout from '../layouts/Layout.astro';
+import Navbar from '../components/Navbar.astro';
+import Footer from '../components/Footer.astro';
+---
+
+<Layout title="404 — Escaped the Lab | Labrats" description="This page has escaped the lab. We can't find it." canonical="/404">
+  <Navbar />
+  <main class="notfound">
+    <div class="notfound__bg">
+      <div class="notfound__grid"></div>
+    </div>
+
+    <div class="container notfound__content">
+      <a href="/" class="notfound__logo" aria-label="Labrats Home">
+        <img
+          src="https://assets.zyrosite.com/cdn-cgi/image/format=auto,w=375,fit=crop/Aq2q3anW6qTLnbeK/labrats-square-jul25-mp8JqDpWMyf16pEv.png"
+          alt="Labrats logo"
+          width="80"
+          height="80"
+          class="notfound__logo-img"
+        />
+      </a>
+
+      <div class="notfound__rat" aria-hidden="true">
+        <svg viewBox="0 0 200 160" xmlns="http://www.w3.org/2000/svg" class="rat-svg">
+          <g fill="currentColor" class="rat-body">
+            <ellipse cx="110" cy="95" rx="52" ry="36" />
+            <circle cx="158" cy="72" r="26" />
+            <ellipse cx="145" cy="56" rx="10" ry="16" transform="rotate(-20 145 56)" />
+            <ellipse cx="168" cy="53" rx="10" ry="16" transform="rotate(15 168 53)" />
+            <ellipse cx="146" cy="57" rx="6" ry="11" transform="rotate(-20 146 57)" class="rat-ear-inner" />
+            <ellipse cx="168" cy="54" rx="6" ry="11" transform="rotate(15 168 54)" class="rat-ear-inner" />
+            <circle cx="170" cy="68" r="4" class="rat-eye-bg" />
+            <circle cx="171" cy="67" r="2.5" class="rat-eye" />
+            <ellipse cx="182" cy="78" rx="8" ry="4" transform="rotate(10 182 78)" class="rat-nose" />
+            <line x1="182" y1="76" x2="196" y2="70" stroke="currentColor" stroke-width="1.5" class="rat-whisker" />
+            <line x1="182" y1="78" x2="197" y2="78" stroke="currentColor" stroke-width="1.5" class="rat-whisker" />
+            <line x1="182" y1="80" x2="196" y2="85" stroke="currentColor" stroke-width="1.5" class="rat-whisker" />
+            <path d="M58 95 Q40 110 30 130 Q20 148 35 150 Q50 152 60 130 Q68 112 75 105" class="rat-tail" />
+            <ellipse cx="100" cy="122" rx="10" ry="6" transform="rotate(-10 100 122)" class="rat-foot" />
+            <ellipse cx="120" cy="128" rx="10" ry="6" transform="rotate(5 120 128)" class="rat-foot" />
+          </g>
+        </svg>
+      </div>
+
+      <h1 class="notfound__heading">404 — Escaped the Lab</h1>
+      <p class="notfound__sub">
+        Looks like this page made a break for it.<br />Even we can't find it.
+      </p>
+
+      <div class="notfound__actions">
+        <a href="/" class="btn notfound__btn-primary">Back to Base</a>
+        <a href="/meet-the-rat-pack" class="btn notfound__btn-outline">Meet The Rats</a>
+      </div>
+    </div>
+  </main>
+  <Footer />
+</Layout>
+
+<style>
+  .notfound {
+    min-height: 100vh;
+    background: var(--color-black);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
+    padding: 120px 0 80px;
+  }
+
+  .notfound__bg {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+  }
+
+  .notfound__grid {
+    position: absolute;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(0, 212, 255, 0.04) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0, 212, 255, 0.04) 1px, transparent 1px);
+    background-size: 48px 48px;
+    mask-image: radial-gradient(ellipse 80% 70% at 50% 50%, black 30%, transparent 100%);
+  }
+
+  .notfound__content {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 0;
+  }
+
+  .notfound__logo {
+    display: block;
+    margin-bottom: 40px;
+  }
+
+  .notfound__logo-img {
+    width: 80px;
+    height: 80px;
+    border-radius: 12px;
+    opacity: 0.9;
+    transition: opacity 0.2s;
+  }
+
+  .notfound__logo-img:hover {
+    opacity: 1;
+  }
+
+  .notfound__rat {
+    margin-bottom: 32px;
+    color: rgba(245, 197, 24, 0.15);
+    filter: drop-shadow(0 0 32px rgba(245, 197, 24, 0.12));
+  }
+
+  .rat-svg {
+    width: 180px;
+    height: auto;
+  }
+
+  .rat-ear-inner {
+    fill: rgba(0, 0, 0, 0.4);
+  }
+
+  .rat-eye-bg {
+    fill: var(--color-black);
+  }
+
+  .rat-eye {
+    fill: var(--color-yellow);
+  }
+
+  .rat-nose {
+    fill: rgba(245, 197, 24, 0.4);
+  }
+
+  .rat-whisker {
+    opacity: 0.6;
+  }
+
+  .rat-tail {
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 3;
+    stroke-linecap: round;
+  }
+
+  .rat-foot {
+    fill: rgba(245, 197, 24, 0.25);
+  }
+
+  .notfound__heading {
+    font-family: var(--font-display);
+    font-size: clamp(48px, 8vw, 96px);
+    color: var(--color-yellow);
+    letter-spacing: 2px;
+    line-height: 1;
+    margin-bottom: 24px;
+  }
+
+  .notfound__sub {
+    font-size: clamp(16px, 2.5vw, 20px);
+    color: var(--color-white);
+    line-height: 1.6;
+    margin-bottom: 48px;
+    max-width: 480px;
+    opacity: 0.9;
+  }
+
+  .notfound__actions {
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .notfound__btn-primary {
+    background: var(--color-teal);
+    color: #000;
+    font-weight: 700;
+    border: 2px solid var(--color-teal);
+    transition: background 0.2s, box-shadow 0.2s, transform 0.2s;
+  }
+
+  .notfound__btn-primary:hover {
+    background: color-mix(in srgb, var(--color-teal) 85%, white);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(0, 212, 255, 0.3);
+  }
+
+  .notfound__btn-outline {
+    background: transparent;
+    color: var(--color-yellow);
+    border: 2px solid var(--color-yellow);
+    font-weight: 700;
+    font-family: var(--font-heading);
+    font-size: 15px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    padding: 14px 32px;
+    border-radius: var(--radius);
+    display: inline-flex;
+    align-items: center;
+    transition: background 0.2s, color 0.2s, transform 0.2s, box-shadow 0.2s;
+  }
+
+  .notfound__btn-outline:hover {
+    background: var(--color-yellow);
+    color: #000;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(245, 197, 24, 0.25);
+  }
+
+  @media (max-width: 600px) {
+    .notfound {
+      padding: 100px 0 60px;
+    }
+
+    .notfound__actions {
+      flex-direction: column;
+      width: 100%;
+      max-width: 280px;
+    }
+
+    .notfound__btn-primary,
+    .notfound__btn-outline {
+      justify-content: center;
+      width: 100%;
+    }
+  }
+</style>

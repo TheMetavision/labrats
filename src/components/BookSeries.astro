@@ -1,0 +1,180 @@
+---
+---
+
+<section class="books" id="books">
+  <div class="books__bg"></div>
+  <div class="container">
+    <div class="books__grid">
+      <div class="books__image-col">
+        <div class="books__image-wrap">
+          <div class="books__image-glow"></div>
+          <img
+            src="https://assets.zyrosite.com/cdn-cgi/image/format=auto,w=768,h=915,fit=crop/Aq2q3anW6qTLnbeK/519287ea-aca7-48dd-8644-09b87bd778a4-YbNqQW3pNkcv55qe.png"
+            alt="Labrats Book Series"
+            class="books__image"
+            loading="lazy"
+          />
+          <div class="books__badge">
+            <span class="books__badge-icon">&#128218;</span>
+            <span>Available Now</span>
+          </div>
+        </div>
+      </div>
+      <div class="books__content">
+        <span class="section-label">Book Series</span>
+        <h2 class="books__title">
+          Explore the World of Labrats Through Our Book Series!
+        </h2>
+        <p class="books__body">
+          Dive into thrilling adventures with the <strong>Labrats</strong> book series! From daring escapes and high-tech inventions to epic battles against mad scientists, each book is packed with action, humor, and clever problem-solving.
+        </p>
+        <p class="books__body">
+          Whether you're looking for pulse-pounding excitement or educational STEM-inspired stories, there's a Labrats book for every young reader.
+        </p>
+        <div class="books__tags">
+          <span class="books__tag">Action &amp; Adventure</span>
+          <span class="books__tag">STEM Inspired</span>
+          <span class="books__tag">Ages 8–14</span>
+          <span class="books__tag">Humour &amp; Suspense</span>
+        </div>
+        <p class="books__tagline"><strong>Join the mission — one page at a time!</strong></p>
+        <a href="/media" class="btn btn-primary">Check Out Our Books</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  .books {
+    position: relative;
+    padding: 120px 0;
+    overflow: hidden;
+    background: var(--color-white);
+  }
+
+  .books__bg {
+    position: absolute;
+    inset: 0;
+    background: var(--color-white);
+    z-index: -1;
+  }
+
+  .books__grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 80px;
+    align-items: center;
+  }
+
+  .books__image-col {
+    display: flex;
+    justify-content: center;
+  }
+
+  .books__image-wrap {
+    position: relative;
+    max-width: 420px;
+    width: 100%;
+  }
+
+  .books__image-glow {
+    position: absolute;
+    inset: -20px;
+    background: radial-gradient(circle at 50% 60%, color-mix(in srgb, var(--color-teal) 20%, transparent) 0%, transparent 70%);
+    z-index: 0;
+    pointer-events: none;
+  }
+
+  .books__image {
+    position: relative;
+    z-index: 1;
+    width: 100%;
+    border-radius: var(--radius-lg);
+    box-shadow: 0 32px 80px color-mix(in srgb, var(--color-black) 20%, transparent), 0 0 0 2px var(--color-teal);
+    transition: transform 0.4s ease;
+  }
+
+  .books__image-wrap:hover .books__image {
+    transform: translateY(-6px);
+  }
+
+  .books__badge {
+    position: absolute;
+    bottom: -16px;
+    right: -16px;
+    z-index: 2;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--color-teal);
+    color: var(--color-white);
+    font-family: var(--font-heading);
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    padding: 10px 18px;
+    border-radius: 32px;
+    box-shadow: 0 8px 24px color-mix(in srgb, var(--color-teal) 40%, transparent);
+  }
+
+  .books__content {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .books__title {
+    font-size: clamp(28px, 3.5vw, 48px);
+    color: var(--color-black);
+    line-height: 1.1;
+  }
+
+  .books__body {
+    font-size: 16px;
+    line-height: 1.7;
+    color: var(--color-black);
+  }
+
+  .books__tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: 8px 0;
+  }
+
+  .books__tag {
+    font-family: var(--font-heading);
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--color-white);
+    background: var(--color-teal);
+    border: 1px solid var(--color-teal);
+    padding: 6px 14px;
+    border-radius: 32px;
+  }
+
+  .books__tagline {
+    font-size: 17px;
+    color: var(--color-black);
+    font-style: italic;
+    font-weight: 600;
+  }
+
+  @media (max-width: 900px) {
+    .books__grid {
+      grid-template-columns: 1fr;
+      gap: 48px;
+    }
+
+    .books__image-col {
+      order: -1;
+    }
+
+    .books {
+      padding: 80px 0;
+    }
+  }
+</style>
