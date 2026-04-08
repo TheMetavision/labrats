@@ -1,0 +1,279 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import Navbar from '../../components/Navbar.astro';
+import Footer from '../../components/Footer.astro';
+import { getAllCharacters, getCharacterBySlug, urlFor } from '../../lib/sanity';
+import { characterSchema, breadcrumbSchema } from '../../lib/schema';
+
+export async function getStaticPaths() {
+  const characters = await getAllCharacters();
+  return (characters || []).map((c: any) => ({
+    params: { slug: c.slug },
+  }));
+}
+
+const { slug } = Astro.params;
+const character = await getCharacterBySlug(slug!);
+
+if (!character) return Astro.redirect('/meet-the-rat-pack');
+
+const portrait = character.portrait ? urlFor(character.portrait).width(600).height(600).format('webp').url() : null;
+
+const schemas = [
+  characterSchema({
+    name: character.name,
+    bio: character.bio,
+    image: portrait || undefined,
+    url: `https://labrats.uk/characters/${slug}`,
+  }),
+  breadcrumbSchema([
+    { name: 'Home', url: 'https://labrats.uk/' },
+    { name: 'The Rat Pack', url: 'https://labrats.uk/meet-the-rat-pack' },
+    { name: character.name, url: `https://labrats.uk/characters/${slug}` },
+  ]),
+];
+---
+
+<Layout
+  title={`${character.name} — Labrats`}
+  description={character.bio?.slice(0, 160) || `Meet ${character.name} from the Labrats universe.`}
+  canonical={`/characters/${slug}`}
+  jsonLd={schemas}
+>
+  <Navbar />
+  <main class="page">
+
+    <section class="char-detail">
+      <div class="container char-detail__grid">
+
+        <div class="char-detail__portrait-col">
+          <div class="char-detail__portrait-wrap">
+            {portrait ? (
+              <img
+                class="char-detail__portrait-img"
+                src={portrait}
+                alt={character.name}
+                width="600"
+                height="600"
+              />
+            ) : (
+              <div class="char-detail__portrait-fallback">
+                <span class="char-detail__initial">{character.name[0]}</span>
+              </div>
+            )}
+          </div>
+        </div>
+
+        <div class="char-detail__content">
+          <span class="section-label">Character File</span>
+          <h1 class="char-detail__name">{character.name}</h1>
+          <p class="char-detail__role">{character.role}</p>
+
+          {character.quote && (
+            <blockquote class="char-detail__quote">
+              "{character.quote}"
+            </blockquote>
+          )}
+
+          <div class="char-detail__bio">
+            <p>{character.bio}</p>
+          </div>
+
+          {character.extendedBio && (
+            <div class="char-detail__extended">
+              <p>{character.extendedBio}</p>
+            </div>
+          )}
+
+          {character.abilities && character.abilities.length > 0 && (
+            <div class="char-detail__abilities">
+              <h3 class="char-detail__abilities-title">Abilities</h3>
+              <div class="char-detail__abilities-list">
+                {character.abilities.map((ability: string) => (
+                  <span class="char-detail__ability-tag">{ability}</span>
+                ))}
+              </div>
+            </div>
+          )}
+
+          <a href="/meet-the-rat-pack" class="char-detail__back">← Back to The Rat Pack</a>
+        </div>
+
+      </div>
+    </section>
+
+  </main>
+  <Footer />
+</Layout>
+
+<style>
+  .page {
+    padding-top: 80px;
+    background: var(--color-black);
+    min-height: 100vh;
+  }
+
+  .char-detail {
+    padding: 80px 0 120px;
+  }
+
+  .char-detail__grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 64px;
+    align-items: start;
+  }
+
+  .char-detail__portrait-col {
+    display: flex;
+    justify-content: center;
+  }
+
+  .char-detail__portrait-wrap {
+    position: relative;
+    width: 100%;
+    max-width: 480px;
+    aspect-ratio: 1 / 1;
+    border-radius: var(--radius-lg);
+    border: 2px solid var(--color-teal);
+    overflow: hidden;
+    background: color-mix(in srgb, var(--color-teal) 8%, var(--color-black));
+  }
+
+  .char-detail__portrait-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .char-detail__portrait-fallback {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+  }
+
+  .char-detail__portrait-fallback::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image:
+      linear-gradient(color-mix(in srgb, var(--color-teal) 8%, transparent) 1px, transparent 1px),
+      linear-gradient(90deg, color-mix(in srgb, var(--color-teal) 8%, transparent) 1px, transparent 1px);
+    background-size: 32px 32px;
+  }
+
+  .char-detail__initial {
+    position: relative;
+    z-index: 1;
+    font-family: var(--font-display);
+    font-size: 120px;
+    line-height: 1;
+    color: var(--color-teal);
+  }
+
+  .char-detail__content {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .char-detail__name {
+    font-family: var(--font-display);
+    font-size: clamp(48px, 6vw, 80px);
+    color: var(--color-yellow);
+    line-height: 1;
+    letter-spacing: 1px;
+  }
+
+  .char-detail__role {
+    font-family: var(--font-heading);
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--color-teal);
+  }
+
+  .char-detail__quote {
+    font-family: var(--font-heading);
+    font-size: 20px;
+    font-weight: 500;
+    font-style: italic;
+    color: var(--color-white);
+    border-left: 3px solid var(--color-teal);
+    padding-left: 20px;
+    margin: 8px 0;
+    line-height: 1.5;
+  }
+
+  .char-detail__bio,
+  .char-detail__extended {
+    font-size: 16px;
+    line-height: 1.7;
+    color: var(--color-white);
+  }
+
+  .char-detail__abilities {
+    margin-top: 8px;
+  }
+
+  .char-detail__abilities-title {
+    font-family: var(--font-heading);
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--color-teal);
+    margin-bottom: 12px;
+  }
+
+  .char-detail__abilities-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .char-detail__ability-tag {
+    font-family: var(--font-heading);
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--color-black);
+    background: var(--color-teal);
+    padding: 6px 14px;
+    border-radius: 32px;
+  }
+
+  .char-detail__back {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-family: var(--font-heading);
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--color-teal);
+    margin-top: 16px;
+    transition: color 0.2s;
+  }
+
+  .char-detail__back:hover {
+    color: var(--color-yellow);
+  }
+
+  @media (max-width: 900px) {
+    .char-detail__grid {
+      grid-template-columns: 1fr;
+      gap: 40px;
+    }
+
+    .char-detail {
+      padding: 48px 0 80px;
+    }
+  }
+</style>

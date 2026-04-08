@@ -1,0 +1,278 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import Navbar from '../../components/Navbar.astro';
+import Footer from '../../components/Footer.astro';
+import { getAllBlogPosts, getBlogPostBySlug, urlFor } from '../../lib/sanity';
+import { articleSchema, breadcrumbSchema } from '../../lib/schema';
+
+export async function getStaticPaths() {
+  const posts = await getAllBlogPosts();
+  return (posts || []).map((p: any) => ({
+    params: { slug: p.slug },
+  }));
+}
+
+const { slug } = Astro.params;
+const post = await getBlogPostBySlug(slug!);
+
+if (!post) return Astro.redirect('/rat-tales');
+
+const heroImage = post.featuredImage ? urlFor(post.featuredImage).width(1200).height(675).format('webp').url() : null;
+const date = post.publishedAt ? new Date(post.publishedAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' }) : '';
+
+const schemas = [
+  articleSchema({
+    title: post.title,
+    excerpt: post.excerpt || post.title,
+    publishedAt: post.publishedAt,
+    image: heroImage || undefined,
+    url: `https://labrats.uk/rat-tales/${slug}`,
+  }),
+  breadcrumbSchema([
+    { name: 'Home', url: 'https://labrats.uk/' },
+    { name: 'Rat Tales', url: 'https://labrats.uk/rat-tales' },
+    { name: post.title, url: `https://labrats.uk/rat-tales/${slug}` },
+  ]),
+];
+---
+
+<Layout
+  title={post.seoTitle || `${post.title} — Labrats`}
+  description={post.seoDescription || post.excerpt || post.title}
+  canonical={`/rat-tales/${slug}`}
+  jsonLd={schemas}
+>
+  <Navbar />
+  <main class="page">
+
+    <article class="post-detail">
+      <div class="container">
+
+        <nav class="breadcrumbs">
+          <a href="/">Home</a> <span class="breadcrumbs__sep">/</span>
+          <a href="/rat-tales">Rat Tales</a> <span class="breadcrumbs__sep">/</span>
+          <span class="breadcrumbs__current">{post.title}</span>
+        </nav>
+
+        <header class="post-detail__header">
+          {post.category && <span class="post-detail__category">{post.category}</span>}
+          <h1 class="post-detail__title">{post.title}</h1>
+          {date && <time class="post-detail__date">{date}</time>}
+        </header>
+
+        {heroImage && (
+          <img
+            class="post-detail__hero"
+            src={heroImage}
+            alt={post.title}
+            width="1200"
+            height="675"
+          />
+        )}
+
+        <div class="post-detail__body">
+          {post.body ? (
+            post.body.map((block: any) => {
+              if (block._type === 'block') {
+                const text = block.children?.map((c: any) => c.text).join('') || '';
+                if (!text.trim()) return null;
+                if (block.style === 'h2') return <h2>{text}</h2>;
+                if (block.style === 'h3') return <h3>{text}</h3>;
+                if (block.style === 'h4') return <h4>{text}</h4>;
+                if (block.style === 'blockquote') return <blockquote>{text}</blockquote>;
+                return <p>{text}</p>;
+              }
+              if (block._type === 'image' && block.asset) {
+                return <img class="post-detail__inline-img" src={urlFor(block).width(960).format('webp').url()} alt={block.alt || ''} loading="lazy" />;
+              }
+              return null;
+            })
+          ) : (
+            post.excerpt && <p>{post.excerpt}</p>
+          )}
+        </div>
+
+        {post.relatedCharacters && post.relatedCharacters.length > 0 && (
+          <div class="post-detail__related">
+            <h3 class="post-detail__related-title">Featured Characters</h3>
+            <div class="post-detail__related-list">
+              {post.relatedCharacters.map((char: any) => (
+                <a href={`/characters/${char.slug}`} class="post-detail__related-tag">{char.name}</a>
+              ))}
+            </div>
+          </div>
+        )}
+
+        <a href="/rat-tales" class="post-detail__back">← Back to Rat Tales</a>
+
+      </div>
+    </article>
+
+  </main>
+  <Footer />
+</Layout>
+
+<style>
+  .page {
+    padding-top: 80px;
+    background: var(--color-white);
+    min-height: 100vh;
+  }
+
+  .breadcrumbs {
+    font-family: var(--font-heading);
+    font-size: 13px;
+    color: color-mix(in srgb, var(--color-black) 50%, transparent);
+    margin-bottom: 32px;
+    padding-top: 40px;
+  }
+
+  .breadcrumbs a {
+    color: var(--color-teal);
+    transition: color 0.2s;
+  }
+
+  .breadcrumbs a:hover { color: var(--color-black); }
+
+  .breadcrumbs__sep { margin: 0 8px; }
+
+  .breadcrumbs__current { color: var(--color-black); }
+
+  .post-detail {
+    padding-bottom: 96px;
+  }
+
+  .post-detail .container {
+    max-width: 800px;
+  }
+
+  .post-detail__header {
+    margin-bottom: 32px;
+  }
+
+  .post-detail__category {
+    display: inline-block;
+    font-family: var(--font-heading);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--color-teal);
+    margin-bottom: 12px;
+  }
+
+  .post-detail__title {
+    font-family: var(--font-display);
+    font-size: clamp(36px, 5vw, 64px);
+    color: var(--color-black);
+    line-height: 1.05;
+    margin-bottom: 12px;
+  }
+
+  .post-detail__date {
+    font-family: var(--font-body);
+    font-size: 14px;
+    color: color-mix(in srgb, var(--color-black) 50%, transparent);
+  }
+
+  .post-detail__hero {
+    width: 100%;
+    border-radius: var(--radius-lg);
+    margin-bottom: 40px;
+  }
+
+  .post-detail__body {
+    font-family: var(--font-body);
+    font-size: 17px;
+    line-height: 1.8;
+    color: var(--color-black);
+  }
+
+  .post-detail__body p {
+    margin-bottom: 20px;
+  }
+
+  .post-detail__body h2 {
+    font-family: var(--font-display);
+    font-size: 32px;
+    color: var(--color-black);
+    margin: 40px 0 16px;
+    line-height: 1.1;
+  }
+
+  .post-detail__body h3 {
+    font-family: var(--font-heading);
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--color-black);
+    margin: 32px 0 12px;
+  }
+
+  .post-detail__body blockquote {
+    border-left: 3px solid var(--color-teal);
+    padding-left: 20px;
+    font-style: italic;
+    color: color-mix(in srgb, var(--color-black) 70%, transparent);
+    margin: 24px 0;
+  }
+
+  .post-detail__inline-img {
+    width: 100%;
+    border-radius: var(--radius-lg);
+    margin: 24px 0;
+  }
+
+  .post-detail__related {
+    margin-top: 48px;
+    padding-top: 32px;
+    border-top: 1px solid color-mix(in srgb, var(--color-black) 10%, transparent);
+  }
+
+  .post-detail__related-title {
+    font-family: var(--font-heading);
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--color-teal);
+    margin-bottom: 12px;
+  }
+
+  .post-detail__related-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .post-detail__related-tag {
+    font-family: var(--font-heading);
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--color-black);
+    background: var(--color-teal);
+    padding: 6px 14px;
+    border-radius: 32px;
+    transition: background 0.2s;
+  }
+
+  .post-detail__related-tag:hover {
+    background: var(--color-yellow);
+  }
+
+  .post-detail__back {
+    display: inline-flex;
+    align-items: center;
+    font-family: var(--font-heading);
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--color-teal);
+    margin-top: 40px;
+    transition: color 0.2s;
+  }
+
+  .post-detail__back:hover { color: var(--color-black); }
+</style>

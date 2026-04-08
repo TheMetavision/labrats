@@ -1,4 +1,11 @@
 ---
+import { getAllProducts } from '../lib/sanity';
+
+const sanityProducts = await getAllProducts();
+const topProducts = sanityProducts.slice(0, 3);
+const pills = topProducts.length > 0
+  ? topProducts.map(p => `${p.name} — £${p.price}`)
+  : ['Rat Pack Hoodie — £34', 'Escape Artist Tee — £22', 'Lab Access Cap — £18'];
 ---
 
 <section class="merch-teaser">
@@ -16,9 +23,9 @@
         <p class="merch-teaser__sub">The Rat Pack wear their rebellion. Now you can too.</p>
 
         <div class="merch-teaser__pills">
-          <span class="merch-teaser__pill">Rat Pack Hoodie — £34</span>
-          <span class="merch-teaser__pill">Escape Artist Tee — £22</span>
-          <span class="merch-teaser__pill">Lab Access Cap — £18</span>
+          {pills.map(pill => (
+            <span class="merch-teaser__pill">{pill}</span>
+          ))}
         </div>
 
         <p class="merch-teaser__note">New drops added regularly. Never the same lab twice.</p>

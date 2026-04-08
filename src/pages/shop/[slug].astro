@@ -1,0 +1,344 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import Navbar from '../../components/Navbar.astro';
+import Footer from '../../components/Footer.astro';
+import { getAllProducts, getProductBySlug, urlFor } from '../../lib/sanity';
+import { productSchema, breadcrumbSchema } from '../../lib/schema';
+
+export async function getStaticPaths() {
+  const products = await getAllProducts();
+  return (products || []).map((p: any) => ({
+    params: { slug: p.slug },
+  }));
+}
+
+const { slug } = Astro.params;
+const product = await getProductBySlug(slug!);
+
+if (!product) return Astro.redirect('/merch');
+
+const mainImage = product.images?.[0] ? urlFor(product.images[0]).width(800).height(800).format('webp').url() : null;
+const galleryImages = product.images?.slice(1)?.map((img: any) => urlFor(img).width(400).height(400).format('webp').url()) || [];
+
+const schemas = [
+  productSchema({
+    name: product.name,
+    description: product.description || product.name,
+    price: product.price || 0,
+    image: mainImage || undefined,
+    url: `https://labrats.uk/shop/${slug}`,
+    availability: product.featured === false ? 'https://schema.org/PreOrder' : 'https://schema.org/InStock',
+  }),
+  breadcrumbSchema([
+    { name: 'Home', url: 'https://labrats.uk/' },
+    { name: 'Merch', url: 'https://labrats.uk/merch' },
+    { name: product.name, url: `https://labrats.uk/shop/${slug}` },
+  ]),
+];
+---
+
+<Layout
+  title={product.seoTitle || `${product.name} — Labrats Merch`}
+  description={product.seoDescription || product.description || `${product.name} — Official Labrats merchandise.`}
+  canonical={`/shop/${slug}`}
+  jsonLd={schemas}
+>
+  <Navbar />
+  <main class="page">
+
+    <section class="product-detail">
+      <div class="container product-detail__grid">
+
+        <div class="product-detail__gallery">
+          <div class="product-detail__main-img-wrap">
+            {mainImage ? (
+              <img
+                class="product-detail__main-img"
+                src={mainImage}
+                alt={product.name}
+                width="800"
+                height="800"
+                id="mainProductImage"
+              />
+            ) : (
+              <div class="product-detail__placeholder">
+                <span class="product-detail__placeholder-label">Image Coming Soon</span>
+              </div>
+            )}
+          </div>
+          {galleryImages.length > 0 && (
+            <div class="product-detail__thumbs">
+              {mainImage && (
+                <button class="product-detail__thumb product-detail__thumb--active" data-src={mainImage}>
+                  <img src={mainImage} alt={product.name} width="80" height="80" />
+                </button>
+              )}
+              {galleryImages.map((img: string, i: number) => (
+                <button class="product-detail__thumb" data-src={img}>
+                  <img src={img} alt={`${product.name} view ${i + 2}`} width="80" height="80" />
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+
+        <div class="product-detail__info">
+          <nav class="breadcrumbs">
+            <a href="/">Home</a> <span class="breadcrumbs__sep">/</span>
+            <a href="/merch">Merch</a> <span class="breadcrumbs__sep">/</span>
+            <span class="breadcrumbs__current">{product.name}</span>
+          </nav>
+
+          <h1 class="product-detail__name">{product.name}</h1>
+
+          {product.category && (
+            <span class="product-detail__category">{product.category.title}</span>
+          )}
+
+          {product.price && (
+            <div class="product-detail__pricing">
+              <span class="product-detail__price">£{product.price}</span>
+              {product.compareAtPrice && (
+                <span class="product-detail__compare">£{product.compareAtPrice}</span>
+              )}
+            </div>
+          )}
+
+          {product.description && (
+            <p class="product-detail__desc">{product.description}</p>
+          )}
+
+          {product.designStory && (
+            <div class="product-detail__story">
+              <h3 class="product-detail__story-title">The Story Behind The Design</h3>
+              <p>{product.designStory}</p>
+            </div>
+          )}
+
+          {product.material && (
+            <p class="product-detail__material">Material: {product.material}</p>
+          )}
+
+          <a href="/merch" class="product-detail__back">← Back to Merch</a>
+        </div>
+
+      </div>
+    </section>
+
+  </main>
+  <Footer />
+</Layout>
+
+<style>
+  .page {
+    padding-top: 80px;
+    background: var(--color-white);
+    min-height: 100vh;
+  }
+
+  .breadcrumbs {
+    font-family: var(--font-heading);
+    font-size: 13px;
+    color: color-mix(in srgb, var(--color-black) 50%, transparent);
+    margin-bottom: 20px;
+  }
+
+  .breadcrumbs a { color: var(--color-teal); transition: color 0.2s; }
+  .breadcrumbs a:hover { color: var(--color-black); }
+  .breadcrumbs__sep { margin: 0 8px; }
+  .breadcrumbs__current { color: var(--color-black); }
+
+  .product-detail {
+    padding: 48px 0 120px;
+  }
+
+  .product-detail__grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 64px;
+    align-items: start;
+  }
+
+  .product-detail__gallery {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .product-detail__main-img-wrap {
+    aspect-ratio: 1 / 1;
+    border-radius: var(--radius-lg);
+    border: 2px solid var(--color-teal);
+    overflow: hidden;
+    background: color-mix(in srgb, var(--color-teal) 5%, var(--color-white));
+  }
+
+  .product-detail__main-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .product-detail__placeholder {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: color-mix(in srgb, var(--color-teal) 8%, var(--color-white));
+  }
+
+  .product-detail__placeholder-label {
+    font-family: var(--font-heading);
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: color-mix(in srgb, var(--color-teal) 50%, transparent);
+  }
+
+  .product-detail__thumbs {
+    display: flex;
+    gap: 10px;
+  }
+
+  .product-detail__thumb {
+    width: 72px;
+    height: 72px;
+    border-radius: 6px;
+    overflow: hidden;
+    border: 2px solid transparent;
+    cursor: pointer;
+    padding: 0;
+    background: none;
+    transition: border-color 0.2s;
+  }
+
+  .product-detail__thumb--active,
+  .product-detail__thumb:hover {
+    border-color: var(--color-teal);
+  }
+
+  .product-detail__thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .product-detail__name {
+    font-family: var(--font-display);
+    font-size: clamp(36px, 5vw, 56px);
+    color: var(--color-black);
+    line-height: 1.05;
+    margin-bottom: 4px;
+  }
+
+  .product-detail__category {
+    display: inline-block;
+    font-family: var(--font-heading);
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--color-teal);
+    margin-bottom: 16px;
+  }
+
+  .product-detail__pricing {
+    display: flex;
+    align-items: baseline;
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+
+  .product-detail__price {
+    font-family: var(--font-heading);
+    font-size: 32px;
+    font-weight: 700;
+    color: var(--color-black);
+  }
+
+  .product-detail__compare {
+    font-family: var(--font-heading);
+    font-size: 18px;
+    color: color-mix(in srgb, var(--color-black) 40%, transparent);
+    text-decoration: line-through;
+  }
+
+  .product-detail__desc {
+    font-size: 16px;
+    line-height: 1.7;
+    color: var(--color-black);
+    margin-bottom: 24px;
+  }
+
+  .product-detail__story {
+    background: color-mix(in srgb, var(--color-teal) 6%, var(--color-white));
+    border-left: 3px solid var(--color-teal);
+    padding: 20px 24px;
+    border-radius: 0 var(--radius-lg) var(--radius-lg) 0;
+    margin-bottom: 24px;
+  }
+
+  .product-detail__story-title {
+    font-family: var(--font-heading);
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--color-teal);
+    margin-bottom: 8px;
+  }
+
+  .product-detail__story p {
+    font-size: 15px;
+    line-height: 1.7;
+    color: var(--color-black);
+  }
+
+  .product-detail__material {
+    font-family: var(--font-heading);
+    font-size: 14px;
+    font-weight: 600;
+    color: color-mix(in srgb, var(--color-black) 60%, transparent);
+    margin-bottom: 24px;
+  }
+
+  .product-detail__back {
+    display: inline-flex;
+    align-items: center;
+    font-family: var(--font-heading);
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--color-teal);
+    margin-top: 16px;
+    transition: color 0.2s;
+  }
+
+  .product-detail__back:hover { color: var(--color-black); }
+
+  @media (max-width: 900px) {
+    .product-detail__grid {
+      grid-template-columns: 1fr;
+      gap: 32px;
+    }
+  }
+</style>
+
+<script>
+  const thumbs = document.querySelectorAll('.product-detail__thumb');
+  const mainImg = document.getElementById('mainProductImage') as HTMLImageElement | null;
+
+  thumbs.forEach((thumb) => {
+    thumb.addEventListener('click', () => {
+      const src = (thumb as HTMLElement).dataset.src;
+      if (mainImg && src) {
+        mainImg.src = src;
+        thumbs.forEach((t) => t.classList.remove('product-detail__thumb--active'));
+        thumb.classList.add('product-detail__thumb--active');
+      }
+    });
+  });
+</script>

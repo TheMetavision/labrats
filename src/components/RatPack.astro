@@ -1,26 +1,8 @@
 ---
-const characters = [
-  {
-    name: 'REX',
-    role: 'Team Leader & Tactician',
-    bio: 'Cool under pressure and built for command, Rex runs every mission with surgical precision. He escaped first. He came back for the others.',
-  },
-  {
-    name: 'ZARA',
-    role: 'Chief Inventor & Engineer',
-    bio: 'Zara can build an ion disruptor from a paperclip and two batteries — and she has. Her lab-enhanced brain runs at approximately three times normal processing speed.',
-  },
-  {
-    name: 'BLITZ',
-    role: 'Infiltration Specialist',
-    bio: 'Blitz moves faster than any camera can track and slips through security systems like smoke through a keyhole. The scientists never saw him leave.',
-  },
-  {
-    name: 'NOVA',
-    role: 'Hacker & Intelligence Officer',
-    bio: 'Nova sees the world as one giant network — and she\'s already three steps inside it. She insists the real superpower is knowing which questions to ask.',
-  },
-];
+import { getAllCharacters, urlFor } from '../lib/sanity';
+
+const allChars = await getAllCharacters();
+const characters = allChars.slice(0, 4);
 ---
 
 <section class="ratpack" id="rat-pack">
@@ -45,16 +27,26 @@ const characters = [
             <div class="carousel__slide" data-index={i} role="group" aria-roledescription="slide" aria-label={`${i + 1} of ${characters.length}: ${char.name}`}>
               <div class="char-card">
                 <div class="char-card__portrait">
-                  <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" class="char-card__portrait-icon">
-                    <ellipse cx="50" cy="62" rx="24" ry="18" fill="#0a0a0a" opacity="0.7"/>
-                    <circle cx="38" cy="42" r="9" fill="#0a0a0a" opacity="0.5"/>
-                    <circle cx="62" cy="42" r="9" fill="#0a0a0a" opacity="0.5"/>
-                    <circle cx="35" cy="39" r="3.5" fill="#0a0a0a" opacity="0.35"/>
-                    <circle cx="65" cy="39" r="3.5" fill="#0a0a0a" opacity="0.35"/>
-                    <path d="M26 50 Q20 34 23 24" stroke="#0a0a0a" stroke-width="2.5" stroke-linecap="round" opacity="0.45" fill="none"/>
-                    <path d="M74 50 Q80 34 77 24" stroke="#0a0a0a" stroke-width="2.5" stroke-linecap="round" opacity="0.45" fill="none"/>
-                    <ellipse cx="50" cy="78" rx="9" ry="3" fill="#0a0a0a" opacity="0.2"/>
-                  </svg>
+                  {char.portrait ? (
+                    <img
+                      class="char-card__portrait-img"
+                      src={urlFor(char.portrait).width(300).height(300).format('webp').url()}
+                      alt={char.name}
+                      width="300"
+                      height="300"
+                    />
+                  ) : (
+                    <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" class="char-card__portrait-icon">
+                      <ellipse cx="50" cy="62" rx="24" ry="18" fill="#0a0a0a" opacity="0.7"/>
+                      <circle cx="38" cy="42" r="9" fill="#0a0a0a" opacity="0.5"/>
+                      <circle cx="62" cy="42" r="9" fill="#0a0a0a" opacity="0.5"/>
+                      <circle cx="35" cy="39" r="3.5" fill="#0a0a0a" opacity="0.35"/>
+                      <circle cx="65" cy="39" r="3.5" fill="#0a0a0a" opacity="0.35"/>
+                      <path d="M26 50 Q20 34 23 24" stroke="#0a0a0a" stroke-width="2.5" stroke-linecap="round" opacity="0.45" fill="none"/>
+                      <path d="M74 50 Q80 34 77 24" stroke="#0a0a0a" stroke-width="2.5" stroke-linecap="round" opacity="0.45" fill="none"/>
+                      <ellipse cx="50" cy="78" rx="9" ry="3" fill="#0a0a0a" opacity="0.2"/>
+                    </svg>
+                  )}
                 </div>
                 <h3 class="char-card__name">{char.name}</h3>
                 <p class="char-card__role">{char.role}</p>
@@ -226,6 +218,13 @@ const characters = [
   .char-card__portrait-icon {
     width: 120px;
     height: 120px;
+  }
+
+  .char-card__portrait-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 50%;
   }
 
   .char-card__name {

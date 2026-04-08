@@ -13,6 +13,10 @@ export default {
     { name: 'footerText', title: 'Footer Text', type: 'text', rows: 2, initialValue: '© The Metavision 2026. All rights reserved.' },
     { name: 'newsletterHeadline', title: 'Newsletter Headline', type: 'string', initialValue: 'Join the Rebellion' },
     { name: 'newsletterSubtext', title: 'Newsletter Subtext', type: 'string', initialValue: 'Lab dispatches, mission reports, and first access to merch drops.' },
+    { name: 'heroImage', title: 'Hero Background Image', type: 'image', options: { hotspot: true }, description: 'Full-width background image for the homepage hero section' },
+    { name: 'heroPortrait', title: 'Hero Portrait Image', type: 'image', options: { hotspot: true }, description: 'Character portrait overlay on the hero (optional)' },
+    { name: 'bookPromoImage', title: 'Book Promo Image', type: 'image', options: { hotspot: true }, description: 'Book series promo image shown on the homepage' },
+    { name: 'trailerYoutubeUrl', title: 'Trailer YouTube URL', type: 'url', description: 'YouTube URL for the homepage trailer CTA' },
   ],
   __experimental_actions: ['update', 'publish'],
 };

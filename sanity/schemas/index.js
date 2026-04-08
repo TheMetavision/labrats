@@ -5,6 +5,7 @@ import product from './product';
 import category from './category';
 import faq from './faq';
 import page from './page';
+import book from './book';
 import siteSettings from './siteSettings';
 
-export const schemaTypes = [siteSettings, character, episode, blogPost, product, category, faq, page];
+export const schemaTypes = [siteSettings, character, episode, blogPost, product, category, faq, page, book];

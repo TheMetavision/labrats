@@ -2,6 +2,12 @@
 import Layout from '../layouts/Layout.astro';
 import Navbar from '../components/Navbar.astro';
 import Footer from '../components/Footer.astro';
+import { getSiteSettings, urlFor } from '../lib/sanity';
+
+const settings = await getSiteSettings();
+const logoUrl = settings?.logo
+  ? urlFor(settings.logo).width(160).format('webp').url()
+  : 'https://assets.zyrosite.com/cdn-cgi/image/format=auto,w=375,fit=crop/Aq2q3anW6qTLnbeK/labrats-square-jul25-mp8JqDpWMyf16pEv.png';
 ---
 
 <Layout title="404 — Escaped the Lab | Labrats" description="This page has escaped the lab. We can't find it." canonical="/404">
@@ -14,7 +20,7 @@ import Footer from '../components/Footer.astro';
     <div class="container notfound__content">
       <a href="/" class="notfound__logo" aria-label="Labrats Home">
         <img
-          src="https://assets.zyrosite.com/cdn-cgi/image/format=auto,w=375,fit=crop/Aq2q3anW6qTLnbeK/labrats-square-jul25-mp8JqDpWMyf16pEv.png"
+          src={logoUrl}
           alt="Labrats logo"
           width="80"
           height="80"

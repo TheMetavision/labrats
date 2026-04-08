@@ -1,4 +1,10 @@
 ---
+import { getSiteSettings, urlFor } from '../lib/sanity';
+
+const settings = await getSiteSettings();
+const bookPromoUrl = settings?.bookPromoImage
+  ? urlFor(settings.bookPromoImage).width(768).height(915).format('webp').url()
+  : 'https://assets.zyrosite.com/cdn-cgi/image/format=auto,w=768,h=915,fit=crop/Aq2q3anW6qTLnbeK/519287ea-aca7-48dd-8644-09b87bd778a4-YbNqQW3pNkcv55qe.png';
 ---
 
 <section class="books" id="books">
@@ -9,7 +15,7 @@
         <div class="books__image-wrap">
           <div class="books__image-glow"></div>
           <img
-            src="https://assets.zyrosite.com/cdn-cgi/image/format=auto,w=768,h=915,fit=crop/Aq2q3anW6qTLnbeK/519287ea-aca7-48dd-8644-09b87bd778a4-YbNqQW3pNkcv55qe.png"
+            src={bookPromoUrl}
             alt="Labrats Book Series"
             class="books__image"
             loading="lazy"

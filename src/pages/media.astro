@@ -2,45 +2,57 @@
 import Layout from '../layouts/Layout.astro';
 import Navbar from '../components/Navbar.astro';
 import Footer from '../components/Footer.astro';
+import { getAllEpisodes, getAllBooks, urlFor } from '../lib/sanity';
 
-const books = [
+const sanityBooks = await getAllBooks();
+const books = sanityBooks.length > 0 ? sanityBooks.map(b => ({
+  title: b.title,
+  description: b.description || '',
+  order: b.orderUrl || '#',
+  coverImage: b.coverImage || null,
+})) : [
   {
     title: 'Labrats: Escape from Lab Zero',
     description: 'The Rat Pack make their first daring break for freedom, outwitting every trap the scientists have laid. When the alarms sound, the real adventure begins.',
     order: '#',
+    coverImage: null,
   },
   {
     title: 'Labrats: The Cybernetic Conspiracy',
     description: "A shadowy organisation is upgrading ordinary rodents into cybernetic soldiers — and the Rat Pack are next on their list. Can they expose the plot before it's too late?",
     order: '#',
+    coverImage: null,
   },
   {
     title: 'Labrats: Operation Cheese Heist',
     description: 'A mission to steal back their confiscated supplies turns into a full-scale war against the most heavily fortified facility known to ratdom. Classic overcomplicated Rat Pack chaos.',
     order: '#',
+    coverImage: null,
   },
   {
     title: 'Labrats: Rise of the Mad Scientist',
     description: 'Dr Vortek has built a machine that could rewrite every living genome on Earth — and the Rat Pack are the only ones who know it. STEM skills and sharp claws required.',
     order: '#',
+    coverImage: null,
   },
 ];
 
-const videos = [
+const allEpisodes = await getAllEpisodes();
+const videos = allEpisodes.length > 0 ? allEpisodes : [
   {
     title: 'Labrats: Origin Story',
     description: 'How four ordinary lab rats became the most dangerous team in science.',
-    href: 'https://www.youtube.com/shorts/YNnNwp2mrbA',
+    youtubeUrl: 'https://www.youtube.com/shorts/YNnNwp2mrbA',
   },
   {
     title: 'Meet Nova — Hacker & Intelligence Officer',
     description: "She's already three steps inside your network.",
-    href: 'https://www.youtube.com/shorts/YNnNwp2mrbA',
+    youtubeUrl: 'https://www.youtube.com/shorts/YNnNwp2mrbA',
   },
   {
     title: 'The Great Cheese Heist — Episode Trailer',
     description: 'The mission. The chaos. The cheese.',
-    href: 'https://www.youtube.com/shorts/YNnNwp2mrbA',
+    youtubeUrl: 'https://www.youtube.com/shorts/YNnNwp2mrbA',
   },
 ];
 ---
@@ -69,10 +81,21 @@ const videos = [
           {books.map((book, i) => (
             <article class="book-card">
               <div class="book-card__cover">
-                <div class="book-card__cover-inner">
-                  <span class="book-card__number">0{i + 1}</span>
-                  <span class="book-card__cover-label">Labrats</span>
-                </div>
+                {book.coverImage ? (
+                  <img
+                    class="book-card__cover-img"
+                    src={urlFor(book.coverImage).width(600).height(400).format('webp').url()}
+                    alt={book.title}
+                    width="600"
+                    height="400"
+                    loading="lazy"
+                  />
+                ) : (
+                  <div class="book-card__cover-inner">
+                    <span class="book-card__number">0{i + 1}</span>
+                    <span class="book-card__cover-label">Labrats</span>
+                  </div>
+                )}
               </div>
               <div class="book-card__body">
                 <h3 class="book-card__title">{book.title}</h3>
@@ -98,6 +121,16 @@ const videos = [
           {videos.map(video => (
             <article class="video-card">
               <div class="video-card__thumb">
+                {video.thumbnail ? (
+                  <img
+                    class="video-card__thumb-img"
+                    src={urlFor(video.thumbnail).width(640).height(360).format('webp').url()}
+                    alt={video.title}
+                    width="640"
+                    height="360"
+                    loading="lazy"
+                  />
+                ) : null}
                 <div class="video-card__play">
                   <svg width="32" height="32" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
                     <path d="M8 5v14l11-7z"/>
@@ -107,7 +140,7 @@ const videos = [
               <div class="video-card__body">
                 <h3 class="video-card__title">{video.title}</h3>
                 <p class="video-card__desc">{video.description}</p>
-                <a href={video.href} class="video-card__link" target="_blank" rel="noopener">Watch Now</a>
+                <a href={video.youtubeUrl} class="video-card__link" target="_blank" rel="noopener">Watch Now</a>
               </div>
             </article>
           ))}
@@ -258,6 +291,14 @@ const videos = [
     background-size: 32px 32px;
   }
 
+  .book-card__cover-img {
+    position: relative;
+    z-index: 1;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
   .book-card__cover-inner {
     position: relative;
     z-index: 1;
@@ -400,6 +441,15 @@ const videos = [
     justify-content: center;
     color: var(--color-black);
     transition: transform 0.2s ease, background 0.2s ease;
+  }
+
+  .video-card__thumb-img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    z-index: 0;
   }
 
   .video-card:hover .video-card__play {

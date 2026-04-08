@@ -1,4 +1,11 @@
 ---
+import { getSiteSettings, urlFor } from '../lib/sanity';
+
+const settings = await getSiteSettings();
+const heroImageUrl = settings?.heroImage
+  ? urlFor(settings.heroImage).width(1920).height(1080).format('webp').url()
+  : 'https://assets.zyrosite.com/cdn-cgi/image/format=auto,w=1024,h=1539,fit=crop/Aq2q3anW6qTLnbeK/4fcf55a6-c179-44e1-9d13-0da27ed83a70-mnlqDMNG58Ir1Lyo.png';
+const trailerUrl = settings?.trailerYoutubeUrl || 'https://www.youtube.com/shorts/YNnNwp2mrbA';
 ---
 
 <section class="hero">
@@ -11,7 +18,7 @@
       <div class="hero__glow hero__glow--right"></div>
     </div>
     <img
-      src="https://assets.zyrosite.com/cdn-cgi/image/format=auto,w=1024,h=1539,fit=crop/Aq2q3anW6qTLnbeK/4fcf55a6-c179-44e1-9d13-0da27ed83a70-mnlqDMNG58Ir1Lyo.png"
+      src={heroImageUrl}
       alt="Labrats characters"
       class="hero__image"
     />
@@ -31,7 +38,7 @@
       </p>
       <p class="hero__tagline">Genetically enhanced. Dangerously smart. Fighting for their freedom.</p>
       <div class="hero__ctas">
-        <a href="https://www.youtube.com/shorts/YNnNwp2mrbA" class="hero__btn hero__btn--teal" target="_blank" rel="noopener">
+        <a href={trailerUrl} class="hero__btn hero__btn--teal" target="_blank" rel="noopener">
           <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
             <path d="M3 2l10 6-10 6V2z"/>
           </svg>

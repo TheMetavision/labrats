@@ -2,8 +2,16 @@
 import Layout from '../layouts/Layout.astro';
 import Navbar from '../components/Navbar.astro';
 import Footer from '../components/Footer.astro';
+import { getAllProducts, urlFor } from '../lib/sanity';
 
-const products = [
+const sanityProducts = await getAllProducts();
+const products = sanityProducts.length > 0 ? sanityProducts.map(p => ({
+  name: p.name,
+  price: p.price ? `From £${p.price}` : 'Coming Soon',
+  image: p.images?.[0] ? urlFor(p.images[0]).width(600).height(600).format('webp').url() : null,
+  alt: p.name,
+  slug: p.slug,
+})) : [
   {
     name: 'Rat Pack Hoodie',
     price: 'From £34',
@@ -27,30 +35,6 @@ const products = [
     price: 'From £14',
     image: 'https://images.pexels.com/photos/5632371/pexels-photo-5632371.jpeg?auto=compress&cs=tinysrgb&w=600&h=600&fit=crop',
     alt: 'Labrats tote bag',
-  },
-  {
-    name: 'Lab Rat Snapback',
-    price: 'From £20',
-    image: null,
-    alt: 'Lab Rat Snapback cap',
-  },
-  {
-    name: 'Rebel Rat Poster Print',
-    price: 'From £12',
-    image: null,
-    alt: 'Rebel Rat Poster Print',
-  },
-  {
-    name: 'Rat Pack Enamel Pin Set',
-    price: 'From £8',
-    image: null,
-    alt: 'Rat Pack Enamel Pin Set',
-  },
-  {
-    name: 'Labrats Notebook',
-    price: 'From £10',
-    image: null,
-    alt: 'Labrats Notebook',
   },
 ];
 ---
