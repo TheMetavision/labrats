@@ -26,25 +26,39 @@ const trailerUrl = settings?.trailerYoutubeUrl || 'https://www.youtube.com/short
   </div>
 
   <div class="container hero__content-wrap">
-    <div class="hero__content">
-      <span class="section-label">The Adventure Begins</span>
-      <h1 class="hero__title">
-        Welcome to<br />
-        <span class="hero__title-highlight">Labrats</span>
-        <span class="hero__title-sub">Where Genius Meets Mischief!</span>
-      </h1>
-      <p class="hero__body">
-        Step into the world of <strong>Labrats</strong> — an action-packed adventure bursting with daring escapes, wild inventions, and larger-than-life characters. A team of super-intelligent lab rats take on mad scientists, cybernetic threats, and epic missions in their fight for freedom.
-      </p>
-      <p class="hero__tagline">Genetically enhanced. Dangerously smart. Fighting for their freedom.</p>
-      <div class="hero__ctas">
-        <a href={trailerUrl} class="hero__btn hero__btn--teal" target="_blank" rel="noopener">
-          <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
-            <path d="M3 2l10 6-10 6V2z"/>
-          </svg>
-          Watch Our Trailer
-        </a>
-        <a href="/media" class="hero__btn hero__btn--yellow-outline">Explore Books</a>
+    <div class="hero__grid">
+      <!-- Left column: text content -->
+      <div class="hero__content">
+        <span class="section-label">The Adventure Begins</span>
+        <h1 class="hero__title">
+          Welcome to<br />
+          <span class="hero__title-highlight">Labrats</span>
+          <span class="hero__title-sub">Where Genius Meets Mischief!</span>
+        </h1>
+        <p class="hero__body">
+          Step into the world of <strong>Labrats</strong> — an action-packed adventure bursting with daring escapes, wild inventions, and larger-than-life characters. A team of super-intelligent lab rats take on mad scientists, cybernetic threats, and epic missions in their fight for freedom.
+        </p>
+        <p class="hero__tagline">Genetically enhanced. Dangerously smart. Fighting for their freedom.</p>
+        <div class="hero__ctas">
+          <a href={trailerUrl} class="hero__btn hero__btn--teal" target="_blank" rel="noopener">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
+              <path d="M3 2l10 6-10 6V2z"/>
+            </svg>
+            Watch Our Trailer
+          </a>
+          <a href="/media" class="hero__btn hero__btn--yellow-outline">Explore Books</a>
+        </div>
+      </div>
+
+      <!-- Right column: character image -->
+      <div class="hero__feature-image">
+        <div class="hero__feature-glow"></div>
+        <img
+          src="/images/Heroes.jpg"
+          alt="The Labrats heroes"
+          class="hero__feature-img"
+          loading="eager"
+        />
       </div>
     </div>
   </div>
@@ -157,6 +171,7 @@ const trailerUrl = settings?.trailerYoutubeUrl || 'https://www.youtube.com/short
     pointer-events: none;
   }
 
+  /* ── Content wrapper with two-column grid ── */
   .hero__content-wrap {
     position: relative;
     z-index: 10;
@@ -165,6 +180,15 @@ const trailerUrl = settings?.trailerYoutubeUrl || 'https://www.youtube.com/short
     min-height: calc(100vh - 80px);
     padding-top: 64px;
     padding-bottom: 80px;
+    width: 100%;
+  }
+
+  .hero__grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    align-items: center;
+    gap: 3rem;
+    width: 100%;
   }
 
   .hero__content {
@@ -259,10 +283,93 @@ const trailerUrl = settings?.trailerYoutubeUrl || 'https://www.youtube.com/short
     background: color-mix(in srgb, var(--color-yellow) 10%, transparent);
   }
 
+  /* ── Feature image (right column) ── */
+  .hero__feature-image {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .hero__feature-glow {
+    position: absolute;
+    width: 80%;
+    height: 80%;
+    top: 10%;
+    left: 10%;
+    background: radial-gradient(
+      ellipse at center,
+      color-mix(in srgb, var(--color-teal) 25%, transparent) 0%,
+      color-mix(in srgb, var(--color-teal) 8%, transparent) 40%,
+      transparent 70%
+    );
+    border-radius: 50%;
+    filter: blur(40px);
+    z-index: 0;
+    animation: featureGlow 5s ease-in-out infinite alternate;
+  }
+
+  @keyframes featureGlow {
+    from { opacity: 0.6; transform: scale(0.95); }
+    to { opacity: 1; transform: scale(1.05); }
+  }
+
+  .hero__feature-img {
+    position: relative;
+    z-index: 1;
+    width: 100%;
+    max-width: 580px;
+    height: auto;
+    border-radius: 12px;
+    border: 1px solid color-mix(in srgb, var(--color-teal) 20%, transparent);
+    box-shadow:
+      0 0 30px color-mix(in srgb, var(--color-teal) 15%, transparent),
+      0 20px 60px color-mix(in srgb, var(--color-black) 60%, transparent);
+    animation: heroImageIn 1s ease-out 0.3s both;
+  }
+
+  @keyframes heroImageIn {
+    from {
+      opacity: 0;
+      transform: translateX(40px) scale(0.96);
+    }
+    to {
+      opacity: 1;
+      transform: translateX(0) scale(1);
+    }
+  }
+
+  /* ── Responsive ── */
+  @media (max-width: 1024px) {
+    .hero__grid {
+      grid-template-columns: 1fr 1fr;
+      gap: 2rem;
+    }
+
+    .hero__feature-img {
+      max-width: 100%;
+    }
+  }
+
   @media (max-width: 768px) {
     .hero__content-wrap {
       align-items: flex-end;
       padding-bottom: 64px;
+    }
+
+    .hero__grid {
+      grid-template-columns: 1fr;
+      gap: 2rem;
+    }
+
+    .hero__feature-image {
+      order: -1;
+      max-width: 360px;
+      margin: 0 auto;
+    }
+
+    .hero__feature-img {
+      max-width: 100%;
     }
 
     .hero__image {
