@@ -4,20 +4,20 @@ import imageUrlBuilder from '@sanity/image-url';
 export const client = createClient({
   projectId: import.meta.env.SANITY_PROJECT_ID || 'o9qrmykx',
   dataset: import.meta.env.SANITY_DATASET || 'production',
-  apiVersion: '2026-04-10', useCdn: false,
+  apiVersion: '2024-01-01', useCdn: true,
 });
 
 const builder = imageUrlBuilder(client);
 export function urlFor(source: any) { return builder.image(source); }
 
 export async function getAllCharacters() {
-  return client.fetch(`*[_type == "character"] | order(sortOrder asc) { _id, name, "slug": slug.current, role, bio, extendedBio, abilities, quote, portrait, galleryImages, sortOrder, seoTitle, seoDescription }`);
+  return client.fetch(`*[_type == "character"] | order(sortOrder asc) { _id, name, "slug": slug.current, role, bio, extendedBio, abilities, quote, "portrait": coalesce(image, portrait), galleryImages, sortOrder, seoTitle, seoDescription }`);
 }
 export async function getCharacterBySlug(slug: string) {
-  return client.fetch(`*[_type == "character" && slug.current == $slug][0] { _id, name, "slug": slug.current, role, bio, extendedBio, abilities, quote, portrait, galleryImages, seoTitle, seoDescription }`, { slug });
+  return client.fetch(`*[_type == "character" && slug.current == $slug][0] { _id, name, "slug": slug.current, role, bio, extendedBio, abilities, quote, "portrait": coalesce(image, portrait), galleryImages, seoTitle, seoDescription }`, { slug });
 }
 export async function getAllEpisodes() {
-  return client.fetch(`*[_type == "episode"] | order(publishedAt desc) { _id, title, "slug": slug.current, videoType, season, episodeNumber, youtubeUrl, youtubeId, thumbnail, description, "featuredCharacters": featuredCharacters[]->{ name, "slug": slug.current, portrait }, publishedAt, duration, featured, seoTitle, seoDescription }`);
+  return client.fetch(`*[_type == "episode"] | order(publishedAt desc) { _id, title, "slug": slug.current, videoType, season, episodeNumber, youtubeUrl, youtubeId, thumbnail, description, "featuredCharacters": featuredCharacters[]->{ name, "slug": slug.current, "portrait": coalesce(image, portrait) }, publishedAt, duration, featured, seoTitle, seoDescription }`);
 }
 export async function getFeaturedEpisodes() {
   return client.fetch(`*[_type == "episode" && featured == true] | order(publishedAt desc)[0...4] { _id, title, "slug": slug.current, videoType, youtubeUrl, youtubeId, thumbnail, description, publishedAt, duration }`);
@@ -26,7 +26,7 @@ export async function getAllBlogPosts() {
   return client.fetch(`*[_type == "blogPost"] | order(publishedAt desc) { _id, title, "slug": slug.current, category, excerpt, body, featuredImage, "relatedCharacters": relatedCharacters[]->{ name, "slug": slug.current }, publishedAt, seoTitle, seoDescription }`);
 }
 export async function getBlogPostBySlug(slug: string) {
-  return client.fetch(`*[_type == "blogPost" && slug.current == $slug][0] { _id, title, "slug": slug.current, category, excerpt, body, featuredImage, "relatedCharacters": relatedCharacters[]->{ name, "slug": slug.current, portrait }, publishedAt, seoTitle, seoDescription }`, { slug });
+  return client.fetch(`*[_type == "blogPost" && slug.current == $slug][0] { _id, title, "slug": slug.current, category, excerpt, body, featuredImage, "relatedCharacters": relatedCharacters[]->{ name, "slug": slug.current, "portrait": coalesce(image, portrait) }, publishedAt, seoTitle, seoDescription }`, { slug });
 }
 export async function getAllProducts() {
   return client.fetch(`*[_type == "product"] | order(name asc) { _id, name, "slug": slug.current, "category": category->{ title, "slug": slug.current }, description, designStory, price, compareAtPrice, images, printfulVariants, material, featured, seoTitle, seoDescription }`);
