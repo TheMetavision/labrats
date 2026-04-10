@@ -324,6 +324,16 @@ const characters = allChars.slice(0, 4);
       padding: 80px 0;
     }
 
+    .carousel {
+      gap: 0;
+    }
+
+    .carousel__viewport {
+      max-width: calc(100vw - 120px);
+      flex: 1;
+      min-width: 0;
+    }
+
     .carousel__arrow {
       width: 40px;
       height: 40px;
@@ -342,13 +352,18 @@ const characters = allChars.slice(0, 4);
     }
 
     .char-card {
-      width: 90vw;
+      width: 100%;
+      max-width: calc(100vw - 140px);
       padding: 24px;
     }
 
     .char-card__portrait {
       width: 200px;
       height: 200px;
+    }
+
+    .char-card__name {
+      font-size: 28px;
     }
   }
 </style>
