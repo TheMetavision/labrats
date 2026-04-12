@@ -12,7 +12,14 @@ export default function CartDrawer() {
     try {
       const res = await fetch('/.netlify/functions/create-checkout', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ items: items.map((item) => ({ stripePriceId: item.stripePriceId, printfulVariantId: item.printfulVariantId, quantity: item.quantity, name: item.name, size: item.size, colour: item.colour })) }),
+        body: JSON.stringify({ items: items.map((item) => ({
+  name: item.name,
+  price: item.price,
+  size: item.size,
+  colour: item.colour || '',
+  image: item.image || '',
+  quantity: item.quantity,
+})),
       });
       const data = await res.json();
       if (data.url) window.location.href = data.url; else alert('Checkout failed.');

@@ -3,7 +3,7 @@ import { getSiteSettings, urlFor } from '../lib/sanity';
 
 const settings = await getSiteSettings();
 const logoUrl = settings?.logo
-  ? urlFor(settings.logo).height(160).format('webp').url()
+  ? urlFor(settings.logo).height(320).format('webp').url()
   : 'https://assets.zyrosite.com/cdn-cgi/image/format=auto,w=1440,h=756,fit=crop,f=jpeg/Aq2q3anW6qTLnbeK/labrats-landscape-jul25-YZ9jxZw971UBgjew.png';
 
 const navLinks = [
@@ -115,7 +115,7 @@ const navLinks = [
     display: flex;
     align-items: center;
     gap: 32px;
-    height: 90px;
+    height: 160px;
   }
 
   .navbar__logo {
@@ -123,7 +123,7 @@ const navLinks = [
   }
 
   .navbar__logo-img {
-    height: 84px;
+    height: 168px;
     width: auto;
     border-radius: 0;
     transition: opacity 0.2s;
