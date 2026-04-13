@@ -100,7 +100,7 @@ const videos = allEpisodes.length > 0 ? allEpisodes : [
               <div class="book-card__body">
                 <h3 class="book-card__title">{book.title}</h3>
                 <p class="book-card__desc">{book.description}</p>
-                <a href={book.order} class="book-card__btn">Order Now</a>
+                <span class="book-card__badge">Coming Soon</span>
               </div>
             </article>
           ))}
@@ -140,7 +140,7 @@ const videos = allEpisodes.length > 0 ? allEpisodes : [
               <div class="video-card__body">
                 <h3 class="video-card__title">{video.title}</h3>
                 <p class="video-card__desc">{video.description}</p>
-                <a href={video.youtubeUrl} class="video-card__link" target="_blank" rel="noopener">Watch Now</a>
+                <span class="video-card__badge">Coming Soon</span>
               </div>
             </article>
           ))}
@@ -348,7 +348,7 @@ const videos = allEpisodes.length > 0 ? allEpisodes : [
     flex: 1;
   }
 
-  .book-card__btn {
+  .book-card__badge {
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -360,17 +360,12 @@ const videos = allEpisodes.length > 0 ? allEpisodes : [
     letter-spacing: 1.5px;
     text-transform: uppercase;
     color: var(--color-black);
-    background: var(--color-teal);
-    border: 2px solid var(--color-teal);
+    background: color-mix(in srgb, var(--color-teal) 25%, transparent);
+    border: 2px dashed var(--color-teal);
     border-radius: 8px;
     align-self: flex-start;
-    transition: background 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
-  }
-
-  .book-card__btn:hover {
-    background: color-mix(in srgb, var(--color-teal) 80%, var(--color-white));
-    transform: translateY(-2px);
-    box-shadow: 0 6px 20px color-mix(in srgb, var(--color-teal) 35%, transparent);
+    opacity: 0.8;
+    cursor: default;
   }
 
   .section-divider {
@@ -480,7 +475,7 @@ const videos = allEpisodes.length > 0 ? allEpisodes : [
     flex: 1;
   }
 
-  .video-card__link {
+  .video-card__badge {
     display: inline-flex;
     align-items: center;
     gap: 6px;
@@ -490,21 +485,9 @@ const videos = allEpisodes.length > 0 ? allEpisodes : [
     letter-spacing: 1px;
     text-transform: uppercase;
     color: var(--color-teal);
+    opacity: 0.6;
     margin-top: 4px;
-    transition: color 0.2s;
-  }
-
-  .video-card__link::after {
-    content: '→';
-    transition: transform 0.2s;
-  }
-
-  .video-card__link:hover {
-    color: var(--color-yellow);
-  }
-
-  .video-card__link:hover::after {
-    transform: translateX(4px);
+    cursor: default;
   }
 
   @media (max-width: 900px) {
