@@ -48,14 +48,10 @@ const socialIcons: Record<string, string> = {
             class="contact-form"
             id="contactForm"
             method="POST"
-            name="contact"
-            data-netlify="true"
-            netlify-honeypot="bot-field"
           >
-            <input type="hidden" name="form-name" value="contact" />
-            <p class="contact-form__honeypot" aria-hidden="true">
-              <label>Don't fill this out: <input name="bot-field" tabindex="-1" autocomplete="off" /></label>
-            </p>
+            <input type="hidden" name="access_key" value="ae5f8d86-af04-457f-bca3-73d9041cc56c" />
+            <input type="hidden" name="from_name" value="Labrats Website" />
+            <input type="checkbox" name="botcheck" class="contact-form__honeypot" style="display:none" />
 
             <div class="form-group">
               <label for="name" class="form-label">Name</label>
@@ -200,19 +196,36 @@ const socialIcons: Record<string, string> = {
 
   form?.addEventListener('submit', async (e) => {
     e.preventDefault();
-    const data = new FormData(form);
+    const btn = form.querySelector('.form-submit') as HTMLButtonElement;
+    const originalText = btn.textContent;
+    btn.textContent = 'Sending...';
+    btn.disabled = true;
+
+    const formData = new FormData(form);
+    const topic = formData.get("subject") || "General";
+    formData.delete("subject");
+    formData.append("subject", `Labrats - ${topic}`);
+
     try {
-      await fetch('/', {
+      const res = await fetch('https://api.web3forms.com/submit', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: new URLSearchParams(data as any).toString(),
+        body: formData,
       });
-      form.reset();
-      if (successMsg) {
-        successMsg.classList.add('form-success--visible');
+
+      if (res.ok) {
+        form.reset();
+        if (successMsg) {
+          successMsg.classList.add('form-success--visible');
+        }
+      } else {
+        btn.textContent = originalText;
+        btn.disabled = false;
+        alert('Something went wrong. Please try again or email squeak@labrats.uk directly.');
       }
     } catch {
-      // silent fail — Netlify will handle submission
+      btn.textContent = originalText;
+      btn.disabled = false;
+      alert('Failed to send. Please email squeak@labrats.uk directly.');
     }
   });
 </script>
