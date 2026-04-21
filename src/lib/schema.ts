@@ -1,7 +1,7 @@
 export function organizationSchema() {
   return { '@context': 'https://schema.org', '@type': 'Organization', name: 'Labrats', url: 'https://labrats.uk', logo: 'https://labrats.uk/favicon.png',
     description: 'Labrats is an animated sci-fi series following genetically enhanced lab rats fighting for freedom.',
-    sameAs: ['https://www.youtube.com/@LabratsMedia', 'https://www.instagram.com/labratsmedia', 'https://www.tiktok.com/@labratsmedia', 'https://x.com/labratsmedia'],
+    sameAs: ['https://www.youtube.com/@LabratsUK', 'https://www.instagram.com/labrats2025', 'https://www.tiktok.com/@labrats.uk', 'https://www.facebook.com/Labratsmm/'],
     parentOrganization: { '@type': 'Organization', name: 'The Metavision Multimedia Limited', url: 'https://themetavision.co.uk' } };
 }
 export function websiteSchema() {
