@@ -17,7 +17,7 @@ const post = await getBlogPostBySlug(slug!);
 
 if (!post) return Astro.redirect('/rat-tales');
 
-const heroImage = post.featuredImage ? urlFor(post.featuredImage).width(1200).height(675).format('webp').url() : null;
+const heroImage = post.featuredImage ? urlFor(post.featuredImage).width(1200).height(675).fit('crop').format('webp').url() : null;
 const date = post.publishedAt ? new Date(post.publishedAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' }) : '';
 
 const schemas = [
@@ -177,6 +177,9 @@ const schemas = [
 
   .post-detail__hero {
     width: 100%;
+    height: auto;
+    aspect-ratio: 16 / 9;
+    object-fit: cover;
     border-radius: var(--radius-lg);
     margin-bottom: 40px;
   }
