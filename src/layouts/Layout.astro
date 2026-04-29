@@ -1,6 +1,10 @@
 ---
 import CartDrawer from '../components/CartDrawer';
 import { organizationSchema, websiteSchema } from '../lib/schema';
+// ── Theme audio additions (2026-04-29 — IP brand theme-tune feature) ────────
+import LabratsAudioLog from '../components/LabratsAudioLog.astro';
+import { getThemeAudio } from '../lib/sanity';
+// ─────────────────────────────────────────────────────────────────────────────
 
 export interface Props {
   title?: string;
@@ -26,6 +30,25 @@ if (jsonLd) {
   if (Array.isArray(jsonLd)) allSchemas.push(...jsonLd);
   else allSchemas.push(jsonLd);
 }
+
+// ── Theme audio: fetch + suppression ────────────────────────────────────────
+// Single fetch at build time; result drives both the <link rel="preload"> hint
+// in <head> AND the <LabratsAudioLog ... /> render at end of <body>.
+// Suppression paths per Arc spec arc-spec-labrats-theme-tune-content-2026-04-29.md
+// Section E.2 — control hides on commerce flows + provisional /missions, /media.
+const themeAudio = await getThemeAudio();
+
+const SUPPRESSION_PATTERNS = [
+  /^\/cart(\/.*)?$/,
+  /^\/checkout(\/.*)?$/,
+  /^\/order(\/.*)?$/,
+  /^\/missions(\/.*)?$/,
+  /^\/media(\/.*)?$/,
+];
+const isSuppressedRoute = SUPPRESSION_PATTERNS.some((p) => p.test(Astro.url.pathname));
+const renderThemeAudio = themeAudio.enabled && !!themeAudio.audioUrl && !isSuppressedRoute;
+const preloadAudio = renderThemeAudio ? themeAudio.audioUrl : null;
+// ────────────────────────────────────────────────────────────────────────────
 ---
 
 <!doctype html>
@@ -59,10 +82,30 @@ if (jsonLd) {
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow+Condensed:wght@400;600;700&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet" />
+
+    {/* Theme audio preload — low priority, only emitted when audio will render */}
+    {preloadAudio && (
+      <link
+        rel="preload"
+        href={preloadAudio}
+        as="audio"
+        type="audio/mpeg"
+        fetchpriority="low"
+      />
+    )}
   </head>
   <body>
     <slot />
     <CartDrawer client:load />
+    {/* Theme audio control — Audio Log (Byte's signal interceptor) */}
+    {renderThemeAudio && (
+      <LabratsAudioLog
+        audioUrl={themeAudio.audioUrl}
+        trackTitle={themeAudio.trackTitle}
+        trackArtist={themeAudio.trackArtist}
+        enabled={themeAudio.enabled}
+      />
+    )}
   </body>
 </html>
 
