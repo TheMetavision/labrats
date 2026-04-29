@@ -111,62 +111,64 @@ const shouldRender = enabled !== false && !!audioUrl;
   </div>
 )}
 
-{shouldRender && (
-  <script type="module">
-    import { createThemeAudio, prefersReducedMotion } from '../lib/themeAudio.js';
+{/* Script unwrapped from {shouldRender && ...} so Astro hoists + bundles it
+    via Vite at build time (otherwise the relative `../lib/themeAudio.js` import
+    ships verbatim and 404s in production — bug found 30 April).
+    Internal `if (root)` guard handles pages where the component DOM isn't rendered. */}
+<script>
+  import { createThemeAudio, prefersReducedMotion } from '../lib/themeAudio.js';
 
-    const root = document.getElementById('lr-audio-log');
-    if (root) {
-      const button = root.querySelector('.lr-audio-log__chassis');
-      const audioSrc = root.dataset.audioSrc;
+  const root = document.getElementById('lr-audio-log');
+  if (root) {
+    const button = root.querySelector('.lr-audio-log__chassis');
+    const audioSrc = root.dataset.audioSrc;
 
-      // Suppression paths — Labrats-specific (Arc spec Section E.2).
-      // /missions and /media are provisional defensive entries — they harmlessly
-      // do nothing if those routes don't exist on the live site yet.
-      const SUPPRESSION = [
-        /^\/cart(\/.*)?$/,
-        /^\/checkout(\/.*)?$/,
-        /^\/order(\/.*)?$/,
-        /^\/missions(\/.*)?$/,
-        /^\/media(\/.*)?$/,
-      ];
+    // Suppression paths — Labrats-specific (Arc spec Section E.2).
+    // /missions and /media are provisional defensive entries — they harmlessly
+    // do nothing if those routes don't exist on the live site yet.
+    const SUPPRESSION = [
+      /^\/cart(\/.*)?$/,
+      /^\/checkout(\/.*)?$/,
+      /^\/order(\/.*)?$/,
+      /^\/missions(\/.*)?$/,
+      /^\/media(\/.*)?$/,
+    ];
 
-      const controller = createThemeAudio({
-        namespace: 'labrats',
-        src: audioSrc,
-        suppressionPaths: SUPPRESSION,
-        onStateChange(state) {
-          root.dataset.state = state;
-          root.classList.remove('lr-state-idle', 'lr-state-playing', 'lr-state-replaying', 'lr-state-ended');
-          root.classList.add('lr-state-' + state);
-          if (state === 'idle') {
-            button.setAttribute('aria-label', button.dataset.ariaIdle);
-          } else if (state === 'playing' || state === 'replaying') {
-            button.setAttribute('aria-label', button.dataset.ariaPlaying);
-          } else if (state === 'ended') {
-            button.setAttribute('aria-label', button.dataset.ariaEnded);
-          }
-        },
-      });
+    const controller = createThemeAudio({
+      namespace: 'labrats',
+      src: audioSrc,
+      suppressionPaths: SUPPRESSION,
+      onStateChange(state) {
+        root.dataset.state = state;
+        root.classList.remove('lr-state-idle', 'lr-state-playing', 'lr-state-replaying', 'lr-state-ended');
+        root.classList.add('lr-state-' + state);
+        if (state === 'idle') {
+          button.setAttribute('aria-label', button.dataset.ariaIdle);
+        } else if (state === 'playing' || state === 'replaying') {
+          button.setAttribute('aria-label', button.dataset.ariaPlaying);
+        } else if (state === 'ended') {
+          button.setAttribute('aria-label', button.dataset.ariaEnded);
+        }
+      },
+    });
 
-      button.addEventListener('click', (e) => {
-        e.preventDefault();
-        controller.handleClick();
-      });
+    button.addEventListener('click', (e) => {
+      e.preventDefault();
+      controller.handleClick();
+    });
 
-      if (prefersReducedMotion()) {
-        root.classList.add('lr-reduced-motion');
-      }
-
-      window.addEventListener('astro:page-load', () => {
-        controller.applySuppression(window.location.pathname);
-      });
-      window.addEventListener('popstate', () => {
-        controller.applySuppression(window.location.pathname);
-      });
+    if (prefersReducedMotion()) {
+      root.classList.add('lr-reduced-motion');
     }
-  </script>
-)}
+
+    window.addEventListener('astro:page-load', () => {
+      controller.applySuppression(window.location.pathname);
+    });
+    window.addEventListener('popstate', () => {
+      controller.applySuppression(window.location.pathname);
+    });
+  }
+</script>
 
 <style>
   /* ─── Container — top-right desktop, bottom-right mobile (Arc Section F) ──
@@ -416,4 +418,3 @@ const shouldRender = enabled !== false && !!audioUrl;
     }
   }
 </style>
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             
