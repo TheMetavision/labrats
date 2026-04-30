@@ -3,6 +3,16 @@
 // Shared theme-audio utility for the four IP brand sites
 // (Fuglys / Labrats / Biker Babies / Cats On Crack).
 //
+// v3 — 2026-04-30 — adds seek + progress public APIs for Labrats v1.3:
+//   - seek(seconds) — jump to position (clamped to track duration)
+//   - getDuration() — total track length in seconds (0 until loaded)
+//   - getCurrentTime() — current playback position
+//   - onProgress(current, duration) callback in config — fires from the
+//     position tracker (once per second during playback)
+// All v2 behaviour (state reset on init, first-play-only seek) preserved.
+// Backward-compatible — existing Fuglys component continues to work without
+// using the new APIs.
+//
 // v2 — 2026-04-29 — fixes for cross-page UX:
 //   1. Reset state to 'idle' on init if the persisted state was active playback.
 //      Browser autoplay policy means audio cannot legally auto-resume across a
@@ -20,7 +30,7 @@
 // Reference build: written for Fuglys, designed to be copied across to the
 // other three brand repos without modification. Each brand component imports
 // `createThemeAudio(config)` and passes its own brand config (namespace, audio
-// src, suppression paths, ARIA brand label).
+// src, suppression paths, ARIA brand label, optional onProgress callback).
 //
 // Uses Howler.js (npm install howler).
 //
@@ -121,32 +131,32 @@ function buildHowl({ src, volume, onEnd }) {
  * @param {RegExp[]} config.suppressionPaths   Routes where the control hides
  * @param {(state: string) => void} config.onStateChange  Render callback (state machine state changed)
  * @param {(volume: number) => void} [config.onVolumeChange]  Optional volume render callback
- * @returns {Object} controller with play/pause/replay/setVolume/destroy + getters
+ * @param {(current: number, duration: number) => void} [config.onProgress]  Optional — fires ~1Hz during playback (v3)
+ * @returns {Object} controller with play/pause/replay/setVolume/seek/getDuration/getCurrentTime/destroy + getters
  */
 export function createThemeAudio(config) {
-  const { namespace, src, suppressionPaths, onStateChange, onVolumeChange } = config;
+  const { namespace, src, suppressionPaths, onStateChange, onVolumeChange, onProgress } = config;
 
   const storage = makeStorage(namespace);
   const persisted = storage.readState() || {};
 
   let howl = null;                 // lazy — built on first user interaction
-  let firstPlayThisSession = true; // [v2] only seek to persisted position on first play
-
-  // [v2] Reset state to 'idle' if previous-session state was active playback —
-  // browser autoplay policy means audio cannot legally resume without a fresh
-  // user click. 'ended' state is preserved so the UI shows the Retransmit?
-  // affordance correctly.
+  // v2 fix #1: reset active-playback states to 'idle' on init (browser autoplay
+  // policy means we can't legally auto-resume — show the play affordance instead).
+  // 'ended' state is preserved (replay affordance still relevant).
   const persistedState = persisted.state;
   let state =
-    persistedState === 'playing' || persistedState === 'replaying'
+    (persistedState === 'playing' || persistedState === 'replaying')
       ? 'idle'
-      : persistedState || 'idle';
-
+      : (persistedState || 'idle');
   let volume = typeof persisted.volume === 'number' ? persisted.volume : DEFAULT_VOLUME;
   let lastPositionWrite = 0;
   let positionInterval = null;
   let suppressed = false;
   let destroyed = false;
+  // v2 fix #2: only seek to the persisted position on the FIRST play of this
+  // session. After that, Howler's own pause/resume manages position naturally.
+  let hasSeekedToPersistedPosition = false;
 
   // ── State helpers ────────────────────────────────────────────────────────
 
@@ -167,14 +177,34 @@ export function createThemeAudio(config) {
     }
   }
 
+  function getDurationInternal() {
+    if (!howl) return 0;
+    try {
+      const d = howl.duration();
+      return typeof d === 'number' && d > 0 ? d : 0;
+    } catch {
+      return 0;
+    }
+  }
+
+  function fireProgress() {
+    if (!onProgress) return;
+    const cur = getPosition();
+    const dur = getDurationInternal();
+    onProgress(cur, dur);
+  }
+
   function startPositionTracker() {
     stopPositionTracker();
+    // fire once immediately so the UI doesn't wait for the first tick
+    fireProgress();
     positionInterval = setInterval(() => {
       if (state !== 'playing' && state !== 'replaying') return;
       const now = Date.now();
       if (now - lastPositionWrite < POSITION_THROTTLE_MS) return;
       lastPositionWrite = now;
       storage.writeState({ state, volume, position: getPosition() });
+      fireProgress();
     }, POSITION_THROTTLE_MS);
   }
 
@@ -196,6 +226,8 @@ export function createThemeAudio(config) {
         stopPositionTracker();
         storage.writeState({ state: 'ended', volume, position: 0 });
         setState('ended');
+        // fire one final progress event so the UI shows complete
+        fireProgress();
       },
     });
     return howl;
@@ -207,15 +239,13 @@ export function createThemeAudio(config) {
     if (suppressed || destroyed) return;
     ensureHowl();
     if (!howl) return;
-    // [v2] Only seek to persisted resume-point on the FIRST play of the session.
-    // After that, Howler's own pause/resume position tracking takes over so we
-    // don't jump back to the cross-session resume point on every click.
-    if (firstPlayThisSession) {
-      firstPlayThisSession = false;
+    // v2 fix #2: only seek to persisted position on first play of this session
+    if (!hasSeekedToPersistedPosition && state !== 'ended') {
       const resumeAt = persisted.position || 0;
-      if (resumeAt > 0 && state !== 'ended') {
+      if (resumeAt > 0) {
         try { howl.seek(resumeAt); } catch { /* no-op */ }
       }
+      hasSeekedToPersistedPosition = true;
     }
     howl.play();
     setState(state === 'ended' ? 'replaying' : 'playing');
@@ -228,16 +258,18 @@ export function createThemeAudio(config) {
     storage.writeState({ state: 'idle', volume, position: getPosition() });
     setState('idle');
     stopPositionTracker();
+    // fire a final progress event so the UI updates the bar at the paused position
+    fireProgress();
   }
 
   function replay() {
     ensureHowl();
     if (!howl) return;
     try { howl.stop(); howl.seek(0); } catch { /* no-op */ }
+    hasSeekedToPersistedPosition = true; // we just seeked to 0; don't re-seek to persisted
     howl.play();
     setState('replaying');
     startPositionTracker();
-    firstPlayThisSession = false; // replay counts as a "first play"
   }
 
   function setVolume(next) {
@@ -245,6 +277,33 @@ export function createThemeAudio(config) {
     if (howl) howl.volume(volume);
     storage.writeState({ state, volume, position: getPosition() });
     if (onVolumeChange) onVolumeChange(volume);
+  }
+
+  /**
+   * v3 — Seek to a specific time in the track. Clamped to [0, duration].
+   * Safe to call before the track is loaded — no-op until then.
+   * @param {number} seconds
+   */
+  function seek(seconds) {
+    ensureHowl();
+    if (!howl) return;
+    try {
+      const dur = getDurationInternal();
+      const clamped = Math.max(0, dur > 0 ? Math.min(dur, seconds) : seconds);
+      howl.seek(clamped);
+      hasSeekedToPersistedPosition = true; // any explicit seek bypasses the auto-resume logic
+      storage.writeState({ state, volume, position: clamped });
+      // immediately fire progress so the UI updates without waiting for next tick
+      fireProgress();
+    } catch { /* no-op */ }
+  }
+
+  function getDuration() {
+    return getDurationInternal();
+  }
+
+  function getCurrentTime() {
+    return getPosition();
   }
 
   // ── Suppression ──────────────────────────────────────────────────────────
@@ -298,7 +357,7 @@ export function createThemeAudio(config) {
   if (typeof window !== 'undefined') {
     applySuppression(window.location.pathname);
   }
-  // fire initial render with reset/loaded state so the UI reflects current state
+  // fire initial render with persisted state so the UI reflects cross-page state
   queueMicrotask(() => onStateChange(state));
 
   return {
@@ -307,6 +366,9 @@ export function createThemeAudio(config) {
     pause,
     replay,
     setVolume,
+    seek,            // v3
+    getDuration,     // v3
+    getCurrentTime,  // v3
     applySuppression,
     destroy,
     get state() { return state; },

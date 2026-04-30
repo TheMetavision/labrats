@@ -5,31 +5,24 @@
 // Canonically: Byte C. Cheddar's signal interceptor in the Watch Room,
 // patching the visitor into an archived Rat Tales mission dispatch.
 //
-// v1.2 PROMINENCE RETROFIT (2026-04-30) — applies the cross-brand prominence
-// standard at /cross-brand/theme-tune-prominence-standard-cross-brand-2026-04-29.md.
+// v1.3 (2026-04-30) — adds X dismiss + interactive progress bar:
+//   - X button top-right of chassis, sessionStorage flag, persists for tab
+//     session only (next visit = new tab/browser = player back).
+//   - Progress bar replaces the v1.2 oscilloscope. Click anywhere on the
+//     bar to seek. Visible from first play onwards (idle when paused too,
+//     so user can scrub backwards from a paused state).
+//   - ARIA: progress bar role=slider with valuemin/max/now updated live.
 //
-// What changed from v1.1:
-//   - Chassis: solid yellow brand-colour fill (was outline-on-dark, failed standard #2)
-//   - Idle label: "AUDIO LOG · PATCH IN?" — primary CTA always visible (was no CTA)
-//   - Icon: black play/pause/replay SVG icons (was abstract LED dot — visitors didn't
-//     read it as a music player)
-//   - Position: bottom-right desktop (was top-right; bottom-right is the uncontested
-//     standard default — top-right has cart icons across all four brands)
-//   - Mobile: 56px chassis (was 48px — below the 52px floor)
-//   - Attention pulse: 2-cycle outer-glow halo on first arrival, ~3s total, then stops
-//   - Drop shadow: separation against dark page bg
+// v1.2 (2026-04-30) — prominence retrofit (cross-brand standard compliance):
+//   - Solid yellow chassis fill, black border, drop shadow
+//   - "AUDIO LOG · PATCH IN?" idle CTA always visible
+//   - Black play/pause/replay icons
+//   - Bottom-right desktop, 56px mobile, attention pulse on first arrival
 //
-// What stayed the same (Arc's spec preserved):
-//   - All copy strings remain in Arc's voice (AUDIO LOG · ACTIVE / · COMPLETE · REPLAY?
-//     / "Patch in again?" sub-label / all ARIA labels)
-//   - Hover state secondary label unchanged: "AUDIO LOG · READY · PRESS TO INITIATE"
-//   - Narrative anchor: Byte's signal interceptor framing intact
-//   - Oscilloscope sine wave during PLAYING preserved
-//   - Reduced-motion behaviour preserved
+// v1.1 hotfix learning preserved: <script> unwrapped from {shouldRender && ...}
+// so Astro hoists + bundles via Vite (otherwise relative import 404s).
 //
-// Architecture: props-driven (Layout fetches via getThemeAudio(), passes to component).
-// Script unwrapped from {shouldRender && (...)} so Astro hoists + bundles via Vite
-// (v1.1 hotfix learning preserved).
+// Architecture: props-driven (Layout fetches via getThemeAudio() from sanity.ts).
 
 export interface Props {
   audioUrl?: string | null;
@@ -58,6 +51,7 @@ const shouldRender = enabled !== false && !!audioUrl;
     data-track-title={trackTitle}
     data-track-artist={trackArtist}
   >
+    {/* Outer wrapper — main click target for play/pause/replay */}
     <button
       type="button"
       class="lr-audio-log__chassis"
@@ -67,73 +61,98 @@ const shouldRender = enabled !== false && !!audioUrl;
       data-aria-ended="Replay Labrats theme music"
       title={trackTitle}
     >
-      {/* Icon — universal play/pause/replay affordance per state.
-          Black on yellow chassis for max contrast. Renders all three; CSS hides
-          inactive ones via [data-state]. */}
       <span class="lr-audio-log__icon" aria-hidden="true">
-        {/* Play triangle — idle state */}
         <svg class="lr-icon lr-icon--play" viewBox="0 0 14 14" width="14" height="14" focusable="false">
           <path d="M 3 2 L 12 7 L 3 12 Z" fill="currentColor" />
         </svg>
-        {/* Pause bars — playing state */}
         <svg class="lr-icon lr-icon--pause" viewBox="0 0 14 14" width="14" height="14" focusable="false">
           <rect x="3" y="2" width="3" height="10" fill="currentColor" />
           <rect x="8" y="2" width="3" height="10" fill="currentColor" />
         </svg>
-        {/* Replay arrow — ended state */}
         <svg class="lr-icon lr-icon--replay" viewBox="0 0 14 14" width="14" height="14" focusable="false">
           <path d="M 7 3 A 4 4 0 1 1 3.5 9.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />
           <path d="M 7 1.5 L 7 4.5 L 4.5 3 Z" fill="currentColor" />
         </svg>
       </span>
 
-      {/* Status label — always visible primary CTA, swaps on state.
-          Hard cuts between states (Arc D.2 — instrument readouts don't crossfade). */}
       <span class="lr-audio-log__status">
         <span class="lr-status lr-status--idle">AUDIO LOG &middot; PATCH IN?</span>
         <span class="lr-status lr-status--hover">AUDIO LOG &middot; READY &middot; PRESS TO INITIATE</span>
         <span class="lr-status lr-status--playing">AUDIO LOG &middot; ACTIVE</span>
         <span class="lr-status lr-status--ended">AUDIO LOG &middot; COMPLETE &middot; REPLAY?</span>
       </span>
-
-      {/* Oscilloscope chamber — sine on playing (Arc spec preserved). */}
-      <span class="lr-audio-log__scope" aria-hidden="true">
-        <svg viewBox="0 0 240 18" width="80" height="14" preserveAspectRatio="none" focusable="false">
-          <path
-            class="lr-wave"
-            d="M 0 9 Q 15 1 30 9 T 60 9 T 90 9 T 120 9 T 150 9 T 180 9 T 210 9 T 240 9"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="1.4"
-            stroke-linecap="round"
-          />
-          <line
-            class="lr-flat"
-            x1="0" y1="9" x2="240" y2="9"
-            stroke="currentColor"
-            stroke-width="1.4"
-            stroke-linecap="round"
-          />
-        </svg>
-      </span>
     </button>
 
-    {/* Optional ENDED-state sub-label — Arc Section D.4 / H.3. */}
+    {/* Progress bar — visible from first play onward; click to seek.
+        Lives outside the main chassis button so its click doesn't trigger play/pause. */}
+    <div
+      class="lr-audio-log__progress"
+      role="slider"
+      tabindex="0"
+      aria-label="Track progress — click to seek"
+      aria-valuemin="0"
+      aria-valuemax="100"
+      aria-valuenow="0"
+    >
+      <div class="lr-audio-log__progress-track">
+        <div class="lr-audio-log__progress-fill"></div>
+      </div>
+    </div>
+
+    {/* X dismiss — sessionStorage flag, hides for current tab/session only.
+        Click stops propagation so it doesn't trigger play/pause. */}
+    <button
+      type="button"
+      class="lr-audio-log__dismiss"
+      aria-label="Close theme tune player"
+      title="Hide for this session"
+    >
+      <svg viewBox="0 0 12 12" width="10" height="10" focusable="false" aria-hidden="true">
+        <path
+          d="M 2 2 L 10 10 M 10 2 L 2 10"
+          stroke="currentColor"
+          stroke-width="1.6"
+          stroke-linecap="round"
+        />
+      </svg>
+    </button>
+
+    {/* Optional ENDED-state sub-label — Arc Section D.4 / H.3 */}
     <span class="lr-audio-log__subreplay">Patch in again?</span>
   </div>
 )}
 
-{/* Script unwrapped from {shouldRender && ...} so Astro hoists + bundles it
-    via Vite at build time (v1.1 hotfix — was 404ing with relative import otherwise).
-    Internal `if (root)` guard handles pages where the component DOM isn't rendered. */}
 <script>
   import { createThemeAudio, prefersReducedMotion } from '../lib/themeAudio.js';
 
   const root = document.getElementById('lr-audio-log');
   if (root) {
     const button = root.querySelector('.lr-audio-log__chassis');
+    const dismissBtn = root.querySelector('.lr-audio-log__dismiss');
+    const progressEl = root.querySelector('.lr-audio-log__progress');
+    const progressFill = root.querySelector('.lr-audio-log__progress-fill');
     const audioSrc = root.dataset.audioSrc;
 
+    // ── Dismiss state — sessionStorage scoped to this tab/session ──────
+    const DISMISS_KEY = 'labrats_theme_dismissed';
+    const safeSession = (op, ...args) => {
+      try { return sessionStorage[op](...args); } catch { return null; }
+    };
+
+    if (safeSession('getItem', DISMISS_KEY) === '1') {
+      root.dataset.dismissed = 'true';
+    }
+
+    if (dismissBtn) {
+      dismissBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        safeSession('setItem', DISMISS_KEY, '1');
+        root.dataset.dismissed = 'true';
+      });
+    }
+
+    // ── Suppression paths — Labrats-specific (Arc spec Section E.2) ────
     const SUPPRESSION = [
       /^\/cart(\/.*)?$/,
       /^\/checkout(\/.*)?$/,
@@ -158,12 +177,56 @@ const shouldRender = enabled !== false && !!audioUrl;
           button.setAttribute('aria-label', button.dataset.ariaEnded);
         }
       },
+      onProgress(current, duration) {
+        // Mark the component as "audio loaded" so CSS reveals the progress bar.
+        // Once flipped, stays on for the rest of the session — supports
+        // pause/seek backward from a paused state.
+        root.dataset.audioLoaded = 'true';
+        if (duration > 0 && progressFill && progressEl) {
+          const pct = Math.max(0, Math.min(100, (current / duration) * 100));
+          progressFill.style.width = pct + '%';
+          progressEl.setAttribute('aria-valuenow', String(Math.round(pct)));
+        }
+      },
     });
 
+    // Main play/pause/replay click — chassis button
     button.addEventListener('click', (e) => {
       e.preventDefault();
       controller.handleClick();
     });
+
+    // Progress-bar click → seek to clicked ratio of duration
+    if (progressEl) {
+      progressEl.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const rect = progressEl.getBoundingClientRect();
+        const ratio = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
+        const duration = controller.getDuration();
+        if (duration > 0) {
+          controller.seek(ratio * duration);
+        }
+      });
+      // Keyboard: left/right = seek by 5s, Home/End = start/end
+      progressEl.addEventListener('keydown', (e) => {
+        const duration = controller.getDuration();
+        if (duration <= 0) return;
+        const cur = controller.getCurrentTime();
+        if (e.key === 'ArrowLeft') {
+          e.preventDefault();
+          controller.seek(Math.max(0, cur - 5));
+        } else if (e.key === 'ArrowRight') {
+          e.preventDefault();
+          controller.seek(Math.min(duration, cur + 5));
+        } else if (e.key === 'Home') {
+          e.preventDefault();
+          controller.seek(0);
+        } else if (e.key === 'End') {
+          e.preventDefault();
+          controller.seek(duration);
+        }
+      });
+    }
 
     if (prefersReducedMotion()) {
       root.classList.add('lr-reduced-motion');
@@ -179,7 +242,7 @@ const shouldRender = enabled !== false && !!audioUrl;
 </script>
 
 <style>
-  /* ─── Container — bottom-right both desktop and mobile (prominence standard #4) ─ */
+  /* ─── Container — bottom-right both desktop and mobile ──────────────── */
   .lr-audio-log {
     position: fixed;
     bottom: 24px;
@@ -191,14 +254,18 @@ const shouldRender = enabled !== false && !!audioUrl;
     gap: 4px;
     pointer-events: auto;
   }
+  /* Dismissed via sessionStorage — hide entirely until next visit */
+  .lr-audio-log[data-dismissed="true"] { display: none !important; }
 
-  /* ─── Chassis — solid yellow brand fill (prominence standard #2) ──────── */
+  /* ─── Chassis — solid yellow brand fill ──────────────────────────────── */
   .lr-audio-log__chassis {
     appearance: none;
     background: var(--color-yellow, #f5c518);
     border: 1.5px solid var(--color-black, #0a0a0a);
     color: var(--color-black, #0a0a0a);
     padding: 0.55rem 0.85rem;
+    /* Right padding accommodates the absolute-positioned X dismiss button */
+    padding-right: 1.6rem;
     border-radius: 3px;
     cursor: pointer;
     font-family: ui-monospace, "SF Mono", "Cascadia Mono", Menlo, Consolas, monospace;
@@ -211,19 +278,47 @@ const shouldRender = enabled !== false && !!audioUrl;
     gap: 0.55rem;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
     transition: transform 200ms ease, box-shadow 200ms ease;
+    position: relative; /* anchor for the absolute X dismiss */
   }
-
   .lr-audio-log__chassis:hover {
     transform: translateY(-1px);
     box-shadow: 0 6px 16px rgba(0, 0, 0, 0.5);
   }
-
   .lr-audio-log__chassis:focus-visible {
     outline: 2px solid var(--color-teal, #00c2d4);
     outline-offset: 3px;
   }
 
-  /* ─── Icon — universal play/pause/replay affordance per state ────────── */
+  /* ─── X dismiss button — absolute top-right of chassis ──────────────── */
+  .lr-audio-log__dismiss {
+    position: absolute;
+    top: -8px;
+    right: -8px;
+    width: 20px;
+    height: 20px;
+    padding: 0;
+    border-radius: 50%;
+    background: var(--color-black, #0a0a0a);
+    color: var(--color-yellow, #f5c518);
+    border: 1.5px solid var(--color-yellow, #f5c518);
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
+    transition: transform 150ms ease, background 150ms ease;
+  }
+  .lr-audio-log__dismiss:hover {
+    transform: scale(1.1);
+    background: var(--color-teal, #00c2d4);
+    color: var(--color-black, #0a0a0a);
+  }
+  .lr-audio-log__dismiss:focus-visible {
+    outline: 2px solid var(--color-teal, #00c2d4);
+    outline-offset: 2px;
+  }
+
+  /* ─── Icon — universal play/pause/replay affordance per state ──────── */
   .lr-audio-log__icon {
     display: inline-flex;
     align-items: center;
@@ -250,7 +345,7 @@ const shouldRender = enabled !== false && !!audioUrl;
   .lr-state-replaying .lr-status--playing { display: inline; }
   .lr-state-ended   .lr-status--ended   { display: inline; }
 
-  /* HOVER (idle only) — hard cut to "READY · PRESS TO INITIATE" (Arc's secondary string) */
+  /* HOVER (idle only) — hard cut to "READY · PRESS TO INITIATE" */
   .lr-state-idle .lr-audio-log__chassis:hover .lr-status--idle,
   .lr-state-idle .lr-audio-log__chassis:focus-visible .lr-status--idle {
     display: none;
@@ -260,37 +355,42 @@ const shouldRender = enabled !== false && !!audioUrl;
     display: inline;
   }
 
-  /* ─── Oscilloscope chamber ─────────────────────────────────────────── */
-  .lr-audio-log__scope {
+  /* ─── Progress bar — appears below chassis once audio has loaded ───── */
+  /* Hidden until user has interacted; once shown, stays for session even
+   * during paused state so user can scrub backwards. */
+  .lr-audio-log__progress {
     display: none;
-    align-items: center;
+    width: 100%;
     height: 14px;
+    padding: 5px 0;
+    cursor: pointer;
+    box-sizing: border-box;
+  }
+  .lr-audio-log[data-audio-loaded="true"] .lr-audio-log__progress {
+    display: block;
+  }
+  .lr-audio-log__progress:focus-visible {
+    outline: 2px solid var(--color-teal, #00c2d4);
+    outline-offset: 2px;
+    border-radius: 2px;
+  }
+  .lr-audio-log__progress-track {
+    width: 100%;
+    height: 4px;
+    background: rgba(0, 0, 0, 0.25);
+    border-radius: 2px;
     overflow: hidden;
-    color: var(--color-black, #0a0a0a);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+    /* Inherit chassis-yellow background as the track surround so the bar
+     * reads as part of the chassis */
+    background-clip: padding-box;
   }
-  .lr-state-playing .lr-audio-log__scope,
-  .lr-state-replaying .lr-audio-log__scope,
-  .lr-state-ended .lr-audio-log__scope {
-    display: inline-flex;
+  .lr-audio-log__progress-fill {
+    height: 100%;
+    width: 0%;
+    background: var(--color-black, #0a0a0a);
+    transition: width 200ms linear;
   }
-
-  .lr-wave {
-    display: none;
-    transform-origin: 0 50%;
-    animation: lr-wave-scroll 2s linear infinite;
-  }
-  .lr-state-playing .lr-wave,
-  .lr-state-replaying .lr-wave { display: inline; }
-  @keyframes lr-wave-scroll {
-    0%   { transform: translateX(0); }
-    100% { transform: translateX(-30px); }
-  }
-
-  .lr-flat {
-    display: none;
-    opacity: 0.5;
-  }
-  .lr-state-ended .lr-flat { display: inline; }
 
   /* ─── Sub-label "Patch in again?" — only on ended ───────────────────── */
   .lr-audio-log__subreplay {
@@ -304,10 +404,7 @@ const shouldRender = enabled !== false && !!audioUrl;
   }
   .lr-state-ended .lr-audio-log__subreplay { display: inline; }
 
-  /* ─── Attention pulse on first arrival (prominence standard #5) ────── */
-  /* 2-cycle outer-glow halo over ~3s, then stops permanently. Only triggers
-   * on idle state; if user has already interacted (state moved off idle),
-   * no pulse — they've found it. */
+  /* ─── Attention pulse on first arrival ────────────────────────────── */
   .lr-state-idle .lr-audio-log__chassis {
     animation: lr-attention-pulse 1.5s ease-in-out 2;
   }
@@ -322,7 +419,7 @@ const shouldRender = enabled !== false && !!audioUrl;
     }
   }
 
-  /* ─── Mobile — 56px circular chassis (prominence standard #3) ──────── */
+  /* ─── Mobile — 56px circular chassis ──────────────────────────────── */
   @media (max-width: 768px) {
     .lr-audio-log {
       bottom: calc(env(safe-area-inset-bottom, 0px) + 16px);
@@ -333,56 +430,51 @@ const shouldRender = enabled !== false && !!audioUrl;
       height: 56px;
       border-radius: 50%;
       padding: 0;
+      padding-right: 0; /* override desktop right-padding */
       justify-content: center;
       gap: 0;
       border-width: 2px;
     }
-    /* mobile shows only the icon — drop status label, oscilloscope, sub-label */
     .lr-audio-log__status,
-    .lr-audio-log__scope,
     .lr-audio-log__subreplay {
       display: none !important;
     }
-    /* mobile icons scale up for tap-target visibility */
-    .lr-audio-log__icon {
+    /* Mobile progress bar — appears as a thin arc below the circle.
+     * Hidden in v1.3 to keep mobile compact; can be enabled later if needed. */
+    .lr-audio-log__progress { display: none !important; }
+    .lr-audio-log__icon { width: 22px; height: 22px; }
+    .lr-icon { width: 22px; height: 22px; }
+    /* Mobile X — same position relative to the round chassis */
+    .lr-audio-log__dismiss {
+      top: -6px;
+      right: -6px;
       width: 22px;
       height: 22px;
     }
-    .lr-icon { width: 22px; height: 22px; }
   }
 
-  /* ─── Reduced-motion variant (Arc D.7 + standard #6) ───────────────── */
+  /* ─── Reduced-motion variant ──────────────────────────────────────── */
   .lr-reduced-motion .lr-audio-log__chassis,
-  .lr-reduced-motion .lr-wave,
-  .lr-reduced-motion .lr-flat {
+  .lr-reduced-motion .lr-audio-log__dismiss,
+  .lr-reduced-motion .lr-audio-log__progress-fill {
     animation: none !important;
     transition: none !important;
   }
   .lr-reduced-motion .lr-audio-log__chassis:hover {
     transform: none;
   }
-  .lr-reduced-motion.lr-state-playing .lr-wave,
-  .lr-reduced-motion.lr-state-replaying .lr-wave { display: none; }
-  .lr-reduced-motion.lr-state-playing .lr-flat,
-  .lr-reduced-motion.lr-state-replaying .lr-flat {
-    display: inline;
-    opacity: 1;
+  .lr-reduced-motion .lr-audio-log__dismiss:hover {
+    transform: none;
   }
 
   @media (prefers-reduced-motion: reduce) {
     .lr-audio-log__chassis,
-    .lr-wave,
-    .lr-flat {
+    .lr-audio-log__dismiss,
+    .lr-audio-log__progress-fill {
       animation: none !important;
       transition: none !important;
     }
     .lr-audio-log__chassis:hover { transform: none; }
-    .lr-state-playing .lr-wave,
-    .lr-state-replaying .lr-wave { display: none; }
-    .lr-state-playing .lr-flat,
-    .lr-state-replaying .lr-flat {
-      display: inline;
-      opacity: 1;
-    }
+    .lr-audio-log__dismiss:hover { transform: none; }
   }
 </style>
