@@ -5,28 +5,31 @@
 // Canonically: Byte C. Cheddar's signal interceptor in the Watch Room,
 // patching the visitor into an archived Rat Tales mission dispatch.
 //
-// Per Arc spec arc-spec-labrats-theme-tune-content-2026-04-29.md:
-//   - All copy strings verbatim (Section D — STANDBY / READY · PRESS TO INITIATE
-//     / ACTIVE / COMPLETE · REPLAY? / "Patch in again?" sub-label)
-//   - Voice anchor: classified instrumentation rig coming online for an
-//     authorised broadcast (Section B.3 — Sprocket and Byte's joint work, precise).
-//   - Always-visible monospace status label (NOT hover-revealed like Fuglys).
-//     Section F: rectangular module, top-right, ~140×36px.
-//   - Reduced-motion variant (Section D.7) — non-negotiable.
-//   - ARIA labels exact (Section D.6).
+// v1.2 PROMINENCE RETROFIT (2026-04-30) — applies the cross-brand prominence
+// standard at /cross-brand/theme-tune-prominence-standard-cross-brand-2026-04-29.md.
 //
-// PALETTE NOTE — Arc Section A's spec called for #FBFB15 yellow / #109D93 teal
-// on a yellow page bg. The LIVE labrats.uk site (verified 2026-04-29 via Alan's
-// Layout.astro share + screenshot) is dark-themed: #0A0A0A page bg, #f5c518
-// warm yellow accent, #00c2d4 cyan teal accent, #161616 card surface. This
-// component is built to the LIVE palette so it lands native to the actual
-// deployed site. Brand discipline preserved at the narrative level (still
-// Byte's signal interceptor, still Rat Tales register, still classified-mission
-// instrument feel) — only the hex values shift to match what's actually on the page.
+// What changed from v1.1:
+//   - Chassis: solid yellow brand-colour fill (was outline-on-dark, failed standard #2)
+//   - Idle label: "AUDIO LOG · PATCH IN?" — primary CTA always visible (was no CTA)
+//   - Icon: black play/pause/replay SVG icons (was abstract LED dot — visitors didn't
+//     read it as a music player)
+//   - Position: bottom-right desktop (was top-right; bottom-right is the uncontested
+//     standard default — top-right has cart icons across all four brands)
+//   - Mobile: 56px chassis (was 48px — below the 52px floor)
+//   - Attention pulse: 2-cycle outer-glow halo on first arrival, ~3s total, then stops
+//   - Drop shadow: separation against dark page bg
 //
-// Architecture: props-driven. The Layout fetches siteSettings.themeAudio once
-// via getThemeAudio() (sanity.ts) and passes the data down. No inline fetch
-// in this component.
+// What stayed the same (Arc's spec preserved):
+//   - All copy strings remain in Arc's voice (AUDIO LOG · ACTIVE / · COMPLETE · REPLAY?
+//     / "Patch in again?" sub-label / all ARIA labels)
+//   - Hover state secondary label unchanged: "AUDIO LOG · READY · PRESS TO INITIATE"
+//   - Narrative anchor: Byte's signal interceptor framing intact
+//   - Oscilloscope sine wave during PLAYING preserved
+//   - Reduced-motion behaviour preserved
+//
+// Architecture: props-driven (Layout fetches via getThemeAudio(), passes to component).
+// Script unwrapped from {shouldRender && (...)} so Astro hoists + bundles via Vite
+// (v1.1 hotfix learning preserved).
 
 export interface Props {
   audioUrl?: string | null;
@@ -42,7 +45,6 @@ const {
   enabled = true,
 } = Astro.props;
 
-// Render nothing if disabled or no audio uploaded yet.
 const shouldRender = enabled !== false && !!audioUrl;
 ---
 
@@ -65,25 +67,38 @@ const shouldRender = enabled !== false && !!audioUrl;
       data-aria-ended="Replay Labrats theme music"
       title={trackTitle}
     >
-      {/* LED — opacity drives state via [data-state] (Arc Section A.2) */}
-      <span class="lr-audio-log__led" aria-hidden="true">
-        <span class="lr-audio-log__led-dot" />
+      {/* Icon — universal play/pause/replay affordance per state.
+          Black on yellow chassis for max contrast. Renders all three; CSS hides
+          inactive ones via [data-state]. */}
+      <span class="lr-audio-log__icon" aria-hidden="true">
+        {/* Play triangle — idle state */}
+        <svg class="lr-icon lr-icon--play" viewBox="0 0 14 14" width="14" height="14" focusable="false">
+          <path d="M 3 2 L 12 7 L 3 12 Z" fill="currentColor" />
+        </svg>
+        {/* Pause bars — playing state */}
+        <svg class="lr-icon lr-icon--pause" viewBox="0 0 14 14" width="14" height="14" focusable="false">
+          <rect x="3" y="2" width="3" height="10" fill="currentColor" />
+          <rect x="8" y="2" width="3" height="10" fill="currentColor" />
+        </svg>
+        {/* Replay arrow — ended state */}
+        <svg class="lr-icon lr-icon--replay" viewBox="0 0 14 14" width="14" height="14" focusable="false">
+          <path d="M 7 3 A 4 4 0 1 1 3.5 9.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />
+          <path d="M 7 1.5 L 7 4.5 L 4.5 3 Z" fill="currentColor" />
+        </svg>
       </span>
 
-      {/* Status label — always visible, monospace, hard cuts between states */}
+      {/* Status label — always visible primary CTA, swaps on state.
+          Hard cuts between states (Arc D.2 — instrument readouts don't crossfade). */}
       <span class="lr-audio-log__status">
-        <span class="lr-status lr-status--idle">AUDIO LOG &middot; STANDBY</span>
+        <span class="lr-status lr-status--idle">AUDIO LOG &middot; PATCH IN?</span>
         <span class="lr-status lr-status--hover">AUDIO LOG &middot; READY &middot; PRESS TO INITIATE</span>
         <span class="lr-status lr-status--playing">AUDIO LOG &middot; ACTIVE</span>
         <span class="lr-status lr-status--ended">AUDIO LOG &middot; COMPLETE &middot; REPLAY?</span>
       </span>
 
-      {/* Oscilloscope chamber — sine on playing, flat-line on ended,
-          empty during idle/hover to keep the chassis short. */}
+      {/* Oscilloscope chamber — sine on playing (Arc spec preserved). */}
       <span class="lr-audio-log__scope" aria-hidden="true">
-        <svg viewBox="0 0 240 18" width="120" height="18" preserveAspectRatio="none" focusable="false">
-          {/* Sine wave path — twice the viewBox width so it can scroll cleanly.
-              ~1Hz visual frequency per Arc B.3. */}
+        <svg viewBox="0 0 240 18" width="80" height="14" preserveAspectRatio="none" focusable="false">
           <path
             class="lr-wave"
             d="M 0 9 Q 15 1 30 9 T 60 9 T 90 9 T 120 9 T 150 9 T 180 9 T 210 9 T 240 9"
@@ -92,7 +107,6 @@ const shouldRender = enabled !== false && !!audioUrl;
             stroke-width="1.4"
             stroke-linecap="round"
           />
-          {/* Flat line — only visible during ended state */}
           <line
             class="lr-flat"
             x1="0" y1="9" x2="240" y2="9"
@@ -104,16 +118,13 @@ const shouldRender = enabled !== false && !!audioUrl;
       </span>
     </button>
 
-    {/* Optional ENDED-state sub-label — ships if design space allows.
-        Hidden by default, shown on ENDED via CSS.
-        Per Arc Section D.4 / H.3: drop if it crowds the layout. */}
+    {/* Optional ENDED-state sub-label — Arc Section D.4 / H.3. */}
     <span class="lr-audio-log__subreplay">Patch in again?</span>
   </div>
 )}
 
 {/* Script unwrapped from {shouldRender && ...} so Astro hoists + bundles it
-    via Vite at build time (otherwise the relative `../lib/themeAudio.js` import
-    ships verbatim and 404s in production — bug found 30 April).
+    via Vite at build time (v1.1 hotfix — was 404ing with relative import otherwise).
     Internal `if (root)` guard handles pages where the component DOM isn't rendered. */}
 <script>
   import { createThemeAudio, prefersReducedMotion } from '../lib/themeAudio.js';
@@ -123,9 +134,6 @@ const shouldRender = enabled !== false && !!audioUrl;
     const button = root.querySelector('.lr-audio-log__chassis');
     const audioSrc = root.dataset.audioSrc;
 
-    // Suppression paths — Labrats-specific (Arc spec Section E.2).
-    // /missions and /media are provisional defensive entries — they harmlessly
-    // do nothing if those routes don't exist on the live site yet.
     const SUPPRESSION = [
       /^\/cart(\/.*)?$/,
       /^\/checkout(\/.*)?$/,
@@ -171,14 +179,10 @@ const shouldRender = enabled !== false && !!audioUrl;
 </script>
 
 <style>
-  /* ─── Container — top-right desktop, bottom-right mobile (Arc Section F) ──
-   * top:180px (not 24px or 80px) sits the control BELOW the cyan teal header
-   * band on the live labrats.uk layout (verified 29 April via screenshot —
-   * header band is approx 150px tall on desktop). Adjust this single value if
-   * the header height ever changes. */
+  /* ─── Container — bottom-right both desktop and mobile (prominence standard #4) ─ */
   .lr-audio-log {
     position: fixed;
-    top: 180px;
+    bottom: 24px;
     right: 24px;
     z-index: 9000;
     display: inline-flex;
@@ -188,94 +192,65 @@ const shouldRender = enabled !== false && !!audioUrl;
     pointer-events: auto;
   }
 
-  /* ─── Chassis — rectangular module ~140×36 desktop ──────────────────── */
-  /* Uses the live site's existing palette tokens defined in Layout.astro:
-   *   --color-bg-card   #161616  (chassis bg — slightly lighter than page bg)
-   *   --color-yellow    #f5c518  (status text — warm yellow, matches RAT TALES)
-   *   --color-teal      #00c2d4  (LED + sine + active border, cyan teal)
-   *   --color-border    rgba(255,255,255,0.1)  (subtle default border) */
+  /* ─── Chassis — solid yellow brand fill (prominence standard #2) ──────── */
   .lr-audio-log__chassis {
     appearance: none;
-    background: var(--color-bg-card, #161616);
-    border: 1px solid var(--color-border, rgba(255, 255, 255, 0.1));
-    color: var(--color-yellow, #f5c518); /* status label text */
-    padding: 0.4rem 0.7rem;
-    border-radius: 2px;
+    background: var(--color-yellow, #f5c518);
+    border: 1.5px solid var(--color-black, #0a0a0a);
+    color: var(--color-black, #0a0a0a);
+    padding: 0.55rem 0.85rem;
+    border-radius: 3px;
     cursor: pointer;
     font-family: ui-monospace, "SF Mono", "Cascadia Mono", Menlo, Consolas, monospace;
-    font-size: 0.65rem;
+    font-size: 0.7rem;
+    font-weight: 700;
     letter-spacing: 0.06em;
     line-height: 1;
     display: inline-flex;
     align-items: center;
     gap: 0.55rem;
-    /* hard cut on label transitions per Arc D.2 — no transition on color */
-    transition: border-color 200ms ease;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+    transition: transform 200ms ease, box-shadow 200ms ease;
+  }
+
+  .lr-audio-log__chassis:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.5);
   }
 
   .lr-audio-log__chassis:focus-visible {
-    /* Layout.astro defines site-wide *:focus-visible { outline: 2px solid var(--color-teal); outline-offset: 3px } */
-    /* — that already applies; declared here for explicit local clarity. */
     outline: 2px solid var(--color-teal, #00c2d4);
     outline-offset: 3px;
   }
 
-  /* ─── LED — round dot, opacity drives state (Arc A.2) ────────────────── */
-  .lr-audio-log__led {
+  /* ─── Icon — universal play/pause/replay affordance per state ────────── */
+  .lr-audio-log__icon {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 10px;
-    height: 10px;
+    width: 14px;
+    height: 14px;
     flex-shrink: 0;
+    color: var(--color-black, #0a0a0a);
   }
-  .lr-audio-log__led-dot {
-    display: inline-block;
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    background: var(--color-teal, #00c2d4);
-    opacity: 0.3; /* idle: 30% opacity per Arc A.2 */
-    transition: opacity 250ms ease; /* Arc B.3 — instrument warming */
-  }
+  .lr-icon { display: none; }
+  .lr-state-idle    .lr-icon--play   { display: inline; }
+  .lr-state-playing .lr-icon--pause,
+  .lr-state-replaying .lr-icon--pause { display: inline; }
+  .lr-state-ended   .lr-icon--replay { display: inline; }
 
-  /* hover (idle only) — LED warming up, slow brightness pulse */
-  .lr-state-idle .lr-audio-log__chassis:hover .lr-audio-log__led-dot,
-  .lr-state-idle .lr-audio-log__chassis:focus-visible .lr-audio-log__led-dot {
-    opacity: 0.6;
-    animation: lr-led-pulse 2s ease-in-out infinite;
-  }
-
-  @keyframes lr-led-pulse {
-    0%, 100% { opacity: 0.45; }
-    50% { opacity: 0.85; }
-  }
-
-  /* playing / replaying — LED solid, full brightness */
-  .lr-state-playing .lr-audio-log__led-dot,
-  .lr-state-replaying .lr-audio-log__led-dot {
-    opacity: 1;
-  }
-
-  /* ended — LED cooled (40%) */
-  .lr-state-ended .lr-audio-log__led-dot {
-    opacity: 0.4;
-  }
-
-  /* ─── Status label — only one visible at a time per state ────────────── */
+  /* ─── Status label ────────────────────────────────────────────────────── */
   .lr-audio-log__status {
     display: inline-block;
-    white-space: nowrap; /* keep middle-dot · separator from line-breaking */
+    white-space: nowrap;
   }
   .lr-status { display: none; }
-
   .lr-state-idle    .lr-status--idle    { display: inline; }
   .lr-state-playing .lr-status--playing,
   .lr-state-replaying .lr-status--playing { display: inline; }
   .lr-state-ended   .lr-status--ended   { display: inline; }
 
-  /* HOVER — only on idle, swaps STANDBY → READY · PRESS TO INITIATE.
-     Hard cut, no fade (Arc D.2 — instrument readouts don't crossfade). */
+  /* HOVER (idle only) — hard cut to "READY · PRESS TO INITIATE" (Arc's secondary string) */
   .lr-state-idle .lr-audio-log__chassis:hover .lr-status--idle,
   .lr-state-idle .lr-audio-log__chassis:focus-visible .lr-status--idle {
     display: none;
@@ -289,18 +264,16 @@ const shouldRender = enabled !== false && !!audioUrl;
   .lr-audio-log__scope {
     display: none;
     align-items: center;
-    height: 18px;
+    height: 14px;
     overflow: hidden;
-    color: var(--color-teal, #00c2d4);
+    color: var(--color-black, #0a0a0a);
   }
-
   .lr-state-playing .lr-audio-log__scope,
   .lr-state-replaying .lr-audio-log__scope,
   .lr-state-ended .lr-audio-log__scope {
     display: inline-flex;
   }
 
-  /* clean teal sine — visible while playing, scrolls left at ~1Hz visual */
   .lr-wave {
     display: none;
     transform-origin: 0 50%;
@@ -308,107 +281,102 @@ const shouldRender = enabled !== false && !!audioUrl;
   }
   .lr-state-playing .lr-wave,
   .lr-state-replaying .lr-wave { display: inline; }
-
   @keyframes lr-wave-scroll {
     0%   { transform: translateX(0); }
     100% { transform: translateX(-30px); }
   }
 
-  /* flat line — visible during ended state, no animation */
   .lr-flat {
     display: none;
-    opacity: 0.4; /* Arc A.2 ended-state oscilloscope */
+    opacity: 0.5;
   }
   .lr-state-ended .lr-flat { display: inline; }
 
-  /* ─── ENDED state — chassis trim cools, sub-label fades in ──────────── */
-  .lr-state-ended .lr-audio-log__chassis {
-    border-color: rgba(0, 194, 212, 0.4); /* teal at 40% */
-  }
-
-  /* Sub-label "Patch in again?" — only visible during ended state */
+  /* ─── Sub-label "Patch in again?" — only on ended ───────────────────── */
   .lr-audio-log__subreplay {
     display: none;
-    color: var(--color-text-muted, rgba(245, 245, 245, 0.6));
+    color: var(--color-yellow, #f5c518);
     font-family: ui-monospace, "SF Mono", "Cascadia Mono", Menlo, Consolas, monospace;
     font-size: 0.6rem;
     letter-spacing: 0.04em;
+    opacity: 0.85;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6);
   }
   .lr-state-ended .lr-audio-log__subreplay { display: inline; }
 
-  /* ─── Active states — chassis border brightens during playing ───────── */
-  .lr-state-playing .lr-audio-log__chassis,
-  .lr-state-replaying .lr-audio-log__chassis {
-    border-color: var(--color-teal, #00c2d4);
+  /* ─── Attention pulse on first arrival (prominence standard #5) ────── */
+  /* 2-cycle outer-glow halo over ~3s, then stops permanently. Only triggers
+   * on idle state; if user has already interacted (state moved off idle),
+   * no pulse — they've found it. */
+  .lr-state-idle .lr-audio-log__chassis {
+    animation: lr-attention-pulse 1.5s ease-in-out 2;
+  }
+  @keyframes lr-attention-pulse {
+    0%, 100% {
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4),
+                  0 0 0 0 rgba(245, 197, 24, 0.5);
+    }
+    50% {
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4),
+                  0 0 0 12px rgba(245, 197, 24, 0);
+    }
   }
 
-  /* ─── Hover (idle) — chassis border warming up ───────────────────────── */
-  .lr-state-idle .lr-audio-log__chassis:hover {
-    border-color: rgba(0, 194, 212, 0.6); /* teal at 60% */
-  }
-
-  /* ─── Mobile — simplified circular chassis (Arc Section F) ───────────── */
+  /* ─── Mobile — 56px circular chassis (prominence standard #3) ──────── */
   @media (max-width: 768px) {
     .lr-audio-log {
-      top: auto;
       bottom: calc(env(safe-area-inset-bottom, 0px) + 16px);
       right: calc(env(safe-area-inset-right, 0px) + 16px);
-      align-items: flex-end;
     }
     .lr-audio-log__chassis {
-      width: 48px;
-      height: 48px;
+      width: 56px;
+      height: 56px;
       border-radius: 50%;
       padding: 0;
       justify-content: center;
-      gap: 4px;
-      /* mobile: thicker border for visibility (carries Fuglys v2 mobile-tap learning forward) */
-      border-width: 1.5px;
+      gap: 0;
+      border-width: 2px;
     }
-    /* mobile shows only the LED + a tiny "AL" abbreviation (Arc F)
-       — drop status label, oscilloscope, and sub-label */
+    /* mobile shows only the icon — drop status label, oscilloscope, sub-label */
     .lr-audio-log__status,
     .lr-audio-log__scope,
     .lr-audio-log__subreplay {
       display: none !important;
     }
-    /* mobile pseudo-glyph — small "AL" rendered via ::after to avoid extra DOM */
-    .lr-audio-log__chassis::after {
-      content: 'AL';
-      color: var(--color-yellow, #f5c518);
-      font-family: ui-monospace, "SF Mono", "Cascadia Mono", Menlo, Consolas, monospace;
-      font-size: 0.6rem;
-      letter-spacing: 0.08em;
-      font-weight: 700;
+    /* mobile icons scale up for tap-target visibility */
+    .lr-audio-log__icon {
+      width: 22px;
+      height: 22px;
     }
+    .lr-icon { width: 22px; height: 22px; }
   }
 
-  /* ─── Reduced-motion variant (Arc Section D.7) ─────────────────────── */
-  /* JS-tagged class — disables LED pulse, sine scroll, all transitions */
-  .lr-reduced-motion .lr-audio-log__led-dot,
+  /* ─── Reduced-motion variant (Arc D.7 + standard #6) ───────────────── */
+  .lr-reduced-motion .lr-audio-log__chassis,
   .lr-reduced-motion .lr-wave,
   .lr-reduced-motion .lr-flat {
     animation: none !important;
     transition: none !important;
   }
-  /* In reduced-motion, the playing-state oscilloscope shows a STATIC teal line
-     instead of the animated sine (Arc D.7). */
+  .lr-reduced-motion .lr-audio-log__chassis:hover {
+    transform: none;
+  }
   .lr-reduced-motion.lr-state-playing .lr-wave,
   .lr-reduced-motion.lr-state-replaying .lr-wave { display: none; }
   .lr-reduced-motion.lr-state-playing .lr-flat,
   .lr-reduced-motion.lr-state-replaying .lr-flat {
     display: inline;
-    opacity: 1; /* static teal, not the dim flat-line of ENDED state */
+    opacity: 1;
   }
 
-  /* OS-level reduced motion (in addition to JS-tagged class) */
   @media (prefers-reduced-motion: reduce) {
-    .lr-audio-log__led-dot,
+    .lr-audio-log__chassis,
     .lr-wave,
     .lr-flat {
       animation: none !important;
       transition: none !important;
     }
+    .lr-audio-log__chassis:hover { transform: none; }
     .lr-state-playing .lr-wave,
     .lr-state-replaying .lr-wave { display: none; }
     .lr-state-playing .lr-flat,
