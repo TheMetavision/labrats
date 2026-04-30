@@ -5,24 +5,22 @@
 // Canonically: Byte C. Cheddar's signal interceptor in the Watch Room,
 // patching the visitor into an archived Rat Tales mission dispatch.
 //
-// v1.3 (2026-04-30) — adds X dismiss + interactive progress bar:
-//   - X button top-right of chassis, sessionStorage flag, persists for tab
-//     session only (next visit = new tab/browser = player back).
-//   - Progress bar replaces the v1.2 oscilloscope. Click anywhere on the
-//     bar to seek. Visible from first play onwards (idle when paused too,
-//     so user can scrub backwards from a paused state).
-//   - ARIA: progress bar role=slider with valuemin/max/now updated live.
+// v1.4 (2026-04-30) — progress + rewind UX upgrade:
+//   - Progress bar visible from initial render (was: hidden until first play).
+//     Fill starts at 0%, populates via onProgress once Howler reports duration.
+//     Always-visible affordance signals "this is a music player you can scrub."
+//   - New rewind-to-start (⏮) button — satellite control top-left of chassis,
+//     mirrors the X dismiss visual pattern. One click = controller.seek(0)
+//     in any state (playing keeps playing from 0, paused stays paused at 0,
+//     ended position resets to 0 ready for replay click).
+//   - Mobile gets the rewind button too (X stays top-right, rewind top-left
+//     of the circular chassis).
 //
-// v1.2 (2026-04-30) — prominence retrofit (cross-brand standard compliance):
-//   - Solid yellow chassis fill, black border, drop shadow
-//   - "AUDIO LOG · PATCH IN?" idle CTA always visible
-//   - Black play/pause/replay icons
-//   - Bottom-right desktop, 56px mobile, attention pulse on first arrival
-//
-// v1.1 hotfix learning preserved: <script> unwrapped from {shouldRender && ...}
-// so Astro hoists + bundles via Vite (otherwise relative import 404s).
-//
-// Architecture: props-driven (Layout fetches via getThemeAudio() from sanity.ts).
+// v1.3 (2026-04-30) — X dismiss + interactive progress bar (preserved).
+// v1.2 prominence retrofit (preserved): solid yellow chassis, PATCH IN? CTA,
+// bottom-right, attention pulse, 56px mobile.
+// v1.1 hotfix (preserved): script unwrapped from {shouldRender && ...}.
+// Architecture: props-driven (Layout fetches via getThemeAudio()).
 
 export interface Props {
   audioUrl?: string | null;
@@ -83,8 +81,8 @@ const shouldRender = enabled !== false && !!audioUrl;
       </span>
     </button>
 
-    {/* Progress bar — visible from first play onward; click to seek.
-        Lives outside the main chassis button so its click doesn't trigger play/pause. */}
+    {/* Progress bar — always visible, click to seek. Lives outside the main
+        chassis button so its click doesn't trigger play/pause. */}
     <div
       class="lr-audio-log__progress"
       role="slider"
@@ -99,8 +97,23 @@ const shouldRender = enabled !== false && !!audioUrl;
       </div>
     </div>
 
-    {/* X dismiss — sessionStorage flag, hides for current tab/session only.
-        Click stops propagation so it doesn't trigger play/pause. */}
+    {/* Rewind to start — satellite button top-left of chassis. */}
+    <button
+      type="button"
+      class="lr-audio-log__rewind"
+      aria-label="Rewind theme music to start"
+      title="Rewind to start"
+    >
+      <svg viewBox="0 0 14 14" width="10" height="10" focusable="false" aria-hidden="true">
+        {/* Bar at left edge */}
+        <rect x="2" y="3" width="1.6" height="8" fill="currentColor" />
+        {/* Two stacked left-pointing triangles */}
+        <path d="M 11 3 L 7 7 L 11 11 Z" fill="currentColor" />
+        <path d="M 7 3 L 4.5 7 L 7 11 Z" fill="currentColor" />
+      </svg>
+    </button>
+
+    {/* X dismiss — sessionStorage flag, hides for current tab/session only. */}
     <button
       type="button"
       class="lr-audio-log__dismiss"
@@ -117,7 +130,6 @@ const shouldRender = enabled !== false && !!audioUrl;
       </svg>
     </button>
 
-    {/* Optional ENDED-state sub-label — Arc Section D.4 / H.3 */}
     <span class="lr-audio-log__subreplay">Patch in again?</span>
   </div>
 )}
@@ -129,6 +141,7 @@ const shouldRender = enabled !== false && !!audioUrl;
   if (root) {
     const button = root.querySelector('.lr-audio-log__chassis');
     const dismissBtn = root.querySelector('.lr-audio-log__dismiss');
+    const rewindBtn = root.querySelector('.lr-audio-log__rewind');
     const progressEl = root.querySelector('.lr-audio-log__progress');
     const progressFill = root.querySelector('.lr-audio-log__progress-fill');
     const audioSrc = root.dataset.audioSrc;
@@ -152,7 +165,7 @@ const shouldRender = enabled !== false && !!audioUrl;
       });
     }
 
-    // ── Suppression paths — Labrats-specific (Arc spec Section E.2) ────
+    // ── Suppression paths ────────────────────────────────────────────
     const SUPPRESSION = [
       /^\/cart(\/.*)?$/,
       /^\/checkout(\/.*)?$/,
@@ -178,10 +191,6 @@ const shouldRender = enabled !== false && !!audioUrl;
         }
       },
       onProgress(current, duration) {
-        // Mark the component as "audio loaded" so CSS reveals the progress bar.
-        // Once flipped, stays on for the rest of the session — supports
-        // pause/seek backward from a paused state.
-        root.dataset.audioLoaded = 'true';
         if (duration > 0 && progressFill && progressEl) {
           const pct = Math.max(0, Math.min(100, (current / duration) * 100));
           progressFill.style.width = pct + '%';
@@ -190,11 +199,23 @@ const shouldRender = enabled !== false && !!audioUrl;
       },
     });
 
-    // Main play/pause/replay click — chassis button
+    // Main play/pause/replay click
     button.addEventListener('click', (e) => {
       e.preventDefault();
       controller.handleClick();
     });
+
+    // Rewind-to-start button
+    if (rewindBtn) {
+      rewindBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        controller.seek(0);
+        // Visually snap the fill to 0% immediately even before next onProgress tick
+        if (progressFill) progressFill.style.width = '0%';
+        if (progressEl) progressEl.setAttribute('aria-valuenow', '0');
+      });
+    }
 
     // Progress-bar click → seek to clicked ratio of duration
     if (progressEl) {
@@ -207,7 +228,6 @@ const shouldRender = enabled !== false && !!audioUrl;
           controller.seek(ratio * duration);
         }
       });
-      // Keyboard: left/right = seek by 5s, Home/End = start/end
       progressEl.addEventListener('keydown', (e) => {
         const duration = controller.getDuration();
         if (duration <= 0) return;
@@ -254,7 +274,6 @@ const shouldRender = enabled !== false && !!audioUrl;
     gap: 4px;
     pointer-events: auto;
   }
-  /* Dismissed via sessionStorage — hide entirely until next visit */
   .lr-audio-log[data-dismissed="true"] { display: none !important; }
 
   /* ─── Chassis — solid yellow brand fill ──────────────────────────────── */
@@ -264,8 +283,10 @@ const shouldRender = enabled !== false && !!audioUrl;
     border: 1.5px solid var(--color-black, #0a0a0a);
     color: var(--color-black, #0a0a0a);
     padding: 0.55rem 0.85rem;
-    /* Right padding accommodates the absolute-positioned X dismiss button */
+    /* Right padding accommodates the absolute-positioned X dismiss. Left
+       padding accommodates the absolute-positioned rewind button. */
     padding-right: 1.6rem;
+    padding-left: 1.6rem;
     border-radius: 3px;
     cursor: pointer;
     font-family: ui-monospace, "SF Mono", "Cascadia Mono", Menlo, Consolas, monospace;
@@ -278,7 +299,7 @@ const shouldRender = enabled !== false && !!audioUrl;
     gap: 0.55rem;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
     transition: transform 200ms ease, box-shadow 200ms ease;
-    position: relative; /* anchor for the absolute X dismiss */
+    position: relative;
   }
   .lr-audio-log__chassis:hover {
     transform: translateY(-1px);
@@ -289,13 +310,13 @@ const shouldRender = enabled !== false && !!audioUrl;
     outline-offset: 3px;
   }
 
-  /* ─── X dismiss button — absolute top-right of chassis ──────────────── */
-  .lr-audio-log__dismiss {
+  /* ─── Satellite buttons (X dismiss + rewind) — shared visual pattern ─ */
+  .lr-audio-log__dismiss,
+  .lr-audio-log__rewind {
     position: absolute;
-    top: -8px;
-    right: -8px;
     width: 20px;
     height: 20px;
+    top: -8px;
     padding: 0;
     border-radius: 50%;
     background: var(--color-black, #0a0a0a);
@@ -308,12 +329,17 @@ const shouldRender = enabled !== false && !!audioUrl;
     box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
     transition: transform 150ms ease, background 150ms ease;
   }
-  .lr-audio-log__dismiss:hover {
+  .lr-audio-log__dismiss { right: -8px; }
+  .lr-audio-log__rewind  { left:  -8px; }
+
+  .lr-audio-log__dismiss:hover,
+  .lr-audio-log__rewind:hover {
     transform: scale(1.1);
     background: var(--color-teal, #00c2d4);
     color: var(--color-black, #0a0a0a);
   }
-  .lr-audio-log__dismiss:focus-visible {
+  .lr-audio-log__dismiss:focus-visible,
+  .lr-audio-log__rewind:focus-visible {
     outline: 2px solid var(--color-teal, #00c2d4);
     outline-offset: 2px;
   }
@@ -355,19 +381,14 @@ const shouldRender = enabled !== false && !!audioUrl;
     display: inline;
   }
 
-  /* ─── Progress bar — appears below chassis once audio has loaded ───── */
-  /* Hidden until user has interacted; once shown, stays for session even
-   * during paused state so user can scrub backwards. */
+  /* ─── Progress bar — always visible (was: hidden until first play in v1.3) ── */
   .lr-audio-log__progress {
-    display: none;
+    display: block;
     width: 100%;
     height: 14px;
     padding: 5px 0;
     cursor: pointer;
     box-sizing: border-box;
-  }
-  .lr-audio-log[data-audio-loaded="true"] .lr-audio-log__progress {
-    display: block;
   }
   .lr-audio-log__progress:focus-visible {
     outline: 2px solid var(--color-teal, #00c2d4);
@@ -381,8 +402,6 @@ const shouldRender = enabled !== false && !!audioUrl;
     border-radius: 2px;
     overflow: hidden;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
-    /* Inherit chassis-yellow background as the track surround so the bar
-     * reads as part of the chassis */
     background-clip: padding-box;
   }
   .lr-audio-log__progress-fill {
@@ -430,7 +449,8 @@ const shouldRender = enabled !== false && !!audioUrl;
       height: 56px;
       border-radius: 50%;
       padding: 0;
-      padding-right: 0; /* override desktop right-padding */
+      padding-right: 0;
+      padding-left: 0;
       justify-content: center;
       gap: 0;
       border-width: 2px;
@@ -439,42 +459,50 @@ const shouldRender = enabled !== false && !!audioUrl;
     .lr-audio-log__subreplay {
       display: none !important;
     }
-    /* Mobile progress bar — appears as a thin arc below the circle.
-     * Hidden in v1.3 to keep mobile compact; can be enabled later if needed. */
-    .lr-audio-log__progress { display: none !important; }
+    /* Mobile keeps the progress bar — full width below the circular chassis,
+       centered. Allows mobile users to scrub too. */
+    .lr-audio-log__progress {
+      display: block;
+      width: 80px;
+      align-self: center;
+    }
     .lr-audio-log__icon { width: 22px; height: 22px; }
     .lr-icon { width: 22px; height: 22px; }
-    /* Mobile X — same position relative to the round chassis */
-    .lr-audio-log__dismiss {
-      top: -6px;
-      right: -6px;
+    /* Mobile satellite buttons sized slightly larger for tap target */
+    .lr-audio-log__dismiss,
+    .lr-audio-log__rewind {
       width: 22px;
       height: 22px;
+      top: -6px;
     }
+    .lr-audio-log__dismiss { right: -6px; }
+    .lr-audio-log__rewind  { left:  -6px; }
   }
 
   /* ─── Reduced-motion variant ──────────────────────────────────────── */
   .lr-reduced-motion .lr-audio-log__chassis,
   .lr-reduced-motion .lr-audio-log__dismiss,
+  .lr-reduced-motion .lr-audio-log__rewind,
   .lr-reduced-motion .lr-audio-log__progress-fill {
     animation: none !important;
     transition: none !important;
   }
-  .lr-reduced-motion .lr-audio-log__chassis:hover {
-    transform: none;
-  }
-  .lr-reduced-motion .lr-audio-log__dismiss:hover {
+  .lr-reduced-motion .lr-audio-log__chassis:hover,
+  .lr-reduced-motion .lr-audio-log__dismiss:hover,
+  .lr-reduced-motion .lr-audio-log__rewind:hover {
     transform: none;
   }
 
   @media (prefers-reduced-motion: reduce) {
     .lr-audio-log__chassis,
     .lr-audio-log__dismiss,
+    .lr-audio-log__rewind,
     .lr-audio-log__progress-fill {
       animation: none !important;
       transition: none !important;
     }
-    .lr-audio-log__chassis:hover { transform: none; }
-    .lr-audio-log__dismiss:hover { transform: none; }
+    .lr-audio-log__chassis:hover,
+    .lr-audio-log__dismiss:hover,
+    .lr-audio-log__rewind:hover { transform: none; }
   }
 </style>
