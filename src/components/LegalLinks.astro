@@ -1,0 +1,68 @@
+---
+/**
+ * LegalLinks
+ *
+ * Pulls every legalPage marked `showInFooter: true`, ordered by `order`,
+ * and renders them with the same look and feel as the Explore column.
+ *
+ * Note: Astro scopes <style> blocks to the component they live in, so we
+ * can't rely on Footer.astro's .footer__links rules — they don't reach
+ * the markup rendered by this component. Hence the local style block.
+ */
+
+import { client as sanityClient } from '../lib/sanity';
+
+type FooterLink = {
+  title: string;
+  slug: { current: string };
+};
+
+const links = await sanityClient.fetch<FooterLink[]>(
+  `*[_type == "legalPage" && showInFooter == true] | order(order asc){
+    title, slug
+  }`,
+);
+---
+
+<ul class="legal-links">
+  {links.map((l) => (
+    <li>
+      <a href={`/legal/${l.slug.current}`} class="legal-link">{l.title}</a>
+    </li>
+  ))}
+</ul>
+
+<style>
+  .legal-links {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .legal-links li {
+    list-style: none;
+  }
+
+  .legal-link {
+    font-family: var(--font-body);
+    font-size: 14px;
+    color: var(--color-white);
+    opacity: 0.8;
+    text-decoration: none;
+    transition: opacity 0.2s, color 0.2s;
+  }
+
+  .legal-link:hover {
+    opacity: 1;
+    color: var(--color-yellow);
+  }
+
+  @media (max-width: 480px) {
+    .legal-links {
+      align-items: center;
+    }
+  }
+</style>

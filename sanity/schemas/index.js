@@ -7,5 +7,5 @@ import faq from './faq';
 import page from './page';
 import book from './book';
 import siteSettings from './siteSettings';
-
-export const schemaTypes = [siteSettings, character, episode, blogPost, product, category, faq, page, book];
+import legalPage from './legalPage';
+export const schemaTypes = [siteSettings, character, episode, blogPost, product, category, faq, page, book, legalPage];

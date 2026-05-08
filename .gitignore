@@ -5,3 +5,9 @@ dist/
 .astro/
 *.log
 .DS_Store
+
+# Local-only agent / migration artifacts
+CLAUDE.md
+*.lnk
+import-*.mjs
+verify.mjs
