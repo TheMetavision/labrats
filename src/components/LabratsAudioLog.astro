@@ -236,8 +236,12 @@ const shouldRender = enabled !== false && !!audioUrl;
         }
       },
       onVolumeChange(v) {
-        // keep the slider in sync if volume changes programmatically
-        if (volumeSlider) volumeSlider.value = String(Math.round(v * 100));
+        // keep the slider position + fill in sync if volume changes programmatically
+        if (volumeSlider) {
+          const pct = Math.round(v * 100);
+          volumeSlider.value = String(pct);
+          volumeSlider.style.setProperty('--vol', pct + '%');
+        }
       },
     });
 
@@ -253,10 +257,15 @@ const shouldRender = enabled !== false && !!audioUrl;
     // slider interaction from reaching the chassis play/pause or the
     // container's collapse handlers.
     if (volumeSlider) {
-      volumeSlider.value = String(Math.round(controller.volume * 100));
+      const paintVolume = (pct) => volumeSlider.style.setProperty('--vol', pct + '%');
+      const initPct = Math.round(controller.volume * 100);
+      volumeSlider.value = String(initPct);
+      paintVolume(initPct);
       volumeSlider.addEventListener('input', (e) => {
         e.stopPropagation();
-        controller.setVolume(Number(e.target.value) / 100);
+        const pct = Number(e.target.value);
+        paintVolume(pct);
+        controller.setVolume(pct / 100);
       });
       volumeSlider.addEventListener('click', (e) => e.stopPropagation());
       volumeSlider.addEventListener('keydown', (e) => e.stopPropagation());
@@ -508,56 +517,77 @@ const shouldRender = enabled !== false && !!audioUrl;
   .lr-audio-log__volume-icon {
     display: inline-flex;
     flex-shrink: 0;
-    color: var(--color-black, #0a0a0a);
+    /* yellow so it reads on the dark page background (was black = invisible) */
+    color: var(--color-yellow, #f5c518);
+    filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.6));
   }
   .lr-audio-log__volume-slider {
     -webkit-appearance: none;
     appearance: none;
     flex: 1;
-    height: 4px;
-    border-radius: 2px;
-    background: rgba(0, 0, 0, 0.25);
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
-    background-clip: padding-box;
+    height: 14px;            /* clickable hit area = thumb height */
+    background: transparent;  /* visible track is drawn on the track pseudo-els */
     cursor: pointer;
     margin: 0;
+    --vol: 60%;               /* filled portion; kept in sync from JS */
   }
   .lr-audio-log__volume-slider:focus-visible {
     outline: 2px solid var(--color-teal, #00c2d4);
-    outline-offset: 3px;
-    border-radius: 2px;
+    outline-offset: 4px;
+    border-radius: 4px;
   }
-  /* WebKit / Blink thumb */
+  /* ── WebKit / Blink: track is a two-tone line (bright yellow up to --vol,
+        dim yellow after) so the level is readable; thumb is a dot on the line ── */
+  .lr-audio-log__volume-slider::-webkit-slider-runnable-track {
+    height: 5px;
+    border-radius: 3px;
+    background:
+      linear-gradient(
+        to right,
+        var(--color-yellow, #f5c518) 0%,
+        var(--color-yellow, #f5c518) var(--vol, 60%),
+        rgba(245, 197, 24, 0.3) var(--vol, 60%),
+        rgba(245, 197, 24, 0.3) 100%
+      );
+    box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.4), 0 1px 3px rgba(0, 0, 0, 0.45);
+  }
   .lr-audio-log__volume-slider::-webkit-slider-thumb {
     -webkit-appearance: none;
     appearance: none;
-    width: 12px;
-    height: 12px;
+    width: 14px;
+    height: 14px;
+    margin-top: -4.5px;       /* centre the 14px dot on the 5px line */
     border-radius: 50%;
     background: var(--color-yellow, #f5c518);
-    border: 1.5px solid var(--color-black, #0a0a0a);
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+    border: 2px solid var(--color-black, #0a0a0a);
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.55);
     cursor: pointer;
     transition: transform 150ms ease;
   }
-  .lr-audio-log__volume-slider::-webkit-slider-thumb:hover { transform: scale(1.15); }
-  /* Firefox track + thumb */
+  .lr-audio-log__volume-slider::-webkit-slider-thumb:hover { transform: scale(1.12); }
+  /* ── Firefox: native progress fill handles the two-tone automatically ── */
   .lr-audio-log__volume-slider::-moz-range-track {
-    height: 4px;
-    border-radius: 2px;
-    background: rgba(0, 0, 0, 0.25);
+    height: 5px;
+    border-radius: 3px;
+    background: rgba(245, 197, 24, 0.3);
+    box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.4);
+  }
+  .lr-audio-log__volume-slider::-moz-range-progress {
+    height: 5px;
+    border-radius: 3px;
+    background: var(--color-yellow, #f5c518);
   }
   .lr-audio-log__volume-slider::-moz-range-thumb {
-    width: 12px;
-    height: 12px;
+    width: 14px;
+    height: 14px;
     border-radius: 50%;
     background: var(--color-yellow, #f5c518);
-    border: 1.5px solid var(--color-black, #0a0a0a);
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+    border: 2px solid var(--color-black, #0a0a0a);
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.55);
     cursor: pointer;
     transition: transform 150ms ease;
   }
-  .lr-audio-log__volume-slider::-moz-range-thumb:hover { transform: scale(1.15); }
+  .lr-audio-log__volume-slider::-moz-range-thumb:hover { transform: scale(1.12); }
 
   /* Rewind satellite — visible only in expanded mode (top-left of chassis) */
   .lr-audio-log:hover .lr-audio-log__rewind,
