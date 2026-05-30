@@ -1,3 +1,7 @@
+// Reconstructed 2026-05-30 from the live Sanity dataset.
+// Mirrors the field shape of all 4 book documents in production
+// (Escape from Lab Zero, The Cybernetic Conspiracy, etc).
+
 export default {
   name: 'book',
   title: 'Book',
@@ -21,6 +25,7 @@ export default {
       title: 'Description',
       type: 'text',
       rows: 4,
+      description: 'Back-cover style summary, plain text.',
     },
     {
       name: 'coverImage',
@@ -29,70 +34,74 @@ export default {
       options: { hotspot: true },
     },
     {
-      name: 'orderUrl',
-      title: 'Order URL',
-      type: 'url',
-      description: 'Link to purchase (Amazon, shop page, etc.)',
-    },
-    {
-      name: 'seriesOrder',
-      title: 'Series Order',
-      type: 'number',
-      description: 'Position in the book series (1, 2, 3...)',
-      validation: (Rule) => Rule.min(1),
+      name: 'format',
+      title: 'Format',
+      type: 'string',
+      options: {
+        list: [
+          { title: 'Book', value: 'book' },
+          { title: 'Audiobook', value: 'audiobook' },
+          { title: 'E-book', value: 'ebook' },
+        ],
+        layout: 'radio',
+      },
+      initialValue: 'book',
     },
     {
       name: 'ageRange',
       title: 'Age Range',
       type: 'string',
-      description: 'e.g. "Ages 8–14"',
+      description: 'e.g. "Ages 8–14".',
     },
     {
-      name: 'pageCount',
-      title: 'Page Count',
+      name: 'seriesOrder',
+      title: 'Series Order',
       type: 'number',
+      description: 'Position in the series (1, 2, 3...).',
     },
     {
-      name: 'isbn',
-      title: 'ISBN',
+      name: 'status',
+      title: 'Status',
       type: 'string',
-    },
-    {
-      name: 'publishedAt',
-      title: 'Published Date',
-      type: 'datetime',
-    },
-    {
-      name: 'seoTitle',
-      title: 'SEO Title',
-      type: 'string',
-    },
-    {
-      name: 'seoDescription',
-      title: 'SEO Description',
-      type: 'text',
-      rows: 2,
+      options: {
+        list: [
+          { title: 'Available', value: 'available' },
+          { title: 'Coming Soon', value: 'coming-soon' },
+          { title: 'Out of Print', value: 'out-of-print' },
+          { title: 'Draft / Hidden', value: 'draft' },
+        ],
+        layout: 'radio',
+      },
+      initialValue: 'available',
     },
   ],
+
+  preview: {
+    select: {
+      title: 'title',
+      subtitle: 'ageRange',
+      media: 'coverImage',
+      order: 'seriesOrder',
+    },
+    prepare({ title, subtitle, media, order }) {
+      return {
+        title,
+        subtitle: order != null ? `Book ${order}${subtitle ? ' · ' + subtitle : ''}` : subtitle,
+        media,
+      };
+    },
+  },
+
   orderings: [
     {
       title: 'Series Order',
       name: 'seriesOrderAsc',
       by: [{ field: 'seriesOrder', direction: 'asc' }],
     },
+    {
+      title: 'Title (A→Z)',
+      name: 'titleAsc',
+      by: [{ field: 'title', direction: 'asc' }],
+    },
   ],
-  preview: {
-    select: {
-      title: 'title',
-      subtitle: 'seriesOrder',
-      media: 'coverImage',
-    },
-    prepare({ title, subtitle, media }) {
-      return {
-        title,
-        subtitle: subtitle ? `Book ${subtitle}` : '',
-        media,
-      };
-    },
-  },
 };

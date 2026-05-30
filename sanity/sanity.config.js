@@ -1,22 +1,27 @@
 import { defineConfig } from 'sanity';
 import { structureTool } from 'sanity/structure';
 import { schemaTypes } from './schemas';
-
 export default defineConfig({
   name: 'labrats', title: 'Labrats CMS', projectId: 'o9qrmykx', dataset: 'production',
   plugins: [structureTool({
     structure: (S) => S.list().title('Content').items([
       S.listItem().title('Site Settings').child(S.document().schemaType('siteSettings').documentId('siteSettings')),
       S.divider(),
+      S.documentTypeListItem('worldLocation').title('World Locations'),
       S.documentTypeListItem('character').title('Characters'),
       S.documentTypeListItem('episode').title('Episodes & Videos'),
       S.documentTypeListItem('blogPost').title('Blog Posts'),
+      S.documentTypeListItem('book').title('Books'),
       S.divider(),
       S.documentTypeListItem('product').title('Products'),
       S.documentTypeListItem('category').title('Categories'),
+      S.documentTypeListItem('merchCategory').title('Merch Categories'),
       S.divider(),
       S.documentTypeListItem('faq').title('FAQs'),
       S.documentTypeListItem('page').title('Pages'),
+      S.documentTypeListItem('legalPage').title('Legal Pages'),
+      S.divider(),
+      S.documentTypeListItem('contactSubmission').title('Contact Submissions'),
     ]),
   })],
   schema: { types: schemaTypes },
