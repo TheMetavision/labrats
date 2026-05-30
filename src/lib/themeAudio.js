@@ -3,6 +3,14 @@
 // Shared theme-audio utility for the four IP brand sites
 // (Fuglys / Labrats / Biker Babies / Cats On Crack).
 //
+// v3.2 — 2026-05-30 — Labrats: user-facing volume slider wired up. DEFAULT_VOLUME
+//   raised 0.25 -> 0.6 (used for new visitors / no saved value); returning
+//   visitors keep their own saved level, now adjustable live via the slider in
+//   the expanded player. Supersedes the interim v3.1 volume floor, which has been
+//   removed — with a slider it would have fought a user deliberately turning the
+//   volume down. NB: Labrats repo copy only; Fuglys / Biker Babies / Cats On
+//   Crack copies are untouched and still default to 0.25.
+//
 // v3 — 2026-04-30 — adds seek + progress public APIs for Labrats v1.3:
 //   - seek(seconds) — jump to position (clamped to track duration)
 //   - getDuration() — total track length in seconds (0 until loaded)
@@ -56,7 +64,7 @@ import { Howl } from 'howler';
 
 // ─── Constants ─────────────────────────────────────────────────────────────
 
-const DEFAULT_VOLUME = 0.25;          // 25% per brief
+const DEFAULT_VOLUME = 0.6;           // 60% — raised from 0.25 (was too quiet)
 const SUPPRESSION_FADE_MS = 500;       // 0.5s per brief
 const STATE_TTL_MS = 24 * 60 * 60_000; // 24 hours per brief
 const POSITION_THROTTLE_MS = 1000;     // write position to localStorage no more than once/sec
