@@ -3,10 +3,13 @@
 // 2026-05-30: reconstructed alongside worldLocation, book, merchCategory
 // (originals lost from local repo; rebuilt to match deployed Studio shape).
 // Added contactSubmission for the new Sanity-backed contact form intake.
+// 2026-06-03: added printfulVariant (object type) for the Wyrmfuel-model
+// product schema, so the variants[].printfulVariants field resolves.
 import character from './character';
 import episode from './episode';
 import blogPost from './blogPost';
 import product from './product';
+import printfulVariant from './printfulVariant';
 import category from './category';
 import faq from './faq';
 import page from './page';
@@ -24,6 +27,7 @@ export const schemaTypes = [
   blogPost,
   book,
   product,
+  printfulVariant,
   category,
   merchCategory,
   faq,
