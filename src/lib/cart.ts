@@ -1,4 +1,5 @@
 import { atom, computed } from 'nanostores';
+import { persistentAtom } from '@nanostores/persistent';
 
 export interface CartItem {
   productId: string;
@@ -7,12 +8,22 @@ export interface CartItem {
   size: string;
   colour: string;
   image: string;
-  stripePriceId: string;
-  printfulVariantId: string;
+  productType?: string;       // used by checkout to resolve the exact Printful variant
+  stripePriceId?: string;     // optional: nested model uses ad-hoc price_data
+  printfulVariantId?: string; // optional: resolved server-side at checkout
   quantity: number;
 }
 
-export const cartItems = atom<CartItem[]>([]);
+/* Persistent cart — survives page navigations and browser restarts.
+   Astro full-page-loads between routes, so a plain atom() empties the cart
+   on every navigation; persistentAtom keeps it in localStorage. */
+export const cartItems = persistentAtom<CartItem[]>('lr-cart-v1', [], {
+  encode: JSON.stringify,
+  decode: (v) => {
+    try { return JSON.parse(v) ?? []; } catch { return []; }
+  },
+});
+
 export const cartOpen = atom(false);
 
 export const cartTotal = computed(cartItems, (items) =>
@@ -69,6 +80,9 @@ export function updateQuantity(productId: string, size: string, colour: string, 
   );
 }
 
+/* Empty the cart. Called from the drawer's Clear button and from
+   /order-success (ONLY after a session_id confirms payment — never
+   clear before the Stripe redirect). */
 export function clearCart() {
   cartItems.set([]);
 }

@@ -1,20 +1,125 @@
 ---
+/**
+ * src/pages/order-success.astro  (Labrats)
+ *
+ * Stripe Checkout success_url lands here with ?session_id={CHECKOUT_SESSION_ID}.
+ * The cart is cleared HERE and only here — never before the Stripe redirect —
+ * and only when a session_id is present (an accidental visit without one
+ * leaves the cart intact).
+ */
 import Layout from '../layouts/Layout.astro';
+import Navbar from '../components/Navbar.astro';
+import Footer from '../components/Footer.astro';
 ---
 
-<Layout title="Order Confirmed — Labrats">
-  <section style="min-height: 70vh; display: flex; align-items: center; justify-content: center; padding: 60px 24px; text-align: center;">
-    <div style="max-width: 520px;">
-      <div style="font-size: 64px; margin-bottom: 24px;">&#10003;</div>
-      <h1 style="font-size: 36px; font-weight: 700; color: #00C2D4; text-transform: uppercase; letter-spacing: 3px; margin: 0 0 16px; font-family: 'Bebas Neue', sans-serif;">Order Confirmed</h1>
-      <p style="font-size: 16px; line-height: 1.7; color: #999; margin: 0 0 32px;">
-        Thanks for your order! You'll receive a confirmation email shortly.
-        Your items are being prepared and you'll get tracking details once they ship.
+<Layout title="Order Confirmed — Labrats" description="Your official Labrats order is confirmed and heading into production." noIndex={true}>
+  <Navbar />
+  <main class="success">
+    <div class="success__card">
+      <div class="success__badge">&#10003;</div>
+      <span class="success__label">Mission Accepted</span>
+      <h1 class="success__title">Order Confirmed!</h1>
+      <p class="success__ref" id="order-ref" style="display:none;">Order ref <strong id="order-ref-code"></strong></p>
+      <p class="success__text">
+        Your gear is heading into production. We've emailed your confirmation,
+        and we'll send tracking the moment it breaks out of the lab.
       </p>
-      <div style="display: flex; gap: 16px; justify-content: center; flex-wrap: wrap;">
-        <a href="/merch" style="display: inline-block; padding: 12px 28px; background: #00C2D4; color: #000; text-decoration: none; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; border-radius: 4px; font-size: 14px; font-family: 'Bebas Neue', sans-serif;">Continue Shopping</a>
-        <a href="/" style="display: inline-block; padding: 12px 28px; background: transparent; color: #999; text-decoration: none; font-weight: 600; border: 1px solid #333; border-radius: 4px; font-size: 14px;">Back to Home</a>
+      <div class="success__actions">
+        <a href="/merch" class="success__btn success__btn--primary">Back to Merch</a>
+        <a href="/" class="success__btn success__btn--ghost">Home</a>
       </div>
     </div>
-  </section>
+  </main>
+  <Footer />
+
+  <script>
+    import { clearCart } from '../lib/cart';
+
+    const params = new URLSearchParams(window.location.search);
+    const sessionId = params.get('session_id');
+
+    if (sessionId) {
+      // Payment confirmed by Stripe redirect — safe to empty the cart now.
+      clearCart();
+      // Show the short order ref (matches the confirmation email + Sanity log).
+      const ref = sessionId.slice(-8).toUpperCase();
+      const refEl = document.getElementById('order-ref');
+      const codeEl = document.getElementById('order-ref-code');
+      if (refEl && codeEl) {
+        codeEl.textContent = `#${ref}`;
+        refEl.style.display = '';
+      }
+    }
+  </script>
+
+  <style>
+    .success {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: calc(80px + 2rem) 1.5rem 4rem;
+      background: var(--color-bg);
+    }
+    .success__card {
+      max-width: 560px;
+      width: 100%;
+      text-align: center;
+      background: var(--color-bg-card);
+      border: 1px solid var(--color-teal);
+      border-radius: var(--radius-lg);
+      padding: 48px 32px;
+    }
+    .success__badge {
+      width: 64px; height: 64px;
+      margin: 0 auto 20px;
+      display: flex; align-items: center; justify-content: center;
+      background: var(--color-teal);
+      color: var(--color-black);
+      font-size: 30px; font-weight: 700;
+      border-radius: 50%;
+    }
+    .success__label {
+      display: inline-block;
+      font-family: var(--font-heading);
+      font-size: 12px; font-weight: 700;
+      letter-spacing: 3px; text-transform: uppercase;
+      color: var(--color-teal);
+      margin-bottom: 10px;
+    }
+    .success__title {
+      font-family: var(--font-display);
+      font-size: clamp(36px, 6vw, 56px);
+      color: var(--color-yellow);
+      line-height: 1.05;
+      text-transform: uppercase;
+      margin-bottom: 12px;
+    }
+    .success__ref {
+      font-family: var(--font-heading);
+      font-size: 14px;
+      color: var(--color-text-muted);
+      margin-bottom: 4px;
+    }
+    .success__ref strong { color: var(--color-teal); letter-spacing: 1px; }
+    .success__text {
+      font-family: var(--font-body);
+      color: var(--color-text-muted);
+      line-height: 1.7;
+      margin: 12px 0 28px;
+    }
+    .success__actions { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+    .success__btn {
+      font-family: var(--font-heading);
+      font-weight: 700; font-size: 14px;
+      letter-spacing: 1.5px; text-transform: uppercase;
+      padding: 13px 26px;
+      border-radius: var(--radius);
+      transition: var(--transition);
+    }
+    .success__btn--primary { background: var(--color-teal); color: var(--color-black); }
+    .success__btn--primary:hover { filter: brightness(1.12); transform: translateY(-2px); }
+    .success__btn--ghost { border: 2px solid var(--color-teal); color: var(--color-teal); }
+    .success__btn--ghost:hover { background: var(--color-teal); color: var(--color-black); }
+  </style>
 </Layout>
