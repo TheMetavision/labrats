@@ -1,0 +1,301 @@
+---
+/**
+ * src/pages/product/[slug].astro  (Labrats — NESTED model)
+ *
+ * Port of the proven Fuglys PDP, re-skinned to the Labrats design system
+ * (teal/yellow lab theme). Static (getStaticPaths). Size availability is
+ * driven by the printfulVariants matrix PER SELECTED COLOUR — so a colour
+ * Printful doesn't offer in a given size never shows that size, preventing
+ * the checkout 422. Images fall back to colourImages when the variant has
+ * no printfulImageUrl. Add-to-cart dispatches an event that the bundled
+ * bridge script below feeds into the nanostores cart (CartDrawer).
+ */
+import Layout from '../../layouts/Layout.astro';
+import Navbar from '../../components/Navbar.astro';
+import Footer from '../../components/Footer.astro';
+import { getAllProducts } from '../../lib/sanity';
+
+export async function getStaticPaths() {
+  const products = await getAllProducts();
+  return products.map((p) => ({ params: { slug: p.slug }, props: { product: p } }));
+}
+
+const { product: design } = Astro.props;
+const defaultVariant = design.variants?.[0];
+
+/* Variant may have no printfulImageUrl — fall back to first colour mockup */
+const variantImg = (v) => v?.printfulImageUrl || v?.colourImages?.[0]?.imageUrl || '';
+
+/* Serialise variants for the client script. The matrix (size+colour) lets the
+   client show only sizes that actually exist for the chosen colour. */
+const variantsJson = JSON.stringify(
+  (design.variants || []).map((v) => ({
+    type: v.productType,
+    label: v.label,
+    basePrice: v.basePrice,
+    sizePrices: v.sizePrices || [],
+    colourImages: (v.colourImages || []).map((ci) => ({ colour: ci.colour, imageUrl: ci.imageUrl })),
+    matrix: (v.printfulVariants || []).map((pv) => ({ size: pv.size, colour: pv.colour || '' })),
+    thumbnail: variantImg(v),
+  }))
+);
+---
+
+<Layout
+  title={design.seoTitle || `${design.name} — Labrats Merch`}
+  description={design.seoDescription || design.description || design.tagline || `Official Labrats ${design.name} merchandise.`}
+  canonical={`/product/${design.slug}`}
+>
+  <Navbar />
+  <main class="pdp" style={`--accent: ${design.accent || 'var(--color-teal)'};`}>
+    <div class="pdp-grid">
+      <!-- Gallery -->
+      <div class="pdp-gallery">
+        <div class="pdp-main">
+          <img id="pdp-hero" src={variantImg(defaultVariant)} alt={`${design.name} ${defaultVariant?.label}`} />
+        </div>
+        <div class="pdp-thumbs">
+          {design.variants?.map((v, i) => (
+            <button class={`pdp-thumb ${i === 0 ? 'active' : ''}`} data-type={v.productType} title={v.label}>
+              <img src={variantImg(v)} alt={`${design.name} ${v.label}`} loading="lazy" />
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <!-- Info -->
+      <div class="pdp-info">
+        <a href="/merch" class="pdp-back">&larr; Back to merch</a>
+        <h1 class="pdp-title">{design.name}</h1>
+        {design.tagline && <p class="pdp-tagline">{design.tagline}</p>}
+
+        <div class="pdp-types">
+          {design.variants?.map((v, i) => (
+            <button class={`pdp-type ${i === 0 ? 'active' : ''}`} data-type={v.productType}>{v.label}</button>
+          ))}
+        </div>
+
+        <p class="pdp-price" id="pdp-price">&pound;{defaultVariant?.basePrice?.toFixed(2)}</p>
+        {(design.description || design.backstory) && (
+          <p class="pdp-blurb">{design.description || design.backstory}</p>
+        )}
+
+        <div class="pdp-field" id="colour-wrap">
+          <span class="pdp-field-label">Colour <span id="colour-name" class="pdp-colour-name"></span></span>
+          <select id="colour-select"></select>
+        </div>
+
+        <div class="pdp-field">
+          <span class="pdp-field-label">Size</span>
+          <div class="pdp-sizes" id="size-options"></div>
+        </div>
+
+        <button class="pdp-add" id="add-to-cart-btn">
+          <span class="t-default">Add to cart</span>
+          <span class="t-added" style="display:none;">Added!</span>
+        </button>
+
+        {design.designStory && (
+          <div class="pdp-story"><h2>The story</h2><p>{design.designStory}</p></div>
+        )}
+      </div>
+    </div>
+  </main>
+  <Footer />
+
+  <!-- Cart bridge: bundled (so it can import the nanostores cart). Listens for
+       the inline script's add-to-cart event and writes into the shared cart
+       store that CartDrawer renders, then opens the drawer. -->
+  <script>
+    import { addToCart, cartOpen, toggleCart } from '../../lib/cart';
+    window.addEventListener('labrats-add-to-cart', (e: Event) => {
+      const d = (e as CustomEvent).detail;
+      addToCart({
+        productId: d.productId,
+        name: d.name,
+        price: d.price,
+        size: d.size,
+        colour: d.colour || '',
+        image: d.image || '',
+        productType: d.productType || '',
+      });
+      if (!cartOpen.get()) toggleCart();
+    });
+  </script>
+
+  <script define:vars={{ designId: design._id, designName: design.name, variantsJson, defaultType: defaultVariant?.productType || '' }}>
+    const variants = JSON.parse(variantsJson);
+    const qp = new URLSearchParams(window.location.search).get('type');
+    let currentType = (qp && variants.some((v) => v.type === qp)) ? qp : defaultType;
+    let selectedColour = '';
+    let selectedSize = '';
+    let currentPrice = 0;
+
+    const SIZE_ORDER = ['XS','S','M','L','XL','2XL','3XL','4XL','5XL','One Size',
+      '11 oz','15 oz','16 oz','16 oz With Lid & Straw','20oz','20 oz'];
+    const sizeRank = (s) => { const i = SIZE_ORDER.indexOf(s); return i === -1 ? 999 : i; };
+
+    const heroEl = document.getElementById('pdp-hero');
+    const priceEl = document.getElementById('pdp-price');
+    const colourWrap = document.getElementById('colour-wrap');
+    const colourSelect = document.getElementById('colour-select');
+    const colourName = document.getElementById('colour-name');
+    const sizeBox = document.getElementById('size-options');
+    const addBtn = document.getElementById('add-to-cart-btn');
+
+    const getVariant = () => variants.find((v) => v.type === currentType) || variants[0];
+
+    function priceForSize(variant, size) {
+      const sp = (variant.sizePrices || []).find((s) => s.size === size);
+      return sp ? sp.price : variant.basePrice;
+    }
+    function imageForColour(variant, colour) {
+      const ci = (variant.colourImages || []).find((c) => c.colour === colour);
+      return ci?.imageUrl || variant.thumbnail;
+    }
+    /* Colours that actually have at least one matrix entry (so every offered
+       colour has at least one buyable size) */
+    function coloursFor(variant) {
+      const inMatrix = new Set((variant.matrix || []).map((m) => m.colour));
+      let opts = (variant.colourImages || []).map((c) => c.colour).filter((c) => inMatrix.has(c));
+      if (!opts.length) opts = [...inMatrix];
+      return opts;
+    }
+    /* Sizes available for THIS colour, ordered */
+    function sizesFor(variant, colour) {
+      const set = new Set((variant.matrix || []).filter((m) => m.colour === colour).map((m) => m.size));
+      return [...set].sort((a, b) => sizeRank(a) - sizeRank(b));
+    }
+
+    function renderColours(variant) {
+      const opts = coloursFor(variant);
+      const colourless = opts.length <= 1 && !opts[0];
+      if (colourless) {
+        colourWrap.style.display = 'none';
+        selectedColour = opts[0] || '';
+        return;
+      }
+      colourWrap.style.display = '';
+      const keep = opts.includes(selectedColour) ? selectedColour : opts[0];
+      colourSelect.innerHTML = opts.map((c) => `<option value="${c}"${c === keep ? ' selected' : ''}>${c}</option>`).join('');
+      selectedColour = keep;
+      if (colourName) colourName.textContent = '';
+    }
+
+    function renderSizes(variant) {
+      const sizes = sizesFor(variant, selectedColour);
+      const keep = sizes.includes(selectedSize) ? selectedSize : sizes[0];
+      sizeBox.innerHTML = sizes.map((s) => {
+        const long = /\s/.test(s) ? ' long' : '';
+        return `<button class="pdp-size${long}${s === keep ? ' active' : ''}" data-size="${s}">${s}</button>`;
+      }).join('');
+      selectedSize = keep || '';
+      sizeBox.querySelectorAll('.pdp-size').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          sizeBox.querySelectorAll('.pdp-size').forEach((b) => b.classList.remove('active'));
+          btn.classList.add('active');
+          selectedSize = btn.dataset.size;
+          updatePrice();
+        });
+      });
+    }
+    function updatePrice() {
+      currentPrice = priceForSize(getVariant(), selectedSize);
+      if (priceEl) priceEl.textContent = `£${(currentPrice || 0).toFixed(2)}`;
+    }
+    function updateHero() {
+      if (heroEl) heroEl.src = imageForColour(getVariant(), selectedColour);
+    }
+    function selectType(type) {
+      currentType = type;
+      const v = getVariant();
+      document.querySelectorAll('.pdp-type').forEach((b) => b.classList.toggle('active', b.dataset.type === type));
+      document.querySelectorAll('.pdp-thumb').forEach((b) => b.classList.toggle('active', b.dataset.type === type));
+      renderColours(v);
+      renderSizes(v);
+      updateHero();
+      updatePrice();
+    }
+
+    document.querySelectorAll('.pdp-type').forEach((b) => b.addEventListener('click', () => selectType(b.dataset.type)));
+    document.querySelectorAll('.pdp-thumb').forEach((b) => b.addEventListener('click', () => selectType(b.dataset.type)));
+    colourSelect?.addEventListener('change', () => {
+      selectedColour = colourSelect.value;
+      renderSizes(getVariant());   // sizes depend on colour
+      updateHero();
+      updatePrice();
+    });
+
+    addBtn?.addEventListener('click', () => {
+      if (!selectedSize) return;
+      const v = getVariant();
+      window.dispatchEvent(new CustomEvent('labrats-add-to-cart', { detail: {
+        productId: `${designId}-${currentType}`,
+        name: `${designName} ${v?.label || ''}`.trim(),
+        price: currentPrice,
+        size: selectedSize,
+        colour: selectedColour,
+        image: imageForColour(v, selectedColour),
+        productType: currentType,
+      }}));
+      const def = addBtn.querySelector('.t-default'), added = addBtn.querySelector('.t-added');
+      if (def) def.style.display = 'none';
+      if (added) added.style.display = 'inline';
+      setTimeout(() => { if (def) def.style.display = 'inline'; if (added) added.style.display = 'none'; }, 1500);
+    });
+
+    /* init */
+    selectType(currentType);
+  </script>
+
+  <style>
+    .pdp { max-width: 1100px; margin: 0 auto; padding: calc(80px + 3rem) 1.5rem 5rem; color: var(--color-text); }
+    .pdp-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 3rem; align-items: start; }
+    .pdp-main { aspect-ratio: 1; background: var(--color-bg-card); border: 1px solid var(--color-border); border-radius: var(--radius-lg); overflow: hidden; }
+    .pdp-main img { width: 100%; height: 100%; object-fit: cover; }
+    .pdp-thumbs { display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap; }
+    .pdp-thumb { width: 64px; height: 64px; border-radius: var(--radius); overflow: hidden; border: 2px solid transparent; background: var(--color-bg-card); cursor: pointer; padding: 0; }
+    .pdp-thumb.active { border-color: var(--accent); }
+    .pdp-thumb img { width: 100%; height: 100%; object-fit: cover; }
+    .pdp-back { color: var(--color-text-muted); text-decoration: none; font-size: 14px; font-family: var(--font-heading); letter-spacing: 1px; text-transform: uppercase; }
+    .pdp-back:hover { color: var(--accent); }
+    .pdp-title { font-family: var(--font-display); font-size: clamp(2.6rem, 5vw, 3.6rem); letter-spacing: 1px; margin: 0.5rem 0 0.25rem; text-transform: uppercase; line-height: 1.05; color: var(--color-yellow); }
+    .pdp-tagline { color: var(--accent); font-family: var(--font-heading); font-weight: 600; font-size: 1.05rem; letter-spacing: 0.5px; margin: 0 0 1rem; }
+    .pdp-types { display: flex; gap: 8px; flex-wrap: wrap; margin: 1rem 0; }
+    .pdp-type { font-family: var(--font-heading); font-weight: 700; padding: 8px 16px; background: var(--color-bg-card); color: var(--color-text); border: 1px solid color-mix(in srgb, var(--accent) 35%, transparent); border-radius: var(--radius); cursor: pointer; font-size: 0.95rem; letter-spacing: 1px; text-transform: uppercase; transition: all .15s ease; }
+    .pdp-type:hover { border-color: var(--accent); color: var(--accent); }
+    .pdp-type.active { background: var(--accent); border-color: var(--accent); color: var(--color-black); }
+    .pdp-price { font-family: var(--font-display); font-size: 2.4rem; letter-spacing: 1px; color: var(--color-yellow); margin: 0.5rem 0 1rem; }
+    .pdp-blurb { color: var(--color-text-muted); line-height: 1.7; }
+    .pdp-field { margin: 1.5rem 0; }
+    .pdp-field-label { display: block; font-family: var(--font-heading); font-weight: 700; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 2px; color: var(--color-text-muted); margin-bottom: 10px; }
+    #colour-select { width: 100%; max-width: 280px; padding: 11px 12px; background: var(--color-bg-card); color: var(--color-text); border: 1px solid color-mix(in srgb, var(--accent) 35%, transparent); border-radius: var(--radius); font-family: var(--font-body); font-size: 14px; }
+    #colour-select:focus { outline: none; border-color: var(--accent); }
+    /* Size pills are styled in the is:global block below — injected client-side
+       via innerHTML, so they don't get Astro's scoped hash. */
+    .pdp-sizes { display: flex; gap: 10px; flex-wrap: wrap; }
+    .pdp-add { font-family: var(--font-heading); font-weight: 700; width: 100%; max-width: 360px; margin-top: 1.5rem; padding: 15px; background: var(--accent); color: var(--color-black); border: none; border-radius: var(--radius); text-transform: uppercase; letter-spacing: 3px; cursor: pointer; font-size: 1.1rem; transition: all .15s ease; }
+    .pdp-add:hover { filter: brightness(1.12); transform: translateY(-2px); }
+    .pdp-story { margin-top: 2rem; border-top: 1px solid var(--color-border); padding-top: 1.5rem; }
+    .pdp-story h2 { font-family: var(--font-heading); font-weight: 700; font-size: 1rem; text-transform: uppercase; letter-spacing: 1px; color: var(--accent); margin-bottom: 0.5rem; }
+    .pdp-story p { color: var(--color-text-muted); line-height: 1.7; }
+    @media (max-width: 768px) { .pdp-grid { grid-template-columns: 1fr; } }
+  </style>
+
+  <style is:global>
+    /* #size-options is server-rendered (carries the page hash), but its child
+       .pdp-size buttons are injected via innerHTML and would otherwise be
+       unstyled. Keyed on #size-options so it stays contained. var(--accent)
+       resolves — inherited from the .pdp ancestor. */
+    #size-options .pdp-size {
+      font-family: var(--font-heading); font-weight: 700;
+      min-width: 52px; padding: 11px 16px; background: var(--color-bg-card); color: var(--color-text);
+      border: 1px solid color-mix(in srgb, var(--accent) 35%, transparent); border-radius: var(--radius); cursor: pointer;
+      font-size: 1rem; letter-spacing: 1px; line-height: 1; text-align: center;
+      text-transform: uppercase; white-space: nowrap; transition: all .15s ease;
+    }
+    #size-options .pdp-size:hover { border-color: var(--accent); color: var(--accent); }
+    #size-options .pdp-size.active { background: var(--accent); border-color: var(--accent); color: var(--color-black); }
+    #size-options .pdp-size.long { white-space: normal; max-width: 170px; font-size: 0.8rem; letter-spacing: 0; text-transform: none; line-height: 1.2; padding: 9px 12px; }
+  </style>
+</Layout>

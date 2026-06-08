@@ -2,47 +2,36 @@
 import Layout from '../layouts/Layout.astro';
 import Navbar from '../components/Navbar.astro';
 import Footer from '../components/Footer.astro';
-import { getAllProducts, getSiteSettings, urlFor } from '../lib/sanity';
+import { getAllProducts } from '../lib/sanity';
 
-const settings = await getSiteSettings();
-const storeOpenDate = settings?.storeOpenDate || '2026-07-01T00:00:00Z';
-
+/* NESTED model: one product doc = one design, holding variants[] per garment.
+   Card image = first variant's first colour mockup; price = cheapest size
+   across all variants ("From £X"). Only active products are returned. */
 const sanityProducts = await getAllProducts();
-const products = sanityProducts.length > 0 ? sanityProducts.map(p => ({
+
+const fromPrice = (p) => {
+  const prices = (p.variants || []).flatMap((v) => {
+    const sp = (v.sizePrices || []).map((s) => s.price).filter((n) => typeof n === 'number');
+    return sp.length ? sp : (typeof v.basePrice === 'number' ? [v.basePrice] : []);
+  });
+  return prices.length ? Math.min(...prices) : null;
+};
+const cardImage = (p) => {
+  const v = p.variants?.[0];
+  return v?.colourImages?.[0]?.imageUrl || v?.printfulImageUrl || null;
+};
+
+const products = (sanityProducts || []).map((p) => ({
   name: p.name,
-  price: p.price ? `From £${p.price}` : 'Coming Soon',
-  image: p.images?.[0] ? urlFor(p.images[0]).width(600).height(600).format('webp').url() : null,
-  alt: p.name,
   slug: p.slug,
-})) : [
-  {
-    name: 'Rat Pack Hoodie',
-    price: 'From £34',
-    image: 'https://images.pexels.com/photos/7691168/pexels-photo-7691168.jpeg?auto=compress&cs=tinysrgb&w=600&h=600&fit=crop',
-    alt: 'Labrats hoodie',
-  },
-  {
-    name: 'Escape Artist Tee',
-    price: 'From £22',
-    image: 'https://images.pexels.com/photos/5632395/pexels-photo-5632395.jpeg?auto=compress&cs=tinysrgb&w=600&h=600&fit=crop',
-    alt: 'Labrats t-shirt',
-  },
-  {
-    name: 'Lab Access Cap',
-    price: 'From £18',
-    image: 'https://images.pexels.com/photos/1878821/pexels-photo-1878821.jpeg?auto=compress&cs=tinysrgb&w=600&h=600&fit=crop',
-    alt: 'Labrats cap',
-  },
-  {
-    name: 'Rebel Rat Tote',
-    price: 'From £14',
-    image: 'https://images.pexels.com/photos/5632371/pexels-photo-5632371.jpeg?auto=compress&cs=tinysrgb&w=600&h=600&fit=crop',
-    alt: 'Labrats tote bag',
-  },
-];
+  price: fromPrice(p),
+  image: cardImage(p),
+  alt: p.name,
+  blurb: p.description || p.tagline || '',
+}));
 ---
 
-<Layout title="Merch — Labrats" description="Official Labrats merchandise. Hoodies, tees, caps, totes and more. Wear your rebellion." canonical="/merch">
+<Layout title="Merch — Labrats" description="Official Labrats merchandise. Tees, hoodies, tanks, long sleeves, tumblers and more. Wear your rebellion." canonical="/merch">
   <Navbar />
   <main class="page">
 
@@ -54,40 +43,11 @@ const products = sanityProducts.length > 0 ? sanityProducts.map(p => ({
       </div>
     </section>
 
-    <section class="countdown-section">
-      <div class="container countdown__inner">
-        <span class="countdown__label">Official Drop — Season 01</span>
-        <h2 class="countdown__heading">Store Opens In</h2>
-        <div class="countdown__timer" id="countdown" data-target={storeOpenDate}>
-          <div class="countdown__block">
-            <span class="countdown__number" id="cd-days">--</span>
-            <span class="countdown__unit">Days</span>
-          </div>
-          <span class="countdown__sep">:</span>
-          <div class="countdown__block">
-            <span class="countdown__number" id="cd-hours">--</span>
-            <span class="countdown__unit">Hours</span>
-          </div>
-          <span class="countdown__sep">:</span>
-          <div class="countdown__block">
-            <span class="countdown__number" id="cd-mins">--</span>
-            <span class="countdown__unit">Mins</span>
-          </div>
-          <span class="countdown__sep">:</span>
-          <div class="countdown__block">
-            <span class="countdown__number" id="cd-secs">--</span>
-            <span class="countdown__unit">Secs</span>
-          </div>
-        </div>
-        <p class="countdown__note">Early access for newsletter subscribers</p>
-      </div>
-    </section>
-
     <section class="products-section">
       <div class="container">
         <div class="products-grid">
-          {products.map(product => (
-            <article class="product-card">
+          {products.map((product) => (
+            <a class="product-card" href={`/product/${product.slug}`}>
               <div class="product-card__img-wrap">
                 {product.image ? (
                   <img
@@ -98,45 +58,45 @@ const products = sanityProducts.length > 0 ? sanityProducts.map(p => ({
                   />
                 ) : (
                   <div class="product-card__placeholder">
-                    <span class="product-card__placeholder-label">Coming Soon</span>
+                    <span class="product-card__placeholder-label">Labrats</span>
                   </div>
                 )}
                 <div class="product-card__overlay">
-                  <span class="product-card__quick-view">Quick View</span>
+                  <span class="product-card__quick-view">View Product</span>
                 </div>
               </div>
               <div class="product-card__body">
                 <p class="product-card__name">{product.name}</p>
-                <p class="product-card__price">{product.price}</p>
-                <button class="product-card__wishlist" type="button">Add to Wishlist</button>
+                {product.blurb && <p class="product-card__blurb">{product.blurb}</p>}
+                {product.price != null && <p class="product-card__price">From £{product.price.toFixed(2)}</p>}
               </div>
-            </article>
+            </a>
           ))}
         </div>
       </div>
     </section>
 
-    <section class="coming-soon">
-      <div class="coming-soon__inner">
-        <p class="coming-soon__text">
-          Full store launching soon.&nbsp;
-          <span class="coming-soon__highlight">Join the newsletter to be first in line.</span>
+    <section class="newsletter">
+      <div class="newsletter__inner">
+        <p class="newsletter__text">
+          New designs drop regularly.&nbsp;
+          <span class="newsletter__highlight">Join the newsletter for first dibs.</span>
         </p>
         <form
-          class="coming-soon__form"
+          class="newsletter__form"
           id="merchWaitlistForm"
         >
-          <div class="coming-soon__input-wrap">
+          <div class="newsletter__input-wrap">
             <input
               type="email"
               name="email"
               id="merch-email"
               placeholder="Enter your email address..."
-              class="coming-soon__input"
+              class="newsletter__input"
               required
               autocomplete="email"
             />
-            <button type="submit" class="coming-soon__submit">Subscribe</button>
+            <button type="submit" class="newsletter__submit">Subscribe</button>
           </div>
         </form>
       </div>
@@ -156,6 +116,7 @@ const products = sanityProducts.length > 0 ? sanityProducts.map(p => ({
   .page-hero {
     background: var(--color-black);
     padding: 88px 0 72px;
+    border-bottom: 2px solid var(--color-teal);
   }
 
   .page-hero__content {
@@ -191,182 +152,57 @@ const products = sanityProducts.length > 0 ? sanityProducts.map(p => ({
     opacity: 0.8;
   }
 
-  .countdown-section {
-    background: var(--color-black);
-    padding: 64px 0;
-    border-bottom: 2px solid var(--color-teal);
-  }
-
-  .countdown__inner {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    text-align: center;
-    gap: 20px;
-  }
-
-  .countdown__label {
-    font-family: var(--font-heading);
-    font-size: 12px;
-    font-weight: 700;
-    letter-spacing: 3px;
-    text-transform: uppercase;
-    color: var(--color-teal);
-  }
-
-  .countdown__heading {
-    font-family: var(--font-display);
-    font-size: clamp(32px, 5vw, 56px);
-    color: var(--color-yellow);
-    line-height: 1;
-    text-transform: uppercase;
-  }
-
-  .countdown__timer {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    margin: 8px 0;
-  }
-
-  .countdown__block {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    min-width: 80px;
-    padding: 16px 12px;
-    background: color-mix(in srgb, var(--color-teal) 8%, var(--color-black));
-    border: 1px solid var(--color-teal);
-    border-radius: var(--radius-lg);
-  }
-
-  .countdown__number {
-    font-family: var(--font-display);
-    font-size: clamp(36px, 6vw, 56px);
-    color: var(--color-yellow);
-    line-height: 1;
-    letter-spacing: 2px;
-  }
-
-  .countdown__unit {
-    font-family: var(--font-heading);
-    font-size: 11px;
-    font-weight: 700;
-    letter-spacing: 2px;
-    text-transform: uppercase;
-    color: var(--color-teal);
-    margin-top: 6px;
-  }
-
-  .countdown__sep {
-    font-family: var(--font-display);
-    font-size: 40px;
-    color: var(--color-teal);
-    opacity: 0.5;
-    line-height: 1;
-    padding-bottom: 20px;
-  }
-
-  .countdown__note {
-    font-family: var(--font-heading);
-    font-size: 14px;
-    font-weight: 600;
-    color: var(--color-white);
-    opacity: 0.6;
-    letter-spacing: 0.5px;
-  }
-
-  @media (max-width: 600px) {
-    .countdown-section {
-      padding: 48px 0;
-    }
-
-    .countdown__timer {
-      gap: 8px;
-    }
-
-    .countdown__block {
-      min-width: 64px;
-      padding: 12px 8px;
-    }
-
-    .countdown__sep {
-      font-size: 28px;
-      padding-bottom: 16px;
-    }
-  }
-
   .products-section {
-    padding: 72px 0 96px;
-    background: var(--color-white);
+    padding: 64px 0 80px;
   }
 
   .products-grid {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 24px;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 32px 24px;
   }
 
   .product-card {
-    display: flex;
-    flex-direction: column;
-    transition: transform 0.25s ease, box-shadow 0.25s ease;
-  }
-
-  .product-card:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 12px 32px color-mix(in srgb, var(--color-black) 12%, transparent);
+    display: block;
+    text-decoration: none;
   }
 
   .product-card__img-wrap {
     position: relative;
-    aspect-ratio: 1 / 1;
+    aspect-ratio: 1;
+    border-radius: 10px;
     overflow: hidden;
-    border: 2px solid var(--color-teal);
-    border-radius: 12px;
+    background: #f0f0f0;
+    border: 1px solid rgba(10, 10, 10, 0.08);
   }
 
   .product-card__img {
     width: 100%;
     height: 100%;
     object-fit: cover;
-    display: block;
-    transition: transform 0.4s ease;
+    transition: transform 0.3s ease;
   }
 
   .product-card:hover .product-card__img {
-    transform: scale(1.06);
+    transform: scale(1.04);
   }
 
   .product-card__placeholder {
     width: 100%;
     height: 100%;
-    background: color-mix(in srgb, var(--color-teal) 8%, var(--color-white));
     display: flex;
     align-items: center;
     justify-content: center;
-    position: relative;
-  }
-
-  .product-card__placeholder::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background-image:
-      linear-gradient(color-mix(in srgb, var(--color-teal) 10%, transparent) 1px, transparent 1px),
-      linear-gradient(90deg, color-mix(in srgb, var(--color-teal) 10%, transparent) 1px, transparent 1px);
-    background-size: 28px 28px;
+    background: color-mix(in srgb, var(--color-teal) 8%, #ffffff);
   }
 
   .product-card__placeholder-label {
-    position: relative;
-    z-index: 1;
     font-family: var(--font-heading);
-    font-size: 11px;
+    font-size: 13px;
     font-weight: 700;
-    letter-spacing: 2.5px;
+    letter-spacing: 2px;
     text-transform: uppercase;
-    color: color-mix(in srgb, var(--color-teal) 60%, transparent);
+    color: var(--color-teal);
   }
 
   .product-card__overlay {
@@ -406,10 +242,21 @@ const products = sanityProducts.length > 0 ? sanityProducts.map(p => ({
 
   .product-card__name {
     font-family: var(--font-heading);
-    font-size: 14px;
+    font-size: 15px;
     font-weight: 700;
     color: var(--color-black);
     letter-spacing: 0.3px;
+  }
+
+  .product-card__blurb {
+    font-family: var(--font-body);
+    font-size: 13px;
+    color: rgba(10, 10, 10, 0.55);
+    line-height: 1.5;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
   }
 
   .product-card__price {
@@ -419,40 +266,14 @@ const products = sanityProducts.length > 0 ? sanityProducts.map(p => ({
     color: var(--color-teal);
   }
 
-  .product-card__wishlist {
-    margin-top: 8px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    height: 36px;
-    padding: 0 16px;
-    font-family: var(--font-heading);
-    font-size: 12px;
-    font-weight: 700;
-    letter-spacing: 1px;
-    text-transform: uppercase;
-    color: var(--color-teal);
-    background: transparent;
-    border: 2px solid var(--color-teal);
-    border-radius: 8px;
-    cursor: pointer;
-    transition: background 0.2s ease, color 0.2s ease;
-    width: 100%;
-  }
-
-  .product-card__wishlist:hover {
-    background: var(--color-teal);
-    color: var(--color-black);
-  }
-
-  .coming-soon {
+  .newsletter {
     background: var(--color-black);
     padding: 64px 24px;
     display: flex;
     justify-content: center;
   }
 
-  .coming-soon__inner {
+  .newsletter__inner {
     max-width: 600px;
     width: 100%;
     text-align: center;
@@ -462,7 +283,7 @@ const products = sanityProducts.length > 0 ? sanityProducts.map(p => ({
     gap: 28px;
   }
 
-  .coming-soon__text {
+  .newsletter__text {
     font-family: var(--font-heading);
     font-size: clamp(16px, 2vw, 20px);
     font-weight: 600;
@@ -470,11 +291,11 @@ const products = sanityProducts.length > 0 ? sanityProducts.map(p => ({
     line-height: 1.5;
   }
 
-  .coming-soon__highlight {
+  .newsletter__highlight {
     color: var(--color-yellow);
   }
 
-  .coming-soon__form {
+  .newsletter__form {
     width: 100%;
     display: flex;
     flex-direction: column;
@@ -482,7 +303,7 @@ const products = sanityProducts.length > 0 ? sanityProducts.map(p => ({
     gap: 0;
   }
 
-  .coming-soon__input-wrap {
+  .newsletter__input-wrap {
     display: flex;
     width: 100%;
     max-width: 520px;
@@ -491,7 +312,7 @@ const products = sanityProducts.length > 0 ? sanityProducts.map(p => ({
     box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-teal) 40%, transparent);
   }
 
-  .coming-soon__input {
+  .newsletter__input {
     flex: 1;
     background: color-mix(in srgb, var(--color-white) 8%, var(--color-black));
     border: none;
@@ -503,15 +324,15 @@ const products = sanityProducts.length > 0 ? sanityProducts.map(p => ({
     transition: background 0.2s;
   }
 
-  .coming-soon__input::placeholder {
+  .newsletter__input::placeholder {
     color: color-mix(in srgb, var(--color-white) 50%, transparent);
   }
 
-  .coming-soon__input:focus {
+  .newsletter__input:focus {
     background: color-mix(in srgb, var(--color-white) 12%, var(--color-black));
   }
 
-  .coming-soon__submit {
+  .newsletter__submit {
     flex-shrink: 0;
     padding: 16px 28px;
     white-space: nowrap;
@@ -525,7 +346,7 @@ const products = sanityProducts.length > 0 ? sanityProducts.map(p => ({
     transition: background 0.2s;
   }
 
-  .coming-soon__submit:hover {
+  .newsletter__submit:hover {
     background: color-mix(in srgb, var(--color-teal) 80%, var(--color-white));
   }
 
@@ -544,7 +365,7 @@ const products = sanityProducts.length > 0 ? sanityProducts.map(p => ({
       padding: 48px 0 64px;
     }
 
-    .coming-soon__input-wrap {
+    .newsletter__input-wrap {
       flex-direction: column;
       border-radius: var(--radius-lg);
       overflow: visible;
@@ -552,12 +373,12 @@ const products = sanityProducts.length > 0 ? sanityProducts.map(p => ({
       gap: 8px;
     }
 
-    .coming-soon__input {
+    .newsletter__input {
       border-radius: var(--radius);
       box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-teal) 40%, transparent);
     }
 
-    .coming-soon__submit {
+    .newsletter__submit {
       border-radius: var(--radius);
       width: 100%;
     }
@@ -566,40 +387,9 @@ const products = sanityProducts.length > 0 ? sanityProducts.map(p => ({
 
 <script>
   (function () {
-    const el = document.getElementById('countdown');
-    if (!el) return;
-
-    const target = new Date(el.dataset.target).getTime();
-    const days = document.getElementById('cd-days');
-    const hours = document.getElementById('cd-hours');
-    const mins = document.getElementById('cd-mins');
-    const secs = document.getElementById('cd-secs');
-
-    function pad(n) { return String(Math.max(0, Math.floor(n))).padStart(2, '0'); }
-
-    function tick() {
-      const diff = target - Date.now();
-      if (diff <= 0) {
-        days.textContent = '00';
-        hours.textContent = '00';
-        mins.textContent = '00';
-        secs.textContent = '00';
-        return;
-      }
-      days.textContent = pad(diff / 86400000);
-      hours.textContent = pad((diff % 86400000) / 3600000);
-      mins.textContent = pad((diff % 3600000) / 60000);
-      secs.textContent = pad((diff % 60000) / 1000);
-    }
-
-    tick();
-    setInterval(tick, 1000);
-  })();
-
-  (function () {
     const form = document.getElementById('merchWaitlistForm') as HTMLFormElement;
     if (!form) return;
-    const btn = form.querySelector('.coming-soon__submit') as HTMLButtonElement;
+    const btn = form.querySelector('.newsletter__submit') as HTMLButtonElement;
 
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
@@ -611,16 +401,13 @@ const products = sanityProducts.length > 0 ? sanityProducts.map(p => ({
       btn.disabled = true;
 
       try {
-        const res = await fetch('https://connect.mailerlite.com/api/subscribers', {
+        const res = await fetch('/api/subscribe', {
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': 'Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJhdWQiOiI0IiwianRpIjoiMTY2ZGZiYWEzYmFhMzQ2NGE2ZTY4YzgyZTYwNDFjNGZlMjM2MTZkN2YwMmVlNGVlNmQzYmJlY2YxNmMxOWE0N2ZlN2VjZTAwYTEwYzA0OTUiLCJpYXQiOjE3NzU4MjAyNzUuNzQxMTQ1LCJuYmYiOjE3NzU4MjAyNzUuNzQxMTQ3LCJleHAiOjQ5MzE0OTM4NzUuNzM0NDc1LCJzdWIiOiIyMjc4Mzk3Iiwic2NvcGVzIjpbXX0.D_zKiP5yLqx0XKrNeOt146s6arBj9oorzQFkOsmNHAjcpACKTlkEcckUDnaAlPbTZMJKJ2zJKacOmrjKUJURql5F6xako4CYgbLo5EqaMoDH5fznm_GtVDaWDcbm9QCBxgeeqYcamOfPnsvwPHUJThgKz2IZ4Y4Hc8H7IudylESYoktYoz91nBk4osPApnI5G0-PiTXaNvH0EdHdWl_0aNfnq7aLcg0bNjmL4a-xxxON6-t-ApS6EA6Wb87bVU568XlMk7AATxW800qHCEfU47YmoQ2jBLuLXWaFUYmzKgP4hhgzd8ku2GCERPUiJj90ZBevup-WSSgKCpIeRW0AZFmTW7bWRQlxuYzbw03Xw_l9MD__aK47JGLtSf7jZWTKBwrAv-gfe6brflahxjDmfNot0NfK8gYDnZkLOCHyDp8Ky7kNLZK8YCEl-jhQQOVBY_zVz3tu-omxMqHSE7PLX5_mDNt-Lslc6lkdk---Jg6hnLMTSfKnQRrC-awJ4ZYCgjtWUG2g1kQXpEQ8VXg6sdGwYKsf-64nMFQ05laakp-QOWr9vC52ZC1fr9Ctlykl2jUKJui2HY_akqSxjXgCY14apcGzmmMWEtNljC_A6qARuu6U5qcRDEmhCTew3yGrML8JMos4cbxbTTO5fndMbcYktjZ006PZasHlv4zyKX4'
-          },
+          headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             email: email,
             groups: ['184360862869358023'],
-            fields: { source: 'labrats-merch-waitlist' }
+            fields: { source: 'labrats-merch-newsletter' }
           })
         });
 

@@ -15,7 +15,13 @@ export default function CartDrawer() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           items: items.map((item) => ({
+            /* id + productType are what create-checkout uses to resolve the
+               exact Printful sync variant (id = product-{slug}-{productType},
+               set by the PDP). title kept for Stripe line-item naming. */
+            id: (item as any).productId,
+            title: item.name,
             name: item.name,
+            productType: (item as any).productType || '',
             price: item.price,
             size: item.size,
             colour: item.colour || '',

@@ -1,11 +1,14 @@
 import { createClient } from '@sanity/client';
 import imageUrlBuilder from '@sanity/image-url';
 
+// perspective:'published' — keeps drafts out of the static build even though a
+// token is present (same fix as the Fuglys double-listing bug).
 export const client = createClient({
   projectId: import.meta.env.SANITY_PROJECT_ID || 'o9qrmykx',
   dataset: import.meta.env.SANITY_DATASET || 'production',
   apiVersion: '2024-01-01', useCdn: true,
   token: import.meta.env.SANITY_API_TOKEN,
+  perspective: 'published',
 });
 
 // Non-CDN client for content that needs fresh reads (e.g. legal pages)
@@ -14,6 +17,7 @@ export const liveClient = createClient({
   dataset: import.meta.env.SANITY_DATASET || 'production',
   apiVersion: '2024-01-01', useCdn: false,
   token: import.meta.env.SANITY_API_TOKEN,
+  perspective: 'published',
 });
 
 const builder = imageUrlBuilder(client);
@@ -37,11 +41,74 @@ export async function getAllBlogPosts() {
 export async function getBlogPostBySlug(slug: string) {
   return client.fetch(`*[_type == "blogPost" && slug.current == $slug][0] { _id, title, "slug": slug.current, category, excerpt, body, featuredImage, "relatedCharacters": relatedCharacters[]->{ name, "slug": slug.current, "portrait": coalesce(image, portrait) }, publishedAt, seoTitle, seoDescription }`, { slug });
 }
+
+// ── Products (NESTED commerce model — one design doc holds variants[]) ──────
 export async function getAllProducts() {
-  return client.fetch(`*[_type == "product"] | order(name asc) { _id, name, "slug": slug.current, "category": category->{ title, "slug": slug.current }, description, designStory, price, compareAtPrice, images, printfulVariants, material, featured, seoTitle, seoDescription }`);
+  return client.fetch(`
+    *[_type == "product" && active == true] | order(coalesce(sortOrder, 999), name asc) {
+      _id,
+      name,
+      "slug": slug.current,
+      active,
+      "category": category->{ title, "slug": slug.current },
+      "featuredCharacter": featuredCharacter->{ name, "slug": slug.current },
+      description,
+      designStory,
+      tagline,
+      backstory,
+      accent,
+      heroImage,
+      featured,
+      seoTitle,
+      seoDescription,
+      "price": coalesce(price, variants[0].basePrice),
+      compareAtPrice,
+      variants[]{
+        productType,
+        label,
+        basePrice,
+        colours,
+        sizes,
+        sizePrices[]{ size, price },
+        colourImages[]{ colour, imageUrl },
+        printfulVariants[]{ size, colour, syncVariantId }
+      }
+    }
+  `);
 }
 export async function getProductBySlug(slug: string) {
-  return client.fetch(`*[_type == "product" && slug.current == $slug][0] { _id, name, "slug": slug.current, "category": category->{ title, "slug": slug.current }, description, designStory, price, compareAtPrice, images, printfulVariants, material, featured, seoTitle, seoDescription }`, { slug });
+  return client.fetch(`
+    *[_type == "product" && slug.current == $slug][0] {
+      _id,
+      name,
+      "slug": slug.current,
+      active,
+      "category": category->{ title, "slug": slug.current },
+      "featuredCharacter": featuredCharacter->{ name, "slug": slug.current, "portrait": coalesce(image, portrait) },
+      description,
+      designStory,
+      tagline,
+      backstory,
+      accent,
+      heroImage,
+      featured,
+      seoTitle,
+      seoDescription,
+      "price": coalesce(price, variants[0].basePrice),
+      compareAtPrice,
+      variants[]{
+        productType,
+        label,
+        basePrice,
+        colours,
+        sizes,
+        sizePrices[]{ size, price },
+        colourImages[]{ colour, imageUrl },
+        printfulVariants[]{ size, colour, syncVariantId },
+        stripePriceId
+      }
+    }
+  `, { slug });
 }
 export async function getAllCategories() {
   return client.fetch(`*[_type == "category"] | order(sortOrder asc) { _id, title, "slug": slug.current, description, image, sortOrder }`);
