@@ -34,6 +34,19 @@ export const cartCount = computed(cartItems, (items) =>
   items.reduce((sum, item) => sum + item.quantity, 0)
 );
 
+/* Free-shipping progress — threshold shared across all brands (£75).
+   $qualifiesForFreeShipping / $amountToFreeShipping mirror the Wyrmfuel API
+   so the CartDrawer progress bar reads the same values. */
+export const FREE_SHIPPING_THRESHOLD = 75;
+
+export const qualifiesForFreeShipping = computed(cartTotal, (total) =>
+  total >= FREE_SHIPPING_THRESHOLD
+);
+
+export const amountToFreeShipping = computed(cartTotal, (total) =>
+  Math.max(0, FREE_SHIPPING_THRESHOLD - total)
+);
+
 export function addToCart(item: Omit<CartItem, 'quantity'>) {
   const current = cartItems.get();
   const existing = current.find(

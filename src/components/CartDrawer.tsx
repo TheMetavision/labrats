@@ -1,6 +1,6 @@
 import { useStore } from '@nanostores/react';
 import { useState, useEffect } from 'react';
-import { cartItems, cartOpen, cartTotal, removeFromCart, updateQuantity, toggleCart, clearCart } from '../lib/cart';
+import { cartItems, cartOpen, cartTotal, qualifiesForFreeShipping, amountToFreeShipping, FREE_SHIPPING_THRESHOLD, removeFromCart, updateQuantity, toggleCart, clearCart } from '../lib/cart';
 
 /* Brand tokens — read from the site's CSS variables (defined in Layout.astro)
    with hex fallbacks, so this component ports across IP brands by inheriting
@@ -16,6 +16,9 @@ export default function CartDrawer() {
   const items = useStore(cartItems);
   const isOpen = useStore(cartOpen);
   const total = useStore(cartTotal);
+  const freeShipping = useStore(qualifiesForFreeShipping);
+  const toFreeShipping = useStore(amountToFreeShipping);
+  const progressPct = Math.min(100, (total / FREE_SHIPPING_THRESHOLD) * 100);
   const [confirmClear, setConfirmClear] = useState(false);
 
   // Close the confirm modal if the drawer closes or the cart empties
@@ -96,6 +99,16 @@ export default function CartDrawer() {
 
         {items.length > 0 && (
           <div style={{ padding:'24px', borderTop:'1px solid rgba(255,255,255,0.1)' }}>
+            <div style={{ marginBottom:'16px', padding:'12px 14px', background: freeShipping ? 'rgba(0,194,212,0.10)' : 'rgba(255,255,255,0.04)', border:`1px solid ${freeShipping ? ACCENT : 'rgba(255,255,255,0.12)'}`, borderRadius:'6px' }}>
+              <p style={{ fontFamily:HEADING_FONT, fontWeight:700, fontSize:'12px', letterSpacing:'1px', textTransform:'uppercase' as const, textAlign:'center' as const, margin:'0 0 8px', color: freeShipping ? ACCENT : 'rgba(245,245,245,0.85)' }}>
+                {freeShipping
+                  ? "\uD83C\uDF89 You've unlocked FREE UK delivery!"
+                  : `Add \u00A3${toFreeShipping.toFixed(2)} more for FREE UK delivery`}
+              </p>
+              <div style={{ height:'5px', background:'rgba(255,255,255,0.12)', borderRadius:'3px', overflow:'hidden' as const }}>
+                <div style={{ height:'100%', width:`${progressPct}%`, background:`linear-gradient(90deg, ${ACCENT}, ${HIGHLIGHT})`, borderRadius:'3px', transition:'width 0.4s ease' }} />
+              </div>
+            </div>
             <div style={{ display:'flex', justifyContent:'space-between', marginBottom:'16px', fontFamily:HEADING_FONT, fontWeight:700, fontSize:'18px', letterSpacing:'1px', textTransform:'uppercase' as const, color:TEXT }}>
               <span>Total</span><span>{'\u00A3'}{total.toFixed(2)}</span>
             </div>
