@@ -107,6 +107,10 @@ export default defineType({
                   { title: '16oz Can Glass', value: 'glass' },
                   { title: 'Cap', value: 'cap' },
                   { title: 'Mug', value: 'mug' },
+                  { title: 'Kids T-Shirt', value: 'kids-tshirt' },
+                  { title: 'Kids Hoodie', value: 'kids-hoodie' },
+                  { title: 'Kids Long Sleeve', value: 'kids-longsleeve' },
+                  { title: 'Baby Grow', value: 'babygrow' },
                 ],
               },
               validation: (r) => r.required(),
@@ -142,7 +146,8 @@ export default defineType({
               of: [{ type: 'string' }],
               options: {
                 list: [
-                  'S', 'M', 'L', 'XL', '2XL', '3XL', '4XL', '5XL', 'One Size',
+                  'XS', 'S', 'M', 'L', 'XL', '2XL', '3XL', '4XL', '5XL', 'One Size',
+                  '6M', '12M', '18M', '24M',
                   '16 oz', '16 oz With Lid & Straw', '20 oz',
                   '11 oz', '15 oz',
                 ],
