@@ -44,7 +44,7 @@ const variantsJson = JSON.stringify(
 <Layout
   title={design.seoTitle || `${design.name} — Labrats Merch`}
   description={design.seoDescription || design.description || design.tagline || `Official Labrats ${design.name} merchandise.`}
-  canonical={`/product/${design.slug}`}
+  canonical={`/products/${design.slug}`}
 >
   <Navbar />
   <main class="pdp" style={`--accent: ${design.accent || 'var(--color-teal)'};`}>
