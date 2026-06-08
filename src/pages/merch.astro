@@ -65,7 +65,7 @@ const defaultCat = categories[0]?.key || 'tshirt';
         {categories.map((cat) => (
           <div class={`products-grid ${cat.key === defaultCat ? 'active' : ''}`} data-grid={cat.key}>
             {cat.items.map((item: any) => (
-              <a href={`/product/${item.slug}?type=${item.typeKey}`} class="product-card">
+              <a href={`/products/${item.slug}?type=${item.typeKey}`} class="product-card">
                 <div class="product-thumb">
                   <img class="card-img card-img--front active" src={item.image} alt={`${item.name} ${item.type}`} loading="lazy" />
                   {item.backImage && <img class="card-img card-img--back" src={item.backImage} alt={`${item.name} back`} loading="lazy" />}
