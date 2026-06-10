@@ -112,6 +112,9 @@ export default function CartDrawer() {
             <div style={{ display:'flex', justifyContent:'space-between', marginBottom:'16px', fontFamily:HEADING_FONT, fontWeight:700, fontSize:'18px', letterSpacing:'1px', textTransform:'uppercase' as const, color:TEXT }}>
               <span>Total</span><span>{'\u00A3'}{total.toFixed(2)}</span>
             </div>
+            <p style={{ color:'rgba(245,245,245,0.45)', fontFamily:BODY_FONT, fontSize:'11px', lineHeight:1.5, textAlign:'center' as const, margin:'0 0 12px' }}>
+              Payments are taken by The Metavision Multimedia Ltd and show on your statement as THE METAVISION.
+            </p>
             <button onClick={handleCheckout} style={{ width:'100%', background:ACCENT, color:'#0a0a0a', border:'none', padding:'14px', fontFamily:HEADING_FONT, fontWeight:700, fontSize:'15px', letterSpacing:'1.5px', textTransform:'uppercase' as const, cursor:'pointer', borderRadius:'4px', transition:'all 0.25s ease' }}
               onMouseEnter={(e) => { e.currentTarget.style.filter = 'brightness(1.15)'; e.currentTarget.style.transform = 'translateY(-2px)'; }}
               onMouseLeave={(e) => { e.currentTarget.style.filter = 'none'; e.currentTarget.style.transform = 'translateY(0)'; }}>
