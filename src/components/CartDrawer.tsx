@@ -1,6 +1,8 @@
 import { useStore } from '@nanostores/react';
 import { useState, useEffect } from 'react';
-import { cartItems, cartOpen, cartTotal, qualifiesForFreeShipping, amountToFreeShipping, FREE_SHIPPING_THRESHOLD, removeFromCart, updateQuantity, toggleCart, clearCart } from '../lib/cart';
+import { cartItems, cartOpen, cartTotal, qualifiesForFreeShipping, amountToFreeShipping, FREE_SHIPPING_THRESHOLD, addToCart, removeFromCart, updateQuantity, toggleCart, clearCart } from '../lib/cart';
+// @ts-ignore — shared CommonJS pricing module (no .d.ts; resolved by Vite at build)
+import { isWallArt, artworkVariantLabel } from '../lib/artwork-pricing.cjs';
 
 /* Brand tokens — read from the site's CSS variables (defined in Layout.astro)
    with hex fallbacks, so this component ports across IP brands by inheriting
@@ -21,6 +23,29 @@ export default function CartDrawer() {
   const progressPct = Math.min(100, (total / FREE_SHIPPING_THRESHOLD) * 100);
   const [confirmClear, setConfirmClear] = useState(false);
 
+  /* Wall-art PDP uses a define:vars (inline) script that can't import the store,
+     so it dispatches a window 'add-to-cart' CustomEvent. This globally-mounted
+     drawer catches it and maps the detail onto a Labrats cart line. Garment PDPs
+     call addToCart() directly and don't fire this event, so nothing doubles up.
+     Robust to either id/title or productId/name shaped details. */
+  useEffect(() => {
+    function handleAdd(e: any) {
+      const d = (e && e.detail) || {};
+      addToCart({
+        productId: d.productId || d.id,
+        name: d.name || d.title || 'Item',
+        price: Number(d.price) || 0,
+        size: d.size || '',
+        colour: d.colour || '',
+        image: d.image || '',
+        productType: d.productType || '',
+        format: d.format,
+      });
+    }
+    window.addEventListener('add-to-cart', handleAdd as EventListener);
+    return () => window.removeEventListener('add-to-cart', handleAdd as EventListener);
+  }, []);
+
   // Close the confirm modal if the drawer closes or the cart empties
   useEffect(() => { if (!isOpen || items.length === 0) setConfirmClear(false); }, [isOpen, items.length]);
 
@@ -33,7 +58,9 @@ export default function CartDrawer() {
         body: JSON.stringify({
           items: items.map((item) => ({
             /* id + productType let create-checkout resolve the exact Printful
-               sync variant (id = product-{slug}-{productType}, set by the PDP). */
+               sync variant (id = product-{slug}-{productType}, set by the PDP).
+               Wall-art lines carry productType:'wallart' + format so checkout
+               re-prices them server-side from artwork-pricing.cjs. */
             id: item.productId,
             title: item.name,
             name: item.name,
@@ -41,13 +68,16 @@ export default function CartDrawer() {
             price: item.price,
             size: item.size,
             colour: item.colour || '',
+            format: item.format || '',
             image: item.image || '',
             quantity: item.quantity,
           })),
         }),
       });
       const data = await res.json();
-      if (data.url) window.location.href = data.url; else alert('Checkout failed.');
+      if (data.url) window.location.href = data.url;
+      else if (data.error) alert(`Checkout failed: ${data.error}`);
+      else alert('Checkout failed.');
     } catch (err) { console.error(err); alert('Something went wrong.'); }
   }
 
@@ -84,7 +114,11 @@ export default function CartDrawer() {
               {item.image && <img src={item.image} alt={item.name} style={{ width:'64px', height:'64px', objectFit:'cover', borderRadius:'4px' }} />}
               <div style={{ flex:1 }}>
                 <div style={{ fontFamily:HEADING_FONT, fontWeight:700, fontSize:'15px', color:HIGHLIGHT, letterSpacing:'1px', textTransform:'uppercase' as const }}>{item.name}</div>
-                <div style={{ fontSize:'12px', color:'rgba(245,245,245,0.4)', marginTop:'2px' }}>{item.size}{item.colour ? ` / ${item.colour}` : ''}</div>
+                <div style={{ fontSize:'12px', color:'rgba(245,245,245,0.4)', marginTop:'2px' }}>
+                  {isWallArt(item)
+                    ? artworkVariantLabel(item.format || '', item.size)
+                    : `${item.size}${item.colour ? ` / ${item.colour}` : ''}`}
+                </div>
                 <div style={{ display:'flex', alignItems:'center', gap:'8px', marginTop:'8px' }}>
                   <button onClick={() => updateQuantity(item.productId, item.size, item.colour, item.quantity - 1)} style={{ background:'rgba(255,255,255,0.06)', border:`1px solid ${ACCENT}`, color:TEXT, width:'28px', height:'28px', cursor:'pointer', borderRadius:'4px' }}>{'\u2212'}</button>
                   <span style={{ color:TEXT, fontSize:'14px', minWidth:'20px', textAlign:'center' as const }}>{item.quantity}</span>

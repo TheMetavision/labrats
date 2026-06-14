@@ -10,15 +10,26 @@
  * id suffix after the slug match — without it, same-size/colour variants of
  * different garment types could cross-resolve.
  *
- * Flow: resolve every cart item to its exact Printful sync_variant_id (by id
- * prefix product-{slug}- then productType+size+colour against the
- * printfulVariants matrix), reject the whole checkout (422) if anything is
- * unresolvable, then build Stripe line items with ad-hoc price_data (NO Stripe
- * Price objects) and stash printful_variant_id on each line item's product
- * metadata for the webhook to read.
+ * WALL ART (in-house): lines tagged productType:'wallart' (id =
+ * wallart-{slug}-{format}-{size}) are NOT Printful products. They're split out,
+ * priced server-side from src/lib/artwork-pricing.cjs (client price ignored),
+ * and stamped fulfilment:'inhouse' so the webhook routes them to in-house
+ * make & dispatch instead of Printful. Mixed carts (POD + art) work — each
+ * line is handled on its own track and billed in one Stripe session.
+ *
+ * Flow: split POD vs wall art. POD → resolve every line to its exact Printful
+ * sync_variant_id (by id prefix product-{slug}- then productType+size+colour
+ * against the printfulVariants matrix), reject the whole checkout (422) if
+ * anything is unresolvable. Wall art → validate format+size and price from the
+ * matrix (422 on a bad combo). Then build Stripe line items with ad-hoc
+ * price_data (NO Stripe Price objects), stashing the metadata each track needs.
  */
 
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
+
+// Shared wall-art pricing (single source of truth, also imported by Astro).
+// Path assumes netlify/functions/ -> src/lib/. Adjust if your lib lives elsewhere.
+const { artworkPrice, artworkVariantLabel, isWallArt } = require('../../src/lib/artwork-pricing.cjs');
 
 /* ── CONFIG (Labrats) ────────────────────────────────────────────────── */
 const SANITY_PROJECT_ID = process.env.SANITY_PROJECT_ID || 'o9qrmykx';
@@ -28,6 +39,7 @@ const SANITY_API_VER    = '2024-01-01';
 /* ── SHIPPING (Wyrmfuel model — unchanged across brands) ──────────────────
    UK £6.95, free over £75; EU £9.95; USA/Canada £10.95;
    Australia/NZ/Japan/Brazil £11.95; Rest of World £14.95.
+   Wall art ships in-house but WORLDWIDE on these same options — no geo-lock.
    Keep FREE_THRESHOLD_PENCE in sync with FREE_SHIPPING_THRESHOLD in cart.ts. */
 const FREE_THRESHOLD_PENCE = 7500; // £75.00
 const UK_RATE_PENCE        = 695;  // £6.95
@@ -136,30 +148,66 @@ exports.handler = async (event) => {
 
     const SITE_URL = process.env.SITE_URL || process.env.PUBLIC_SITE_URL || 'https://labrats.uk';
 
-    let sanityProducts;
-    try {
-      sanityProducts = await fetchSanityVariantData();
-    } catch (err) {
-      console.error('Sanity lookup failed during checkout:', err.message || err);
-      return { statusCode: 503, headers, body: JSON.stringify({ error: 'Could not verify product availability. Please try again in a moment.' }) };
+    // Split the cart: POD garments (resolved to Printful) vs in-house WALL ART.
+    const podItems = items.filter((it) => !isWallArt(it));
+    const artItems = items.filter((it) => isWallArt(it));
+
+    // ── POD: resolve each line to its exact Printful sync_variant_id ─────────
+    let resolvedPod = [];
+    if (podItems.length > 0) {
+      let sanityProducts;
+      try {
+        sanityProducts = await fetchSanityVariantData();
+      } catch (err) {
+        console.error('Sanity lookup failed during checkout:', err.message || err);
+        return { statusCode: 503, headers, body: JSON.stringify({ error: 'Could not verify product availability. Please try again in a moment.' }) };
+      }
+
+      const unresolved = [];
+      resolvedPod = podItems.map((item) => {
+        const syncVariantId = resolveSyncVariantId(sanityProducts, item);
+        if (!syncVariantId) unresolved.push(`${item.title || item.name || item.id || 'item'} — ${item.colour || ''} ${item.size || ''}`.trim());
+        return { item, syncVariantId };
+      });
+
+      if (unresolved.length > 0) {
+        console.error('Checkout blocked — unresolved Printful variants:', unresolved);
+        return { statusCode: 422, headers, body: JSON.stringify({
+          error: 'Some items in your cart are temporarily unavailable. Please remove and re-add them, or contact us.',
+          items: unresolved,
+        }) };
+      }
     }
 
-    const unresolved = [];
-    const resolved = items.map((item) => {
-      const syncVariantId = resolveSyncVariantId(sanityProducts, item);
-      if (!syncVariantId) unresolved.push(`${item.title || item.name || item.id || 'item'} — ${item.colour || ''} ${item.size || ''}`.trim());
-      return { item, syncVariantId };
+    // ── WALL ART: price server-side from the matrix; never trust client price ─
+    const badArt = [];
+    const resolvedArt = artItems.map((item) => {
+      try {
+        const pricePence = artworkPrice(item.format, item.size); // throws on a bad combo
+        const label = artworkVariantLabel(item.format, item.size);
+        // slug is deterministic: id === `wallart-${slug}-${format}-${size}`
+        const suffix = `-${item.format}-${item.size}`;
+        const rawId = String(item.id || '');
+        const slug = rawId.startsWith('wallart-') && rawId.endsWith(suffix)
+          ? rawId.slice('wallart-'.length, rawId.length - suffix.length)
+          : '';
+        return { item, pricePence, label, slug };
+      } catch (e) {
+        badArt.push(`${item.title || item.name || item.id || 'wall art'} — ${item.format || '?'} / ${item.size || '?'}`);
+        return { item, pricePence: 0, label: '', slug: '' };
+      }
     });
 
-    if (unresolved.length > 0) {
-      console.error('Checkout blocked — unresolved Printful variants:', unresolved);
+    if (badArt.length > 0) {
+      console.error('Checkout blocked — invalid wall-art options:', badArt);
       return { statusCode: 422, headers, body: JSON.stringify({
-        error: 'Some items in your cart are temporarily unavailable. Please remove and re-add them, or contact us.',
-        items: unresolved,
+        error: 'Some wall-art options in your cart are invalid. Please remove and re-add them.',
+        items: badArt,
       }) };
     }
 
-    const line_items = resolved.map(({ item, syncVariantId }) => {
+    // ── Build Stripe line items ──────────────────────────────────────────────
+    const podLineItems = resolvedPod.map(({ item, syncVariantId }) => {
       const title = item.title || item.name || 'Labrats item';
       const colourLabel = item.colour ? ` — ${item.colour}` : '';
       return {
@@ -179,7 +227,33 @@ exports.handler = async (event) => {
       };
     });
 
-    const cartTotalPence = items.reduce((sum, item) => sum + Math.round(item.price * 100) * (item.quantity || 1), 0);
+    const artLineItems = resolvedArt.map(({ item, pricePence, label, slug }) => {
+      const title = item.title || item.name || 'Labrats wall art';
+      return {
+        price_data: {
+          currency: 'gbp',
+          unit_amount: pricePence, // SERVER price, in pence
+          product_data: {
+            name: `${title} — ${label}`,
+            metadata: {
+              fulfilment: 'inhouse',
+              wallart_slug: slug,
+              wallart_format: String(item.format || ''),
+              wallart_size: String(item.size || ''),
+            },
+          },
+        },
+        quantity: item.quantity || 1,
+      };
+    });
+
+    const line_items = [...podLineItems, ...artLineItems];
+
+    // Cart total for the free-shipping threshold: POD at client price (existing
+    // behaviour), wall art at the authoritative server price.
+    const cartTotalPence =
+      podItems.reduce((sum, item) => sum + Math.round(item.price * 100) * (item.quantity || 1), 0) +
+      resolvedArt.reduce((sum, { item, pricePence }) => sum + pricePence * (item.quantity || 1), 0);
 
     const session = await stripe.checkout.sessions.create({
       mode: 'payment',

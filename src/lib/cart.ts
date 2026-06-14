@@ -9,6 +9,7 @@ export interface CartItem {
   colour: string;
   image: string;
   productType?: string;       // used by checkout to resolve the exact Printful variant
+  format?: string;            // WALL ART ONLY: format id (poster | canvas-standard | canvas-gallery)
   stripePriceId?: string;     // optional: nested model uses ad-hoc price_data
   printfulVariantId?: string; // optional: resolved server-side at checkout
   quantity: number;
@@ -36,7 +37,8 @@ export const cartCount = computed(cartItems, (items) =>
 
 /* Free-shipping progress — threshold shared across all brands (£75).
    $qualifiesForFreeShipping / $amountToFreeShipping mirror the Wyrmfuel API
-   so the CartDrawer progress bar reads the same values. */
+   so the CartDrawer progress bar reads the same values.
+   Keep in sync with FREE_THRESHOLD_PENCE (7500) in create-checkout.js. */
 export const FREE_SHIPPING_THRESHOLD = 75;
 
 export const qualifiesForFreeShipping = computed(cartTotal, (total) =>
@@ -47,6 +49,10 @@ export const amountToFreeShipping = computed(cartTotal, (total) =>
   Math.max(0, FREE_SHIPPING_THRESHOLD - total)
 );
 
+/* Wall-art lines key by productId only (the wallart-{slug}-{format}-{size} id
+   already encodes format + size, and colour is ""), so the same (productId,
+   size, colour) dedup below keeps each format/size as its own line. Garment
+   behaviour is unchanged. */
 export function addToCart(item: Omit<CartItem, 'quantity'>) {
   const current = cartItems.get();
   const existing = current.find(
