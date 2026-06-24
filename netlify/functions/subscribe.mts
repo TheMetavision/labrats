@@ -1,55 +1,79 @@
 // netlify/functions/subscribe.mts  (Labrats)
-// Server-side MailerLite proxy for the merch waitlist form. Exists so the
-// MailerLite API key lives in an env var instead of being hardcoded in the
-// client bundle (it was previously exposed in page source — rotate that key).
-// netlify.toml already maps /api/* -> /.netlify/functions/*, so the form
-// posts to /api/subscribe.
-// Env required: MAILERLITE_API_KEY  (Netlify site env)
+//
+// Server-side MailerLite proxy. The newsletter form POSTs { email } to
+// /api/subscribe (netlify.toml rewrites /api/*  ->  /.netlify/functions/*),
+// so the MailerLite API token lives in an env var and never reaches the
+// browser.
+//
+// Env vars (set in Netlify; mark MAILERLITE_API_KEY as "Secret"):
+//   MAILERLITE_API_KEY   - MailerLite API token (use the ROTATED token)
+//   MAILERLITE_GROUP_ID  - Labrats newsletter group (default below)
+//
+// Response contract (consumed by src/components/Newsletter.astro):
+//   200 { ok: true }                -> newly subscribed
+//   200 { ok: true, already: true } -> already on the list
+//   400 | 500 | 502 { error }
 
 import type { Context } from "@netlify/functions";
 
-const GROUP_FALLBACK = "184360862869358023"; // labrats waitlist group
+const GROUP_ID = process.env.MAILERLITE_GROUP_ID || "184360862869358023";
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export default async (req: Request, _context: Context) => {
   if (req.method !== "POST") {
-    return new Response("Method Not Allowed", { status: 405 });
+    return json(405, { error: "Method not allowed" });
   }
+
   const key = process.env.MAILERLITE_API_KEY;
   if (!key) {
     console.error("[subscribe] MAILERLITE_API_KEY not set");
-    return Response.json({ error: "Not configured" }, { status: 500 });
+    return json(500, { error: "Newsletter not configured" });
   }
 
-  let body: { email?: string; groups?: string[]; fields?: Record<string, string> };
+  let email: string;
   try {
-    body = await req.json();
+    const body = await req.json();
+    email = String(body?.email ?? "").trim().toLowerCase();
   } catch {
-    return Response.json({ error: "Invalid JSON" }, { status: 400 });
+    return json(400, { error: "Invalid request" });
+  }
+  if (!EMAIL_RE.test(email)) {
+    return json(400, { error: "Please enter a valid email address" });
   }
 
-  const email = body.email?.trim();
-  if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-    return Response.json({ error: "Invalid email" }, { status: 400 });
+  const payload: Record<string, unknown> = {
+    email,
+    status: "active",
+    fields: { source: "labrats-newsletter" },
+  };
+  if (GROUP_ID) payload.groups = [GROUP_ID];
+
+  try {
+    const res = await fetch("https://connect.mailerlite.com/api/subscribers", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+        Authorization: `Bearer ${key}`,
+      },
+      body: JSON.stringify(payload),
+    });
+
+    if (res.ok) return json(200, { ok: true });
+    // 422 = validation / already-handled address -> friendly "already in" state
+    if (res.status === 422) return json(200, { ok: true, already: true });
+
+    console.error("[subscribe] MailerLite error", res.status, await res.text());
+    return json(502, { error: "Could not sign you up right now. Please try again later." });
+  } catch (err) {
+    console.error("[subscribe] request failed", err);
+    return json(502, { error: "Could not sign you up right now. Please try again later." });
   }
+};
 
-  const res = await fetch("https://connect.mailerlite.com/api/subscribers", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${key}`,
-    },
-    body: JSON.stringify({
-      email,
-      groups: body.groups?.length ? body.groups : [GROUP_FALLBACK],
-      fields: body.fields ?? { source: "labrats-merch-waitlist" },
-    }),
-  });
-
-  // Pass MailerLite's status through (422 = already subscribed; the form
-  // handles it as a friendly state).
-  const text = await res.text();
-  return new Response(text, {
-    status: res.status,
+function json(status: number, body: unknown) {
+  return new Response(JSON.stringify(body), {
+    status,
     headers: { "Content-Type": "application/json" },
   });
-};
+}
