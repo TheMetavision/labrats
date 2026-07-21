@@ -395,6 +395,20 @@ exports.handler = async (event) => {
   }
 
   const session = stripeEvent.data.object;
+
+  /* Brand guard — ignore other brands' sessions on the shared Stripe account.
+     All four IP-brand sites' webhook endpoints receive every checkout event;
+     only process sessions this site's create-checkout created (it stamps
+     metadata.source = 'labrats-web'; metadata.brand accepted for parity with
+     the other brands' newer checkouts). MUST return 200 — a non-2xx makes
+     Stripe retry and eventually disable this endpoint. */
+  const sessionBrand = (session.metadata && session.metadata.brand) || null;
+  const sessionSource = (session.metadata && session.metadata.source) || null;
+  if (sessionBrand !== 'labrats' && sessionSource !== 'labrats-web') {
+    console.log(`[BRAND-GUARD] session ${session.id}: brand="${sessionBrand || 'none'}" source="${sessionSource || 'none'}" — not Labrats, skipping.`);
+    return { statusCode: 200, body: JSON.stringify({ received: true, skipped: 'other-brand' }) };
+  }
+
   console.log(`[ORDER] checkout.session.completed — session ${session.id}`);
 
   let lineItems;
