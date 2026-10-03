@@ -79,9 +79,8 @@ const preloadAudio = renderThemeAudio ? themeAudio.audioUrl : null;
       <script type="application/ld+json" set:html={JSON.stringify(schema)} />
     ))}
 
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow+Condensed:wght@400;600;700&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet" />
+    <link rel="preload" href="/fonts/bebasneue-normal-400-latin.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="stylesheet" href="/fonts/fonts.css" />
 
     {/* Theme audio preload — low priority, only emitted when audio will render */}
     {preloadAudio && (
