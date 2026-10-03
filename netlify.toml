@@ -23,3 +23,16 @@
   to = "/products/:splat"
   status = 301
   force = true
+
+# Old standalone privacy page replaced by the Sanity-managed legal page.
+[[redirects]]
+  from = "/privacy"
+  to = "/legal/privacy-policy"
+  status = 301
+  force = true
+
+[[redirects]]
+  from = "/privacy/"
+  to = "/legal/privacy-policy"
+  status = 301
+  force = true
