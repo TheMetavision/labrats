@@ -13,6 +13,7 @@ export default {
     { name: 'abilities', title: 'Abilities / Enhancements', type: 'array', of: [{ type: 'string' }], description: 'Genetic enhancements or special skills' },
     { name: 'quote', title: 'Signature Quote', type: 'string' },
     { name: 'portrait', title: 'Character Portrait', type: 'image', options: { hotspot: true } },
+    { name: 'characterSheet', title: 'Character Sheet / Turnaround', type: 'image', options: { hotspot: true }, description: 'Multi-angle turnaround or model sheet. Used alongside the portrait to build this character\u2019s Higgsfield reference element. Production reference only: not shown on the site.' },
     { name: 'galleryImages', title: 'Gallery Images', type: 'array', of: [{ type: 'image', options: { hotspot: true } }] },
     { name: 'sortOrder', title: 'Display Order', type: 'number' },
     { name: 'seoTitle', title: 'SEO Title', type: 'string' },
