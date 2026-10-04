@@ -116,11 +116,27 @@ const footerText = settings?.footerText || 'Join the rebellion.\nUnleash the mis
       <p class="footer__copyright">
         © {new Date().getFullYear()} Labrats. All rights reserved.
       </p>
+      <p class="footer__copyright footer__legal">
+        Labrats is a trading name of The Metavision Multimedia Limited.
+        Registered in England &amp; Wales, company no. 16282479.
+        Registered office: 167-169 Great Portland Street, 5th Floor, London, W1W 5PF.
+        VAT no. GB 503 7530 17.
+        <a href="mailto:squeak@labrats.uk">squeak@labrats.uk</a>
+      </p>
     </div>
   </div>
 </footer>
 
 <style>
+  .footer__legal {
+    font-size: 0.72rem;
+    line-height: 1.6;
+    max-width: 60rem;
+    margin: 0.5rem auto 0;
+    opacity: 0.8;
+  }
+  .footer__legal a { color: inherit; }
+
   .footer {
     background: var(--color-black);
     color: var(--color-white);

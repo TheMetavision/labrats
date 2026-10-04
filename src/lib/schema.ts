@@ -1,8 +1,16 @@
+import { canonicalUrl } from './url';
+
+/* The real trader: Labrats is a trading name of The Metavision Multimedia
+   Limited (not a separate subsidiary), at its registered office. */
 export function organizationSchema() {
-  return { '@context': 'https://schema.org', '@type': 'Organization', name: 'Labrats', url: 'https://labrats.uk', logo: 'https://labrats.uk/favicon.png',
-    description: 'Labrats is an animated sci-fi series following genetically enhanced lab rats fighting for freedom.',
-    sameAs: ['https://www.youtube.com/@LabratsUK', 'https://www.instagram.com/labrats2025', 'https://www.tiktok.com/@labrats.uk', 'https://www.facebook.com/Labratsmm/'],
-    parentOrganization: { '@type': 'Organization', name: 'The Metavision Multimedia Limited', url: 'https://themetavision.co.uk' } };
+  return { '@context': 'https://schema.org', '@type': 'Organization', '@id': canonicalUrl('/') + '#organization',
+    name: 'Labrats', legalName: 'The Metavision Multimedia Limited', url: canonicalUrl('/'), logo: 'https://labrats.uk/favicon.png',
+    description: 'Labrats is an animated sci-fi series following genetically enhanced lab rats fighting for freedom. A trading name of The Metavision Multimedia Limited, registered in England & Wales.',
+    email: 'squeak@labrats.uk',
+    address: { '@type': 'PostalAddress', streetAddress: '167-169 Great Portland Street, 5th Floor', addressLocality: 'London', postalCode: 'W1W 5PF', addressCountry: 'GB' },
+    vatID: 'GB503753017',
+    identifier: { '@type': 'PropertyValue', propertyID: 'Companies House', value: '16282479' },
+    sameAs: ['https://www.youtube.com/@LabratsUK', 'https://www.instagram.com/labrats2025', 'https://www.tiktok.com/@labrats.uk', 'https://www.facebook.com/Labratsmm/'] };
 }
 export function websiteSchema() {
   return { '@context': 'https://schema.org', '@type': 'WebSite', name: 'Labrats', url: 'https://labrats.uk',
