@@ -33,15 +33,29 @@
   status = 301
   force = true
 
+# Retired duplicate product pages (an old flat-model template that rendered
+# "Image Coming Soon"): straight to the real product page, trailing slash.
+[[redirects]]
+  from = "/shop/:slug/"
+  to = "/products/:slug/"
+  status = 301
+  force = true
+
+[[redirects]]
+  from = "/shop/:slug"
+  to = "/products/:slug/"
+  status = 301
+  force = true
+
 # Old standalone privacy page replaced by the Sanity-managed legal page.
 [[redirects]]
   from = "/privacy"
-  to = "/legal/privacy-policy"
+  to = "/legal/privacy-policy/"
   status = 301
   force = true
 
 [[redirects]]
   from = "/privacy/"
-  to = "/legal/privacy-policy"
+  to = "/legal/privacy-policy/"
   status = 301
   force = true

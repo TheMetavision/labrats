@@ -2,6 +2,7 @@
 import CartDrawer from '../components/CartDrawer';
 import { organizationSchema, websiteSchema } from '../lib/schema';
 import { canonicalUrl as toCanonical } from '../lib/url';
+import { socialImg } from '../lib/sanityImage';
 // ── Theme audio additions (2026-04-29 — IP brand theme-tune feature) ────────
 import LabratsAudioLog from '../components/LabratsAudioLog.astro';
 import { getThemeAudio } from '../lib/sanity';
@@ -13,6 +14,8 @@ export interface Props {
   canonical?: string;
   jsonLd?: object | object[];
   noIndex?: boolean;
+  /** Absolute social-card image; defaults to the heroes line-up. */
+  ogImage?: string;
 }
 
 const {
@@ -21,6 +24,7 @@ const {
   canonical,
   jsonLd,
   noIndex = false,
+  ogImage = socialImg('/images/Heroes.jpg'),
 } = Astro.props;
 
 // Apex host, trailing slash: the address Netlify actually serves. (The
@@ -90,6 +94,8 @@ const preloadAudio = renderThemeAudio ? themeAudio.audioUrl : null;
     <meta property="og:type" content="website" />
     <meta property="og:url" content={canonicalUrl} />
     <meta property="og:site_name" content="Labrats" />
+    <meta property="og:image" content={ogImage} />
+    <meta name="twitter:image" content={ogImage} />
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content={title} />
     <meta name="twitter:description" content={metaDescription} />
