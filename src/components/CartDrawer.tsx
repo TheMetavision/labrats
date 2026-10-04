@@ -1,3 +1,5 @@
+// Display only: the cart keeps the original image URL; productImg resizes it via the CDN.
+import { productImg } from '../lib/sanityImage';
 import { useStore } from '@nanostores/react';
 import { useState, useEffect } from 'react';
 import { cartItems, cartOpen, cartTotal, qualifiesForFreeShipping, amountToFreeShipping, FREE_SHIPPING_THRESHOLD, addToCart, removeFromCart, updateQuantity, toggleCart, clearCart } from '../lib/cart';
@@ -111,7 +113,7 @@ export default function CartDrawer() {
             <p style={{ color:'rgba(245,245,245,0.4)', textAlign:'center', padding:'48px 0', fontFamily:BODY_FONT }}>Your cart is empty. Gear up for the mission.</p>
           ) : items.map((item) => (
             <div key={`${item.productId}-${item.size}-${item.colour}`} style={{ display:'flex', gap:'16px', padding:'16px 0', borderBottom:'1px solid rgba(255,255,255,0.06)' }}>
-              {item.image && <img src={item.image} alt={item.name} style={{ width:'64px', height:'64px', objectFit:'cover', borderRadius:'4px' }} />}
+              {item.image && <img src={productImg(item.image, 144)} alt={item.name} style={{ width:'64px', height:'64px', objectFit:'cover', borderRadius:'4px' }} />}
               <div style={{ flex:1 }}>
                 <div style={{ fontFamily:HEADING_FONT, fontWeight:700, fontSize:'15px', color:HIGHLIGHT, letterSpacing:'1px', textTransform:'uppercase' as const }}>{item.name}</div>
                 <div style={{ fontSize:'12px', color:'rgba(245,245,245,0.4)', marginTop:'2px' }}>

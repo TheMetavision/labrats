@@ -1,11 +1,27 @@
 ---
+import { sanityImg } from '../lib/sanityImage';
 import { getSiteSettings, urlFor } from '../lib/sanity';
 import CartButton from './CartButton';
 
 const settings = await getSiteSettings();
-const logoUrl = settings?.logo
-  ? urlFor(settings.logo).height(320).format('webp').url()
-  : 'https://assets.zyrosite.com/cdn-cgi/image/format=auto,w=1440,h=756,fit=crop,f=jpeg/Aq2q3anW6qTLnbeK/labrats-landscape-jul25-YZ9jxZw971UBgjew.png';
+
+/* A logo at a given display height: width-sized URLs (1x and 2x) and its
+   intrinsic width/height, from the asset's own dimensions. */
+function logoAt(source: any, displayH: number) {
+  const base = urlFor(source).url();
+  const m = base.match(/-(\d+)x(\d+)\.\w+/);
+  const w = m ? Math.round(displayH * Number(m[1]) / Number(m[2])) : displayH * 2;
+  return {
+    src: sanityImg(base, w),
+    srcset: `${sanityImg(base, w)} 1x, ${sanityImg(base, w * 2)} 2x`,
+    width: w,
+    height: displayH,
+  };
+}
+// Shown 168px high (72px on small screens).
+const logo = settings?.logo
+  ? logoAt(settings.logo, 168)
+  : { src: 'https://assets.zyrosite.com/cdn-cgi/image/format=auto,w=1440,h=756,fit=crop,f=jpeg/Aq2q3anW6qTLnbeK/labrats-landscape-jul25-YZ9jxZw971UBgjew.png' };
 
 const navLinks = [
   { label: 'Home', href: '/' },
@@ -21,7 +37,7 @@ const navLinks = [
   <div class="container navbar__inner">
     <a href="/" class="navbar__logo" aria-label="Labrats Home">
       <img
-        src={logoUrl}
+        {...logo}
         alt="Labrats logo"
         class="navbar__logo-img"
       />
