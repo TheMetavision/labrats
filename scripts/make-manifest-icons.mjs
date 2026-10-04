@@ -1,15 +1,15 @@
 // scripts/make-manifest-icons.mjs — icon-192.png and icon-512.png for the web
-// app manifest, from the 1024px wordmark icon (labrats-icon-A-1024.png), with
+// app manifest, from the 1024px wordmark icon (assets/brand/labrats-icon-A-1024.png), with
 // its flat navy background swapped for the site background (#0a0a0a).
 //
-//   node scripts/make-manifest-icons.mjs [path/to/labrats-icon-A-1024.png]
+//   node scripts/make-manifest-icons.mjs [path/to/icon.png]
 //
 // favicon.ico and apple-touch-icon.png are left as they are.
 // Each pixel's distance from the navy decides how much of it is background,
 // so the anti-aliased letter edges blend into the new colour without a fringe.
 import sharp from 'sharp';
 
-const src = process.argv[2] || 'labrats-icon-A-1024.png';
+const src = process.argv[2] || 'assets/brand/labrats-icon-A-1024.png';
 const OLD = [20, 28, 48];   // the source icon's background
 const NEW = [10, 10, 10];   // --color-black, the site's --color-bg
 const T = 48;               // distance at which a pixel counts as fully foreground
