@@ -6,7 +6,8 @@ import imageUrlBuilder from '@sanity/image-url';
 export const client = createClient({
   projectId: import.meta.env.SANITY_PROJECT_ID || 'o9qrmykx',
   dataset: import.meta.env.SANITY_DATASET || 'production',
-  apiVersion: '2024-01-01', useCdn: true,
+  // Never the CDN: a build triggered by a Sanity publish must read what was just published.
+  apiVersion: '2024-01-01', useCdn: false,
   token: import.meta.env.SANITY_API_TOKEN,
   perspective: 'published',
 });

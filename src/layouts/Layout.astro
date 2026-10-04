@@ -1,6 +1,8 @@
 ---
 import CartDrawer from '../components/CartDrawer';
 import { organizationSchema, websiteSchema } from '../lib/schema';
+import { canonicalUrl as toCanonical } from '../lib/url';
+import { socialImg } from '../lib/sanityImage';
 // ── Theme audio additions (2026-04-29 — IP brand theme-tune feature) ────────
 import LabratsAudioLog from '../components/LabratsAudioLog.astro';
 import { getThemeAudio } from '../lib/sanity';
@@ -12,18 +14,39 @@ export interface Props {
   canonical?: string;
   jsonLd?: object | object[];
   noIndex?: boolean;
+  /** Absolute social-card image; defaults to the heroes line-up. */
+  ogImage?: string;
 }
 
 const {
   title = 'Labrats – Where Genius Meets Mischief!',
-  description = 'Labrats is an animated sci-fi series following genetically enhanced lab rats fighting for freedom. Explore the book series, meet the characters, and join the rebellion. From The Metavision.',
+  description = 'Labrats is an animated sci-fi series about genetically enhanced lab rats fighting for freedom. Explore the books, meet the characters, join the rebellion.',
   canonical,
   jsonLd,
   noIndex = false,
+  ogImage = socialImg('/images/Heroes.jpg'),
 } = Astro.props;
 
-const siteUrl = 'https://labrats.uk';
-const canonicalUrl = canonical ? `${siteUrl}${canonical}` : Astro.url.href;
+// Apex host, trailing slash: the address Netlify actually serves. (The
+// canonical prop used to be appended as given, without the slash, so ~100
+// pages named a URL that 301s.)
+const canonicalUrl = toCanonical(canonical || Astro.url.pathname);
+
+// Descriptions stay within 155: drop whole trailing sentences first; if that
+// leaves too little (under 100 characters), trim the full text at a word
+// boundary instead. Never empty.
+const DESC_MAX = 155;
+function fitDescription(d: string): string {
+  const full = String(d || '').replace(/\s+/g, ' ').trim();
+  if (full.length <= DESC_MAX) return full;
+  const sentences = full.split(/(?<=[.!?])\s+(?=[A-Z"“])/);
+  while (sentences.length > 1 && sentences.join(' ').length > DESC_MAX) sentences.pop();
+  const whole = sentences.join(' ');
+  if (whole.length <= DESC_MAX && whole.length >= 100) return whole;
+  const cut = full.slice(0, DESC_MAX - 1);
+  return cut.slice(0, cut.lastIndexOf(' ')).replace(/[\s,;:—–-]+$/, '') + '…';
+}
+const metaDescription = fitDescription(description) || 'Labrats is an animated sci-fi series about genetically enhanced lab rats fighting for freedom. Explore the books, meet the characters, join the rebellion.';
 
 const allSchemas: object[] = [organizationSchema(), websiteSchema()];
 if (jsonLd) {
@@ -56,24 +79,26 @@ const preloadAudio = renderThemeAudio ? themeAudio.audioUrl : null;
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link rel="icon" type="image/png" href="/favicon.png" />
-    <link rel="shortcut icon" href="/favicon.png" />
-    <link rel="apple-touch-icon" href="/favicon.png" />
+    <link rel="icon" href="/favicon.ico" sizes="any" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
     <meta name="theme-color" content="#0A0A0A" />
     {noIndex && <meta name="robots" content="noindex, nofollow" />}
-    <meta name="description" content={description} />
+    <meta name="description" content={metaDescription} />
     <title>{title}</title>
     <link rel="canonical" href={canonicalUrl} />
     <link rel="sitemap" href="/sitemap-index.xml" />
 
     <meta property="og:title" content={title} />
-    <meta property="og:description" content={description} />
+    <meta property="og:description" content={metaDescription} />
     <meta property="og:type" content="website" />
     <meta property="og:url" content={canonicalUrl} />
     <meta property="og:site_name" content="Labrats" />
+    <meta property="og:image" content={ogImage} />
+    <meta name="twitter:image" content={ogImage} />
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content={title} />
-    <meta name="twitter:description" content={description} />
+    <meta name="twitter:description" content={metaDescription} />
 
     {allSchemas.map((schema) => (
       <script type="application/ld+json" set:html={JSON.stringify(schema)} />

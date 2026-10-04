@@ -73,6 +73,7 @@ const characters = allChars.slice(0, 4);
           aria-label={`Go to ${char.name}`}
         ></button>
       ))}
+      <button type="button" class="carousel__pause" id="carousel-pause" aria-pressed="false">Pause</button>
     </div>
 
     <div class="ratpack__cta-wrap">
@@ -266,6 +267,24 @@ const characters = allChars.slice(0, 4);
     overflow: hidden;
   }
 
+  .carousel__pause {
+    margin-left: 6px;
+    background: none;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 999px;
+    color: rgba(255, 255, 255, 0.75);
+    font: inherit;
+    font-size: 0.7rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 2px 10px;
+    cursor: pointer;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .carousel__track { transition: none; }
+  }
+
   .carousel__dots {
     display: flex;
     align-items: center;
@@ -381,6 +400,10 @@ const characters = allChars.slice(0, 4);
 
     let current = 0;
     let autoTimer = null;
+    // Stopped by the Pause button, or from the start under reduced motion;
+    // hover and focus still pause it only while they last.
+    let stopped = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const pauseBtn = document.getElementById('carousel-pause');
     let touchStartX = 0;
     let touchEndX = 0;
 
@@ -395,8 +418,18 @@ const characters = allChars.slice(0, 4);
 
     function startAuto() {
       stopAuto();
+      if (stopped) return;
       autoTimer = setInterval(() => goTo(current + 1), 5000);
     }
+
+    function paintPause() {
+      if (!pauseBtn) return;
+      pauseBtn.textContent = stopped ? 'Play' : 'Pause';
+      pauseBtn.setAttribute('aria-pressed', String(stopped));
+      pauseBtn.setAttribute('aria-label', stopped ? 'Start the character slideshow' : 'Stop the character slideshow');
+    }
+    pauseBtn && pauseBtn.addEventListener('click', () => { stopped = !stopped; paintPause(); startAuto(); });
+    paintPause();
 
     function stopAuto() {
       if (autoTimer) {

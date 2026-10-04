@@ -1,13 +1,21 @@
+import { canonicalUrl } from './url';
+
+/* The real trader: Labrats is a trading name of The Metavision Multimedia
+   Limited (not a separate subsidiary), at its registered office. */
 export function organizationSchema() {
-  return { '@context': 'https://schema.org', '@type': 'Organization', name: 'Labrats', url: 'https://labrats.uk', logo: 'https://labrats.uk/favicon.png',
-    description: 'Labrats is an animated sci-fi series following genetically enhanced lab rats fighting for freedom.',
-    sameAs: ['https://www.youtube.com/@LabratsUK', 'https://www.instagram.com/labrats2025', 'https://www.tiktok.com/@labrats.uk', 'https://www.facebook.com/Labratsmm/'],
-    parentOrganization: { '@type': 'Organization', name: 'The Metavision Multimedia Limited', url: 'https://themetavision.co.uk' } };
+  return { '@context': 'https://schema.org', '@type': 'Organization', '@id': canonicalUrl('/') + '#organization',
+    name: 'Labrats', legalName: 'The Metavision Multimedia Limited', url: canonicalUrl('/'), logo: 'https://labrats.uk/favicon.png',
+    description: 'Labrats is an animated sci-fi series following genetically enhanced lab rats fighting for freedom. A trading name of The Metavision Multimedia Limited, registered in England & Wales.',
+    email: 'squeak@labrats.uk',
+    address: { '@type': 'PostalAddress', streetAddress: '167-169 Great Portland Street, 5th Floor', addressLocality: 'London', postalCode: 'W1W 5PF', addressCountry: 'GB' },
+    vatID: 'GB503753017',
+    identifier: { '@type': 'PropertyValue', propertyID: 'Companies House', value: '16282479' },
+    sameAs: ['https://www.youtube.com/@LabratsUK', 'https://www.instagram.com/labrats2025', 'https://www.tiktok.com/@labrats.uk', 'https://www.facebook.com/Labratsmm/'] };
 }
 export function websiteSchema() {
-  return { '@context': 'https://schema.org', '@type': 'WebSite', name: 'Labrats', url: 'https://labrats.uk',
+  return { '@context': 'https://schema.org', '@type': 'WebSite', name: 'Labrats', url: canonicalUrl('/'),
     description: 'Genetically enhanced. Dangerously smart. Fighting for their freedom. The Labrats animated series and book collection.',
-    publisher: { '@type': 'Organization', name: 'Labrats' } };
+    publisher: { '@id': canonicalUrl('/') + '#organization' } };
 }
 export function breadcrumbSchema(items: { name: string; url: string }[]) {
   return { '@context': 'https://schema.org', '@type': 'BreadcrumbList', itemListElement: items.map((item, i) => ({ '@type': 'ListItem', position: i + 1, name: item.name, item: item.url })) };
@@ -15,7 +23,7 @@ export function breadcrumbSchema(items: { name: string; url: string }[]) {
 export function tvSeriesSchema() {
   return { '@context': 'https://schema.org', '@type': 'TVSeries', name: 'Labrats',
     description: 'An animated sci-fi series following a team of genetically enhanced lab rats who escape their facility and fight for freedom.',
-    genre: ['Animation', 'Sci-Fi', 'Comedy'], url: 'https://labrats.uk',
+    genre: ['Animation', 'Sci-Fi', 'Comedy'], url: canonicalUrl('/'),
     productionCompany: { '@type': 'Organization', name: 'The Metavision Multimedia Limited' } };
 }
 export function characterSchema(character: { name: string; bio: string; image?: string; url: string }) {
@@ -35,12 +43,12 @@ export function videoSchema(video: { title: string; description: string; youtube
   return { '@context': 'https://schema.org', '@type': 'VideoObject', name: video.title, description: video.description,
     thumbnailUrl: video.thumbnail || `https://img.youtube.com/vi/${video.youtubeId}/maxresdefault.jpg`,
     uploadDate: video.publishedAt, duration: video.duration, embedUrl: `https://www.youtube.com/embed/${video.youtubeId}`,
-    contentUrl: `https://www.youtube.com/watch?v=${video.youtubeId}`, publisher: { '@type': 'Organization', name: 'Labrats' } };
+    contentUrl: `https://www.youtube.com/watch?v=${video.youtubeId}`, publisher: { '@id': canonicalUrl('/') + '#organization' } };
 }
 export function faqSchema(faqs: { question: string; answer: string }[]) {
   return { '@context': 'https://schema.org', '@type': 'FAQPage', mainEntity: faqs.map((faq) => ({ '@type': 'Question', name: faq.question, acceptedAnswer: { '@type': 'Answer', text: faq.answer } })) };
 }
 export function collectionSchema(collection: { name: string; description: string; url: string; itemCount: number }) {
   return { '@context': 'https://schema.org', '@type': 'CollectionPage', name: collection.name, description: collection.description, url: collection.url, numberOfItems: collection.itemCount,
-    isPartOf: { '@type': 'WebSite', name: 'Labrats', url: 'https://labrats.uk' } };
+    isPartOf: { '@type': 'WebSite', name: 'Labrats', url: canonicalUrl('/') } };
 }

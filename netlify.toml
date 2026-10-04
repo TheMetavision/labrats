@@ -6,6 +6,11 @@
 [build.environment]
   NODE_VERSION = "22"
 
+# Printful mockups are served through Netlify Image CDN (/.netlify/images?url=…),
+# so visitors load them from labrats.uk, resized, and never contact printful.com.
+[images]
+  remote_images = ['https://files\.cdn\.printful\.com/.*']
+
 [[redirects]]
   from = "/api/*"
   to = "/.netlify/functions/:splat"
@@ -14,6 +19,10 @@
 [[headers]]
   for = "/*"
   [headers.values]
+    # Nothing on the site uses the camera or microphone.
+    Permissions-Policy = "camera=(), microphone=(), geolocation=(), payment=(self \"https://js.stripe.com\")"
+    # Report-only for now: violations appear in the browser console; nothing is blocked.
+    Content-Security-Policy-Report-Only = "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://cdn.sanity.io; font-src 'self'; connect-src 'self' https://cdn.sanity.io https://*.api.sanity.io; media-src 'self' https://cdn.sanity.io; frame-src https://www.youtube-nocookie.com https://www.youtube.com; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'"
     X-Frame-Options = "DENY"
     X-Content-Type-Options = "nosniff"
     Referrer-Policy = "strict-origin-when-cross-origin"
@@ -24,15 +33,29 @@
   status = 301
   force = true
 
+# Retired duplicate product pages (an old flat-model template that rendered
+# "Image Coming Soon"): straight to the real product page, trailing slash.
+[[redirects]]
+  from = "/shop/:slug/"
+  to = "/products/:slug/"
+  status = 301
+  force = true
+
+[[redirects]]
+  from = "/shop/:slug"
+  to = "/products/:slug/"
+  status = 301
+  force = true
+
 # Old standalone privacy page replaced by the Sanity-managed legal page.
 [[redirects]]
   from = "/privacy"
-  to = "/legal/privacy-policy"
+  to = "/legal/privacy-policy/"
   status = 301
   force = true
 
 [[redirects]]
   from = "/privacy/"
-  to = "/legal/privacy-policy"
+  to = "/legal/privacy-policy/"
   status = 301
   force = true

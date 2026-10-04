@@ -24,19 +24,19 @@ const schemas = [
     name: character.name,
     bio: character.bio,
     image: portrait || undefined,
-    url: `https://labrats.uk/characters/${slug}`,
+    url: `https://labrats.uk/characters/${slug}/`,
   }),
   breadcrumbSchema([
     { name: 'Home', url: 'https://labrats.uk/' },
-    { name: 'The Rat Pack', url: 'https://labrats.uk/meet-the-rat-pack' },
-    { name: character.name, url: `https://labrats.uk/characters/${slug}` },
+    { name: 'The Rat Pack', url: 'https://labrats.uk/meet-the-rat-pack/' },
+    { name: character.name, url: `https://labrats.uk/characters/${slug}/` },
   ]),
 ];
 ---
 
 <Layout
   title={`${character.name} — Labrats`}
-  description={character.bio?.slice(0, 160) || `Meet ${character.name} from the Labrats universe.`}
+  description={character.seoDescription || character.bio || `Meet ${character.name} from the Labrats universe.`}
   canonical={`/characters/${slug}`}
   jsonLd={schemas}
 >

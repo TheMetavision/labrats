@@ -26,12 +26,12 @@ const schemas = [
     excerpt: post.excerpt || post.title,
     publishedAt: post.publishedAt,
     image: heroImage || undefined,
-    url: `https://labrats.uk/rat-tales/${slug}`,
+    url: `https://labrats.uk/rat-tales/${slug}/`,
   }),
   breadcrumbSchema([
     { name: 'Home', url: 'https://labrats.uk/' },
-    { name: 'Rat Tales', url: 'https://labrats.uk/rat-tales' },
-    { name: post.title, url: `https://labrats.uk/rat-tales/${slug}` },
+    { name: 'Rat Tales', url: 'https://labrats.uk/rat-tales/' },
+    { name: post.title, url: `https://labrats.uk/rat-tales/${slug}/` },
   ]),
 ];
 ---

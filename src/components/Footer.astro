@@ -1,4 +1,5 @@
 ---
+import { sanityImg } from '../lib/sanityImage';
 import { getSiteSettings, urlFor } from '../lib/sanity';
 import LegalLinks from './LegalLinks.astro';
 
@@ -53,11 +54,23 @@ if (settings?.youtubeChannel && !socials.some((s) => s.icon === 'youtube')) {
   socials.push({ icon: 'youtube', href: settings.youtubeChannel, label: 'YouTube' });
 }
 
-const footerLogoUrl = settings?.footerLogo
-  ? urlFor(settings.footerLogo).height(280).format('webp').url()
-  : settings?.logo
-    ? urlFor(settings.logo).height(280).format('webp').url()
-    : null;
+
+/* A logo at a given display height: width-sized URLs (1x and 2x) and its
+   intrinsic width/height, from the asset's own dimensions. */
+function logoAt(source: any, displayH: number) {
+  const base = urlFor(source).url();
+  const m = base.match(/-(\d+)x(\d+)\.\w+/);
+  const w = m ? Math.round(displayH * Number(m[1]) / Number(m[2])) : displayH * 2;
+  return {
+    src: sanityImg(base, w),
+    srcset: `${sanityImg(base, w)} 1x, ${sanityImg(base, w * 2)} 2x`,
+    width: w,
+    height: displayH,
+  };
+}
+// Shown 140px high.
+const footerLogoSource = settings?.footerLogo || settings?.logo;
+const footerLogo = footerLogoSource ? logoAt(footerLogoSource, 140) : null;
 
 const footerText = settings?.footerText || 'Join the rebellion.\nUnleash the mischief.';
 ---
@@ -66,8 +79,8 @@ const footerText = settings?.footerText || 'Join the rebellion.\nUnleash the mis
   <div class="container">
     <div class="footer__main">
       <div class="footer__brand">
-        {footerLogoUrl && (
-          <img src={footerLogoUrl} alt="Labrats" class="footer__logo" />
+        {footerLogo && (
+          <img {...footerLogo} alt="Labrats" class="footer__logo" />
         )}
         <p class="footer__tagline">
           {footerText.split('\n').map((line, i) => (
@@ -116,11 +129,27 @@ const footerText = settings?.footerText || 'Join the rebellion.\nUnleash the mis
       <p class="footer__copyright">
         © {new Date().getFullYear()} Labrats. All rights reserved.
       </p>
+      <p class="footer__copyright footer__legal">
+        Labrats is a trading name of The Metavision Multimedia Limited.
+        Registered in England &amp; Wales, company no. 16282479.
+        Registered office: 167-169 Great Portland Street, 5th Floor, London, W1W 5PF.
+        VAT no. GB 503 7530 17.
+        <a href="mailto:squeak@labrats.uk">squeak@labrats.uk</a>
+      </p>
     </div>
   </div>
 </footer>
 
 <style>
+  .footer__legal {
+    font-size: 0.72rem;
+    line-height: 1.6;
+    max-width: 60rem;
+    margin: 0.5rem auto 0;
+    opacity: 0.8;
+  }
+  .footer__legal a { color: inherit; }
+
   .footer {
     background: var(--color-black);
     color: var(--color-white);

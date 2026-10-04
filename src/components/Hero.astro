@@ -376,4 +376,12 @@ const trailerUrl = settings?.trailerYoutubeUrl || 'https://www.youtube.com/short
       opacity: 0.2;
     }
   }
+
+  /* Reduced motion: the background glows hold still. */
+  @media (prefers-reduced-motion: reduce) {
+    .hero__glow--left,
+    .hero__glow--right,
+    .hero__feature-glow,
+    [class*="glow"] { animation: none; }
+  }
 </style>
