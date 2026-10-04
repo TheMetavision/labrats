@@ -106,6 +106,7 @@ const footerText = settings?.footerText || 'Join the rebellion.\nUnleash the mis
       <nav class="footer__nav" aria-label="Legal navigation">
         <h3 class="footer__nav-title">Legal</h3>
         <LegalLinks />
+        <button type="button" class="footer__link footer__cookie" data-cookie-settings>Cookie settings</button>
       </nav>
 
       <div class="footer__connect">
@@ -215,6 +216,16 @@ const footerText = settings?.footerText || 'Join the rebellion.\nUnleash the mis
   .footer__link:hover {
     opacity: 1;
     color: var(--color-yellow);
+  }
+
+  /* "Cookie settings" reopens the consent banner; styled as a footer link. */
+  .footer__cookie {
+    display: inline-block;
+    margin-top: 8px;
+    padding: 0;
+    font-weight: 400;
+    letter-spacing: 0;
+    text-align: inherit;
   }
 
   .footer__connect {

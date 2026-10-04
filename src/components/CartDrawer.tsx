@@ -2,7 +2,8 @@
 import { productImg } from '../lib/sanityImage';
 import { useStore } from '@nanostores/react';
 import { useState, useEffect } from 'react';
-import { cartItems, cartOpen, cartTotal, qualifiesForFreeShipping, amountToFreeShipping, FREE_SHIPPING_THRESHOLD, addToCart, removeFromCart, updateQuantity, toggleCart, clearCart } from '../lib/cart';
+import { cartItems, cartOpen, cartTotal, qualifiesForFreeShipping, amountToFreeShipping, FREE_SHIPPING_THRESHOLD, addToCart, removeFromCart, updateQuantity, toggleCart, clearCart, cartSlug } from '../lib/cart';
+import { prepareCheckout } from '../lib/analytics';
 // @ts-ignore — shared CommonJS pricing module (no .d.ts; resolved by Vite at build)
 import { isWallArt, artworkVariantLabel } from '../lib/artwork-pricing.cjs';
 
@@ -35,6 +36,7 @@ export default function CartDrawer() {
       const d = (e && e.detail) || {};
       addToCart({
         productId: d.productId || d.id,
+        slug: d.slug,
         name: d.name || d.title || 'Item',
         price: Number(d.price) || 0,
         size: d.size || '',
@@ -54,16 +56,23 @@ export default function CartDrawer() {
   async function handleCheckout() {
     if (items.length === 0) return;
     try {
+      /* begin_checkout + the GA client/session id lookup, together capped at
+         0.8 s; {} without consent or if Google doesn't answer in time. The ids
+         let the webhook send the purchase to GA server-side. */
+      const lines = items.map((item) => ({ ...item, slug: cartSlug(item) }));
+      const ga = await prepareCheckout(lines);
       const res = await fetch('/.netlify/functions/create-checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          items: items.map((item) => ({
+          ga,
+          items: lines.map((item) => ({
             /* id + productType let create-checkout resolve the exact Printful
                sync variant (id = product-{slug}-{productType}, set by the PDP).
                Wall-art lines carry productType:'wallart' + format so checkout
                re-prices them server-side from artwork-pricing.cjs. */
             id: item.productId,
+            slug: item.slug,
             title: item.name,
             name: item.name,
             productType: item.productType || '',

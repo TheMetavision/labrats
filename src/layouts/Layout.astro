@@ -1,5 +1,6 @@
 ---
 import CartDrawer from '../components/CartDrawer';
+import ConsentBanner from '../components/ConsentBanner.astro';
 import { organizationSchema, websiteSchema } from '../lib/schema';
 import { canonicalUrl as toCanonical } from '../lib/url';
 import { socialImg } from '../lib/sanityImage';
@@ -122,6 +123,8 @@ const preloadAudio = renderThemeAudio ? themeAudio.audioUrl : null;
   <body>
     <slot />
     <CartDrawer client:load />
+    {/* Cookie consent (UK PECR): Google Analytics only after Accept. */}
+    <ConsentBanner />
     {/* Theme audio control — Audio Log (Byte's signal interceptor) */}
     {renderThemeAudio && (
       <LabratsAudioLog

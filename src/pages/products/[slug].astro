@@ -153,6 +153,7 @@ const productJsonLd = {
       const d = (e as CustomEvent).detail;
       addToCart({
         productId: d.productId,
+        slug: d.slug,
         name: d.name,
         price: d.price,
         size: d.size,
@@ -164,7 +165,7 @@ const productJsonLd = {
     });
   </script>
 
-  <script define:vars={{ designId: design._id, designName: design.name, variantsJson, defaultType: defaultVariant?.productType || '' }}>
+  <script define:vars={{ designId: design._id, designSlug: design.slug, designName: design.name, variantsJson, defaultType: defaultVariant?.productType || '' }}>
     const variants = JSON.parse(variantsJson);
     const qp = new URLSearchParams(window.location.search).get('type');
     let currentType = (qp && variants.some((v) => v.type === qp)) ? qp : defaultType;
@@ -297,6 +298,25 @@ const productJsonLd = {
         mark(b);
       }));
     }
+    /* GA4 view_item for the selected variant (sent by the consent-gated bundle
+       in src/lib/analytics.ts; it may load after this script, so the latest
+       detail is also left on window). Once per product type. */
+    let viewedType = null;
+    function announceView() {
+      if (viewedType === currentType) return;
+      viewedType = currentType;
+      const v = getVariant();
+      const detail = {
+        item_id: designSlug,
+        item_name: `${designName} ${v?.label || ''}`.trim(),
+        item_variant: [selectedColour, selectedSize].filter(Boolean).join(' / '), // "Black / M", as on Cats On Crack
+        item_category: currentType,
+        price: Number(currentPrice) || 0,
+        quantity: 1,
+      };
+      window.__labratsViewItem = detail;
+      window.dispatchEvent(new CustomEvent('labrats-view-item', { detail }));
+    }
     function selectType(type) {
       currentType = type;
       const v = getVariant();
@@ -306,6 +326,7 @@ const productJsonLd = {
       renderSizes(v);
       updateHero();
       updatePrice();
+      announceView();
     }
 
     document.querySelectorAll('.pdp-type').forEach((b) => b.addEventListener('click', () => selectType(b.dataset.type)));
@@ -322,6 +343,7 @@ const productJsonLd = {
       const v = getVariant();
       window.dispatchEvent(new CustomEvent('labrats-add-to-cart', { detail: {
         productId: `${designId}-${currentType}`,
+        slug: designSlug,
         name: `${designName} ${v?.label || ''}`.trim(),
         price: currentPrice,
         size: selectedSize,

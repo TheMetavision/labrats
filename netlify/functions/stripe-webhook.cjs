@@ -8,7 +8,11 @@
  *   4. Write an `order` document to Sanity (SANITY_TOKEN) with status of
  *      fulfilled / fulfilment-failed / paid.
  *
- * Steps 2–4 are each non-fatal: a failure in one never blocks the others or
+ *   5. Send the GA4 purchase (Measurement Protocol) when the shopper accepted
+ *      analytics — src/lib/ga4-purchase.cjs. Skipped if this session's order
+ *      was already in Sanity before this delivery (a Stripe retry).
+ *
+ * Steps 2–5 are each non-fatal: a failure in one never blocks the others or
  * the 200 back to Stripe.
  *
  * Env vars (Labrats Netlify site):
@@ -20,6 +24,7 @@
  *   SANITY_TOKEN          — Sanity *write* (Editor) token for the order log
  *   SANITY_PROJECT_ID     — optional; default o9qrmykx
  *   SANITY_DATASET        — optional; default production
+ *   GA4_MEASUREMENT_ID, GA4_API_SECRET — optional; GA4 purchase skipped without them
  *
  * Must be named stripe-webhook.js (not .cjs/.mjs); delete any stale duplicate.
  */
@@ -40,6 +45,17 @@ const SANITY_API_VER = '2024-01-01';
 // Shared wall-art helper (same module the checkout uses; single source of truth).
 // Path assumes netlify/functions/ -> src/lib/. Adjust if your lib lives elsewhere.
 const { artworkVariantLabel } = require('../../src/lib/artwork-pricing.cjs');
+const { sendPurchase, purchaseSkipReason } = require('../../src/lib/ga4-purchase.cjs');
+
+/* Brand guard — this site shares ONE Stripe account with Cats On Crack, Fuglys
+   and Biker Babies, so every brand's webhook endpoint receives every checkout
+   event. Only sessions this site's create-checkout made are Labrats: it stamps
+   metadata.brand = 'labrats'; sessions created before that carry only the
+   legacy metadata.source = 'labrats-web', which still counts. */
+function isLabratsSession(session) {
+  const metadata = (session && session.metadata) || {};
+  return metadata.brand === 'labrats' || metadata.source === 'labrats-web';
+}
 
 /* Labrats palette for the customer email */
 const C = {
@@ -418,15 +434,12 @@ exports.handler = async (event) => {
 
   const session = stripeEvent.data.object;
 
-  /* Brand guard — ignore other brands' sessions on the shared Stripe account.
-     All four IP-brand sites' webhook endpoints receive every checkout event;
-     only process sessions this site's create-checkout created (it stamps
-     metadata.source = 'labrats-web'; metadata.brand accepted for parity with
-     the other brands' newer checkouts). MUST return 200 — a non-2xx makes
-     Stripe retry and eventually disable this endpoint. */
-  const sessionBrand = (session.metadata && session.metadata.brand) || null;
-  const sessionSource = (session.metadata && session.metadata.source) || null;
-  if (sessionBrand !== 'labrats' && sessionSource !== 'labrats-web') {
+  /* Brand guard (isLabratsSession) — ignore other brands' sessions on the
+     shared Stripe account. MUST return 200 — a non-2xx makes Stripe retry and
+     eventually disable this endpoint. */
+  if (!isLabratsSession(session)) {
+    const sessionBrand = (session.metadata && session.metadata.brand) || null;
+    const sessionSource = (session.metadata && session.metadata.source) || null;
     console.log(`[BRAND-GUARD] session ${session.id}: brand="${sessionBrand || 'none'}" source="${sessionSource || 'none'}" — not Labrats, skipping.`);
     return { statusCode: 200, body: JSON.stringify({ received: true, skipped: 'other-brand' }) };
   }
@@ -444,9 +457,30 @@ exports.handler = async (event) => {
     lineItems = { data: [] };
   }
 
+  /* Stripe retry check for the GA4 purchase: was this order already in the
+     Sanity log BEFORE this delivery saves it? Started now (only when GA would
+     send) so it reads the log ahead of saveOrder; awaited inside the GA
+     helper's timeout. orderExists never rejects. */
+  const sessionKey = String(session.id).slice(-32);
+  const priorOrder = purchaseSkipReason(session)
+    ? null
+    : Promise.all([orderExists(`order.${sessionKey}`), orderExists(`order-${sessionKey}`)]).then(([a, b]) => a || b);
+
   /* Customer confirmation email — independent of Printful, never fatal. */
   await sendCustomerEmail(session, lineItems);
 
+  const response = await fulfil(session, lineItems);
+
+  /* GA4 purchase — after the order is saved. Never throws; bounded at ~2.5 s. */
+  const ga = await sendPurchase(session, { lineItems, stripe, alreadyRecorded: () => priorOrder });
+  console.log(`[GA4] session ${session.id}: ${ga.sent ? 'purchase sent' : 'purchase not sent (' + ga.reason + ')'}.`);
+
+  return response;
+};
+
+/* Printful / in-house routing, then finalize (order save + merchant email).
+   Returns the 200 response for Stripe. */
+async function fulfil(session, lineItems) {
   try {
     if (!process.env.PRINTFUL_API_KEY) {
       console.error(`[FULFILMENT-FAIL] session ${session.id}: PRINTFUL_API_KEY not set.`);
@@ -540,4 +574,7 @@ exports.handler = async (event) => {
     await finalize(session, lineItems, 'fulfilment-failed', null);
     return { statusCode: 200, body: JSON.stringify({ received: true, printful: 'error' }) };
   }
-};
+}
+
+// For tests.
+exports.isLabratsSession = isLabratsSession;

@@ -1,0 +1,82 @@
+---
+/**
+ * ConsentBanner  (Labrats — UK PECR)
+ *
+ * Rendered once by Layout.astro on every public page. Hidden in the HTML; the
+ * bundled script (src/lib/analytics.ts) shows it when no choice is stored in
+ * localStorage 'labrats-consent', and reopens it from any [data-cookie-settings]
+ * link. Google's script URL lives only in that bundle, never in this markup.
+ *
+ * Pages with the site footer get "Cookie settings" there; the fallback link
+ * below covers any page without it and is hidden by CSS when the footer's
+ * link is present.
+ */
+---
+
+<div id="consent-banner" class="consent" role="region" aria-label="Cookie choices" hidden>
+  <div class="consent__inner">
+    <p class="consent__text">
+      We'd like to use Google Analytics to see how the lab is used. Its cookies are only set if you accept.
+      <a href="/legal/privacy-policy/" class="consent__link">Privacy policy</a>
+    </p>
+    <div class="consent__actions">
+      <button type="button" class="consent__btn" data-consent="granted">Accept</button>
+      <button type="button" class="consent__btn" data-consent="denied">Reject</button>
+    </div>
+  </div>
+</div>
+
+<p class="consent-fallback"><button type="button" class="consent-fallback__link" data-cookie-settings>Cookie settings</button></p>
+
+<script>
+  import { initConsent } from '../lib/analytics';
+  initConsent();
+</script>
+
+<style is:global>
+  .consent {
+    position: fixed; left: 0; right: 0; bottom: 0;
+    /* Under the cart drawer (998/999) so checkout is never covered. */
+    z-index: 990;
+    background: var(--color-bg-alt, #111111);
+    border-top: 2px solid var(--color-teal, #00c2d4);
+    box-shadow: 0 -12px 32px rgba(0, 0, 0, 0.5);
+    color: var(--color-text, #f5f5f5);
+  }
+  .consent[hidden] { display: none; }
+  .consent__inner {
+    max-width: var(--max-width, 1280px); margin: 0 auto; padding: 16px 24px;
+    display: flex; align-items: center; justify-content: space-between; gap: 24px;
+  }
+  .consent__text { font-family: var(--font-body, 'Barlow', sans-serif); font-size: 14px; line-height: 1.5; margin: 0; }
+  .consent__link { color: var(--color-teal, #00c2d4); text-decoration: underline; text-underline-offset: 3px; white-space: nowrap; }
+  .consent__link:hover { color: var(--color-yellow, #f5c518); }
+  .consent__actions { display: flex; gap: 12px; flex-shrink: 0; }
+  /* Accept and Reject share one style: neither is the "easy" choice. */
+  .consent__btn {
+    min-width: 112px; padding: 11px 22px;
+    background: transparent; color: var(--color-text, #f5f5f5);
+    border: 2px solid var(--color-teal, #00c2d4); border-radius: var(--radius, 4px);
+    font-family: var(--font-heading, 'Barlow Condensed', sans-serif); font-weight: 700;
+    font-size: 15px; letter-spacing: 1.5px; text-transform: uppercase;
+    transition: background 0.2s, color 0.2s;
+  }
+  .consent__btn:hover { background: var(--color-teal, #00c2d4); color: var(--color-black, #0a0a0a); }
+
+  .consent-fallback { text-align: center; padding: 12px 16px; background: var(--color-black, #0a0a0a); margin: 0; }
+  .consent-fallback__link {
+    font-family: var(--font-body, 'Barlow', sans-serif); font-size: 13px; letter-spacing: 0;
+    color: var(--color-white, #f5f5f5); opacity: 0.6; text-decoration: underline; text-underline-offset: 3px;
+  }
+  .consent-fallback__link:hover { opacity: 1; color: var(--color-yellow, #f5c518); }
+  /* The footer already has the link on this page. */
+  body:has(.footer [data-cookie-settings]) .consent-fallback { display: none; }
+
+  /* Keep the audio log clear of the banner while it is open. */
+  .lr-audio-log { margin-bottom: var(--consent-h, 0px); }
+
+  @media (max-width: 768px) {
+    .consent__inner { flex-direction: column; align-items: stretch; gap: 12px; padding: 14px 16px; }
+    .consent__btn { flex: 1; }
+  }
+</style>

@@ -198,6 +198,26 @@ const gallery = [piece.imageUrl, piece.studioMockupUrl, piece.posterMockupUrl, p
       if (priceEl) priceEl.textContent = gbp(penceFor(selFormat, selSize));
     }
 
+    /* GA4 view_item for the selected format + size (sent by the consent-gated
+       bundle in src/lib/analytics.ts, which may load after this script, so the
+       latest detail is also left on window). Again on each format change.
+       item_variant is "<format-slug> / <size-slug>" (Cats On Crack format). */
+    let viewedFormat = null;
+    function announceView() {
+      if (viewedFormat === selFormat) return;
+      viewedFormat = selFormat;
+      const detail = {
+        item_id: slug,
+        item_name: title,
+        item_variant: `${selFormat} / ${selSize}`,
+        item_category: 'wallart',
+        price: penceFor(selFormat, selSize) / 100,
+        quantity: 1,
+      };
+      window.__labratsViewItem = detail;
+      window.dispatchEvent(new CustomEvent('labrats-view-item', { detail }));
+    }
+
     if (formatWrap) {
       formatWrap.querySelectorAll('[data-format]').forEach((btn) => {
         btn.addEventListener('click', () => {
@@ -206,6 +226,7 @@ const gallery = [piece.imageUrl, piece.studioMockupUrl, piece.posterMockupUrl, p
           const f = formatList.find((x) => x.id === selFormat);
           if (blurbEl && f) blurbEl.textContent = f.blurb;
           refreshPrice();
+          announceView();
         });
       });
     }
@@ -233,6 +254,7 @@ const gallery = [piece.imageUrl, piece.studioMockupUrl, piece.posterMockupUrl, p
         const pence = penceFor(selFormat, selSize);
         const detail = {
           id: `wallart-${slug}-${selFormat}-${selSize}`,
+          slug: slug,
           title: title,
           price: pence / 100,            // £ for display; server re-prices at checkout
           size: selSize,                  // size id
@@ -247,5 +269,7 @@ const gallery = [piece.imageUrl, piece.studioMockupUrl, piece.posterMockupUrl, p
         setTimeout(() => { addBtn.textContent = 'Add to Cart'; addBtn.classList.remove('added'); }, 1400);
       });
     }
+
+    announceView();
   })();
 </script>

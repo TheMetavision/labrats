@@ -1,8 +1,10 @@
 import { atom, computed } from 'nanostores';
 import { persistentAtom } from '@nanostores/persistent';
+import { trackAddToCart } from './analytics';
 
 export interface CartItem {
   productId: string;
+  slug?: string;              // product / wall-art slug (GA4 item_id, checkout metadata); absent on carts saved before Oct 2026
   name: string;
   price: number;
   size: string;
@@ -49,11 +51,32 @@ export const amountToFreeShipping = computed(cartTotal, (total) =>
   Math.max(0, FREE_SHIPPING_THRESHOLD - total)
 );
 
-/* Wall-art lines key by productId only (the wallart-{slug}-{format}-{size} id
+/* The product slug for a cart line. Lines saved before slugs were stored
+   fall back to the id: product-{slug}-{productType} (Sanity _id is
+   product-{slug}) or wallart-{slug}-{format}-{size}. */
+export function cartSlug(item: Pick<CartItem, 'productId' | 'slug' | 'productType' | 'format' | 'size'>): string {
+  if (item.slug) return item.slug;
+  const id = String(item.productId || '');
+  if (id.startsWith('wallart-')) {
+    const suffix = `-${item.format}-${item.size}`;
+    return item.format && item.size && id.endsWith(suffix) ? id.slice(8, id.length - suffix.length) : id.slice(8);
+  }
+  if (id.startsWith('product-')) {
+    const rest = id.slice(8);
+    const suffix = item.productType ? `-${item.productType}` : '';
+    return suffix && rest.endsWith(suffix) ? rest.slice(0, rest.length - suffix.length) : rest;
+  }
+  return id;
+}
+
+/* Every add goes through here (garment PDP bridge and the drawer's wall-art
+   listener), so this is where add_to_cart is sent (no-op without consent).
+   Wall-art lines key by productId only (the wallart-{slug}-{format}-{size} id
    already encodes format + size, and colour is ""), so the same (productId,
    size, colour) dedup below keeps each format/size as its own line. Garment
    behaviour is unchanged. */
-export function addToCart(item: Omit<CartItem, 'quantity'>) {
+export function addToCart(input: Omit<CartItem, 'quantity'>) {
+  const item = { ...input, slug: cartSlug(input) };
   const current = cartItems.get();
   const existing = current.find(
     (i) =>
@@ -71,6 +94,8 @@ export function addToCart(item: Omit<CartItem, 'quantity'>) {
   } else {
     cartItems.set([...current, { ...item, quantity: 1 }]);
   }
+
+  trackAddToCart({ ...item, quantity: 1 });
 
   cartOpen.set(true);
 }

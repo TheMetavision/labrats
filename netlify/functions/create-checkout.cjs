@@ -191,6 +191,9 @@ function buildPodLineItems(products, items) {
             printful_variant_id: match.syncVariantId,
             labrats_size: String(item.size || ''),
             labrats_colour: String(item.colour || ''),
+            // GA4 item_id / item_category for the webhook's purchase event.
+            slug: String(product.slug || ''),
+            product_type: String(match.variant.productType || item.productType || ''),
           },
         },
       },
@@ -199,6 +202,19 @@ function buildPodLineItems(products, items) {
     cartTotalPence += unitPence * quantity;
   }
   return { line_items, cartTotalPence, unresolved, invalid, inactive, corrections };
+}
+
+/* GA4 ids from the browser (only sent with analytics consent), as Stripe
+   session metadata for the webhook's Measurement Protocol purchase. Anything
+   malformed is dropped; a session id is only kept alongside a valid client id. */
+function gaMetadata(ga) {
+  const clientId = ga && typeof ga.client_id === 'string' ? ga.client_id : '';
+  // Length cap: Stripe refuses metadata values over 500 characters.
+  if (clientId.length > 64 || !/^\d+\.\d+$/.test(clientId)) return {};
+  const sessionId = ga.session_id == null ? '' : String(ga.session_id);
+  return /^\d{1,20}$/.test(sessionId)
+    ? { ga_client_id: clientId, ga_session_id: sessionId }
+    : { ga_client_id: clientId };
 }
 
 exports.handler = async (event) => {
@@ -212,7 +228,7 @@ exports.handler = async (event) => {
   if (!process.env.STRIPE_SECRET_KEY) return { statusCode: 500, headers, body: JSON.stringify({ error: 'Stripe not configured' }) };
 
   try {
-    const { items } = JSON.parse(event.body || '{}');
+    const { items, ga } = JSON.parse(event.body || '{}');
     if (!items || items.length === 0) return { statusCode: 400, headers, body: JSON.stringify({ error: 'Cart is empty' }) };
 
     const SITE_URL = process.env.SITE_URL || process.env.PUBLIC_SITE_URL || 'https://labrats.uk';
@@ -308,6 +324,8 @@ exports.handler = async (event) => {
             metadata: {
               fulfilment: 'inhouse',
               wallart_slug: slug,
+              slug,
+              product_type: 'wallart',
               wallart_format: String(item.format || ''),
               wallart_size: String(item.size || ''),
             },
@@ -332,7 +350,9 @@ exports.handler = async (event) => {
       shipping_options: buildShippingOptions(cartTotalPence),
       success_url: `${SITE_URL}/order-success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${SITE_URL}/merch`,
-      metadata: { source: 'labrats-web' },
+      // brand: the shared-Stripe brand guard (stripe-webhook isLabratsSession);
+      // source kept for sessions created before brand was stamped.
+      metadata: { brand: 'labrats', source: 'labrats-web', ...gaMetadata(ga) },
     });
 
     return { statusCode: 200, headers, body: JSON.stringify({ url: session.url }) };
@@ -344,3 +364,4 @@ exports.handler = async (event) => {
 
 // For tests: the pure resolver/pricer.
 exports.buildPodLineItems = buildPodLineItems;
+exports.gaMetadata = gaMetadata;
