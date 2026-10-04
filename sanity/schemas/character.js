@@ -6,6 +6,8 @@ export default {
     { name: 'name', title: 'Name', type: 'string', validation: (Rule) => Rule.required() },
     { name: 'slug', title: 'Slug', type: 'slug', options: { source: 'name', maxLength: 96 }, validation: (Rule) => Rule.required() },
     { name: 'role', title: 'Role', type: 'string', description: 'e.g. "Team Leader & Tactician"' },
+    { name: 'characterType', title: 'Character Type', type: 'string', description: 'Which side of the story they are on. llms.txt lists a character in the Rat Pack only when both Character Type and Tag are "hero".', options: { list: [{ title: 'Hero', value: 'hero' }, { title: 'Villain', value: 'villain' }, { title: 'Rival', value: 'rival' }, { title: 'Creature', value: 'creature' }], layout: 'radio', direction: 'horizontal' } },
+    { name: 'tag', title: 'Tag', type: 'string', description: 'Short label for the character (hero, villain, rival or creature).', options: { list: [{ title: 'Hero', value: 'hero' }, { title: 'Villain', value: 'villain' }, { title: 'Rival', value: 'rival' }, { title: 'Creature', value: 'creature' }], layout: 'radio', direction: 'horizontal' } },
     { name: 'bio', title: 'Biography', type: 'text', rows: 4, validation: (Rule) => Rule.required() },
     { name: 'extendedBio', title: 'Extended Bio', type: 'array', of: [{ type: 'block' }] },
     { name: 'abilities', title: 'Abilities / Enhancements', type: 'array', of: [{ type: 'string' }], description: 'Genetic enhancements or special skills' },
