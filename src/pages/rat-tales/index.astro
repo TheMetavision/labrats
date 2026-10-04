@@ -5,39 +5,16 @@ import Footer from '../../components/Footer.astro';
 import { getAllBlogPosts, urlFor } from '../../lib/sanity';
 
 const sanityPosts = await getAllBlogPosts();
-const posts = sanityPosts.length > 0 ? sanityPosts.map(p => ({
+// Fail the build (Netlify keeps the live deploy) rather than publish an empty blog.
+if (!sanityPosts?.length) throw new Error('[rat-tales] Sanity returned no blog posts');
+const posts = sanityPosts.map(p => ({
   category: p.category || 'Lab Dispatch',
   title: p.title,
   excerpt: p.excerpt || '',
   date: p.publishedAt ? new Date(p.publishedAt).toLocaleDateString('en-GB', { year: 'numeric', month: 'long', day: 'numeric' }) : '',
   slug: p.slug ? `/rat-tales/${p.slug}` : '#',
   featuredImage: p.featuredImage || null,
-})) : [
-  {
-    category: 'Character Intel',
-    title: 'Nova: The Rat Who Hacked Her Own Brain',
-    excerpt: 'Before she was the team\'s intelligence officer, Nova was just another subject in Lab 7. Then she got curious about the implant they gave her. Then she started asking better questions than the scientists who built it.',
-    date: 'March 12, 2025',
-    slug: '#',
-    featuredImage: null,
-  },
-  {
-    category: 'Mission Report',
-    title: 'Operation Cheese Heist: The Full Debrief',
-    excerpt: 'The plan was simple. It always is. Six minutes in and Bolt had already rewired the security system backwards, Rex had eaten the decoy, and Nova was explaining to Scrap why you can\'t just explode things that have other things inside them.',
-    date: 'February 28, 2025',
-    slug: '#',
-    featuredImage: null,
-  },
-  {
-    category: 'Behind the Lab',
-    title: 'How Labrats Was Born: The Origin Story',
-    excerpt: 'Every great idea starts somewhere strange. Labrats started in a conversation about what would happen if the smartest beings in a laboratory weren\'t the scientists. The answer got complicated fast.',
-    date: 'January 15, 2025',
-    slug: '#',
-    featuredImage: null,
-  },
-];
+}));
 ---
 
 <Layout title="Rat Tales — Labrats" description="The Labrats blog. Lab dispatches, character intel, mission reports, and behind-the-scenes from The Rat Pack." canonical="/rat-tales">
