@@ -36,7 +36,7 @@ const schemas = [
 
 <Layout
   title={`${character.name} — Labrats`}
-  description={character.bio?.slice(0, 160) || `Meet ${character.name} from the Labrats universe.`}
+  description={character.seoDescription || character.bio || `Meet ${character.name} from the Labrats universe.`}
   canonical={`/characters/${slug}`}
   jsonLd={schemas}
 >
