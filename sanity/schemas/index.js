@@ -8,6 +8,8 @@
 // 2026-06-14: added wallArt (in-house printed & dispatched wall art) for the
 // cross-brand Wall Art feature. Manufactured in-house (NOT Printful); priced
 // from src/lib/artwork-pricing.mjs; routed to in-house dispatch by the webhook.
+// 2026-10-05: added order (the Stripe/Printful webhook order log; documents
+// already existed with no schema).
 import character from './character';
 import episode from './episode';
 import blogPost from './blogPost';
@@ -23,6 +25,7 @@ import merchCategory from './merchCategory';
 import siteSettings from './siteSettings';
 import legalPage from './legalPage';
 import contactSubmission from './contactSubmission';
+import order from './order';
 export const schemaTypes = [
   siteSettings,
   worldLocation,
@@ -39,4 +42,5 @@ export const schemaTypes = [
   page,
   legalPage,
   contactSubmission,
+  order,
 ];
