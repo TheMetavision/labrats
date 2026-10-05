@@ -12,7 +12,7 @@
  *
  * WALL ART (in-house): lines tagged productType:'wallart' (id =
  * wallart-{slug}-{format}-{size}) are NOT Printful products. They're split out,
- * priced server-side from src/lib/artwork-pricing.cjs (client price ignored),
+ * priced server-side from src/lib/artwork-pricing.mjs (client price ignored),
  * and stamped fulfilment:'inhouse' so the webhook routes them to in-house
  * make & dispatch instead of Printful. Mixed carts (POD + art) work — each
  * line is handled on its own track and billed in one Stripe session.
@@ -33,7 +33,7 @@ const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 
 // Shared wall-art pricing (single source of truth, also imported by Astro).
 // Path assumes netlify/functions/ -> src/lib/. Adjust if your lib lives elsewhere.
-const { artworkPrice, artworkVariantLabel, isWallArt } = require('../../src/lib/artwork-pricing.cjs');
+const { artworkPrice, artworkVariantLabel, isWallArt } = require('../../src/lib/artwork-pricing.mjs');
 
 /* ── CONFIG (Labrats) ────────────────────────────────────────────────── */
 const SANITY_PROJECT_ID = process.env.SANITY_PROJECT_ID || 'o9qrmykx';

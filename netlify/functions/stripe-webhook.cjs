@@ -44,7 +44,7 @@ const SANITY_API_VER = '2024-01-01';
 
 // Shared wall-art helper (same module the checkout uses; single source of truth).
 // Path assumes netlify/functions/ -> src/lib/. Adjust if your lib lives elsewhere.
-const { artworkVariantLabel } = require('../../src/lib/artwork-pricing.cjs');
+const { artworkVariantLabel } = require('../../src/lib/artwork-pricing.mjs');
 const { sendPurchase, purchaseSkipReason } = require('../../src/lib/ga4-purchase.cjs');
 
 /* Brand guard — this site shares ONE Stripe account with Cats On Crack, Fuglys

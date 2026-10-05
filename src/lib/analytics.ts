@@ -20,7 +20,7 @@
  * on the server too.
  */
 // @ts-ignore — shared CommonJS pricing module (no .d.ts; resolved by Vite at build)
-import { isWallArt } from './artwork-pricing.cjs';
+import { isWallArt } from './artwork-pricing.mjs';
 
 export const GA_ID = 'G-XSQX10PWDY';
 export const CONSENT_KEY = 'labrats-consent';

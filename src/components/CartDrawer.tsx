@@ -5,7 +5,7 @@ import { useState, useEffect } from 'react';
 import { cartItems, cartOpen, cartTotal, qualifiesForFreeShipping, amountToFreeShipping, FREE_SHIPPING_THRESHOLD, addToCart, removeFromCart, updateQuantity, toggleCart, clearCart, cartSlug } from '../lib/cart';
 import { prepareCheckout } from '../lib/analytics';
 // @ts-ignore — shared CommonJS pricing module (no .d.ts; resolved by Vite at build)
-import { isWallArt, artworkVariantLabel } from '../lib/artwork-pricing.cjs';
+import { isWallArt, artworkVariantLabel } from '../lib/artwork-pricing.mjs';
 
 /* Brand tokens — read from the site's CSS variables (defined in Layout.astro)
    with hex fallbacks, so this component ports across IP brands by inheriting
@@ -70,7 +70,7 @@ export default function CartDrawer() {
             /* id + productType let create-checkout resolve the exact Printful
                sync variant (id = product-{slug}-{productType}, set by the PDP).
                Wall-art lines carry productType:'wallart' + format so checkout
-               re-prices them server-side from artwork-pricing.cjs. */
+               re-prices them server-side from artwork-pricing.mjs. */
             id: item.productId,
             slug: item.slug,
             title: item.name,

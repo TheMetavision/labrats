@@ -7,7 +7,7 @@
 // product schema, so the variants[].printfulVariants field resolves.
 // 2026-06-14: added wallArt (in-house printed & dispatched wall art) for the
 // cross-brand Wall Art feature. Manufactured in-house (NOT Printful); priced
-// from src/lib/artwork-pricing.cjs; routed to in-house dispatch by the webhook.
+// from src/lib/artwork-pricing.mjs; routed to in-house dispatch by the webhook.
 import character from './character';
 import episode from './episode';
 import blogPost from './blogPost';
