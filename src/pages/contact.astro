@@ -101,7 +101,9 @@ const socialIcons: Record<string, string> = {
               <p class="field-error" id="message-error" hidden>Write us a message.</p>
             </div>
 
-            <button type="submit" class="form-submit" id="formSubmit">
+            {/* Disabled until the page script is listening: a press before then
+                was a native GET that put the message in the URL. */}
+            <button type="submit" class="form-submit" id="formSubmit" disabled>
               <span class="submit-text">Send Transmission</span>
               <span class="submit-sending" style="display:none;">Sending...</span>
             </button>
@@ -334,6 +336,9 @@ const socialIcons: Record<string, string> = {
         setSending(false);
       }
     });
+
+    // Listening now; the button was rendered disabled until this point.
+    setSending(false);
   })();
 </script>
 

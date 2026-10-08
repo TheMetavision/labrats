@@ -19,7 +19,9 @@
             required
             autocomplete="email"
           />
-          <button type="submit" class="newsletter__submit">
+          {/* Disabled until the script below is listening, so an early press is
+              not a native GET with the email in the URL. */}
+          <button type="submit" class="newsletter__submit" disabled>
             Subscribe
           </button>
         </div>
@@ -252,4 +254,7 @@
       setSending(false);
     }
   });
+
+  // Listening now; the button was rendered disabled until this point.
+  setSending(false);
 </script>
