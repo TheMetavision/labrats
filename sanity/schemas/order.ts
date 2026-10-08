@@ -69,6 +69,22 @@ export default defineType({
         { title: 'Dispatched', value: 'dispatched' },
       ] },
     }),
+    ro({
+      name: 'crossBrandCode', title: '⚠ Other brand’s code', type: 'text', rows: 3,
+      description: 'A promotion code that belongs to another IP brand (shared Stripe account). The order stands; decide whether to follow up.',
+      hidden: ({ value }) => !value,
+    }),
+    ro({
+      name: 'repeatWelcomeCode', title: '⚠ Repeat welcome code', type: 'text', rows: 3,
+      description: 'A first-order welcome code (SQUEAK10) used by an email that already has a paid order. The order stands; decide whether to follow up.',
+      hidden: ({ value }) => !value,
+    }),
+    ro({
+      name: 'discountAmount', title: 'Discount (£)', type: 'number',
+      description: 'Promotion code discount on the goods, from Stripe. Line totals above are before it; shipping is never discounted.',
+      hidden: ({ value }) => !value,
+    }),
+    ro({ name: 'discountCode', title: 'Discount Code', type: 'string', hidden: ({ value }) => !value }),
     ro({ name: 'shippingCost', title: 'Shipping (£)', type: 'number' }),
     ro({ name: 'total', title: 'Total (£)', type: 'number' }),
     ro({ name: 'currency', title: 'Currency', type: 'string' }),
