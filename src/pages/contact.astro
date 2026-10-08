@@ -44,11 +44,12 @@ const socialIcons: Record<string, string> = {
       <div class="container contact-section__inner">
 
         <div class="contact-form-col">
+          <p class="contact-form__note"><span class="form-required" aria-hidden="true">*</span> Required</p>
           <form class="contact-form" id="contactForm" novalidate>
             <input type="checkbox" name="botcheck" class="contact-form__honeypot" style="display:none" />
 
             <div class="form-group">
-              <label for="name" class="form-label">Name</label>
+              <label for="name" class="form-label">Name <span class="form-required" aria-hidden="true">*</span></label>
               <input
                 type="text"
                 id="name"
@@ -56,11 +57,13 @@ const socialIcons: Record<string, string> = {
                 class="form-input"
                 placeholder="Your name"
                 required
+                aria-describedby="name-error"
               />
+              <p class="field-error" id="name-error" hidden>Tell us your name.</p>
             </div>
 
             <div class="form-group">
-              <label for="email" class="form-label">Email</label>
+              <label for="email" class="form-label">Email <span class="form-required" aria-hidden="true">*</span></label>
               <input
                 type="email"
                 id="email"
@@ -68,7 +71,9 @@ const socialIcons: Record<string, string> = {
                 class="form-input"
                 placeholder="Your email address"
                 required
+                aria-describedby="email-error"
               />
+              <p class="field-error" id="email-error" hidden>That email address doesn&rsquo;t look right.</p>
             </div>
 
             <div class="form-group">
@@ -84,14 +89,16 @@ const socialIcons: Record<string, string> = {
             </div>
 
             <div class="form-group">
-              <label for="message" class="form-label">Message</label>
+              <label for="message" class="form-label">Message <span class="form-required" aria-hidden="true">*</span></label>
               <textarea
                 id="message"
                 name="message"
                 class="form-input form-textarea"
                 placeholder="Your message..."
                 required
+                aria-describedby="message-error"
               ></textarea>
+              <p class="field-error" id="message-error" hidden>Write us a message.</p>
             </div>
 
             <button type="submit" class="form-submit" id="formSubmit">
@@ -101,10 +108,12 @@ const socialIcons: Record<string, string> = {
 
             <div class="form-success" id="formSuccess" aria-live="polite">
               Transmission received. We'll get back to you soon. Rat's honour.
+              <button type="button" class="form-success__again" id="formSendAnother">Send Another</button>
             </div>
 
             <div class="form-error" id="formError" aria-live="polite" role="alert">
               Couldn't send. Try again, or email <a href="mailto:squeak@labrats.uk">squeak@labrats.uk</a> directly.
+              <span class="form-error__detail" id="formErrorDetail" hidden></span>
               <button type="button" class="form-error__retry" id="formRetry">Try Again</button>
             </div>
           </form>
@@ -202,6 +211,8 @@ const socialIcons: Record<string, string> = {
     const sendText = form.querySelector('.submit-text') as HTMLElement | null;
     const sending = form.querySelector('.submit-sending') as HTMLElement | null;
     const retryBtn = document.getElementById('formRetry');
+    const sendAnotherBtn = document.getElementById('formSendAnother');
+    const errorDetail = document.getElementById('formErrorDetail');
 
     function setSending(on: boolean) {
       if (submitBtn) submitBtn.disabled = on;
@@ -209,17 +220,86 @@ const socialIcons: Record<string, string> = {
       if (sending) sending.style.display = on ? 'inline' : 'none';
     }
 
-    function resetState() {
+    // One result at a time: both panels are hidden first and only this
+    // attempt's outcome is shown. On success the fields step aside until
+    // Send Another; on error they stay put with what was typed.
+    function showResult(kind: 'success' | 'error' | null, detail = '') {
       successMsg?.classList.remove('form-success--visible');
       errorMsg?.classList.remove('form-error--visible');
+      if (errorDetail) {
+        errorDetail.textContent = detail;
+        errorDetail.hidden = !detail;
+      }
+      if (kind === 'success') successMsg?.classList.add('form-success--visible');
+      if (kind === 'error') errorMsg?.classList.add('form-error--visible');
+      form!.classList.toggle('contact-form--sent', kind === 'success');
+    }
+
+    function resetState() {
+      showResult(null);
       setSending(false);
     }
 
+    // Required fields, checked here before anything is sent, so an empty
+    // submit says which fields are missing. The function still validates.
+    const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    const REQUIRED: { id: string; ok: (v: string) => boolean }[] = [
+      { id: 'name', ok: (v) => v.length > 0 },
+      { id: 'email', ok: (v) => EMAIL_RE.test(v) },
+      { id: 'message', ok: (v) => v.length > 0 },
+    ];
+
+    function markField(id: string, bad: boolean) {
+      const field = document.getElementById(id);
+      const msg = document.getElementById(`${id}-error`);
+      if (!field) return;
+      field.classList.toggle('form-input--invalid', bad);
+      if (bad) field.setAttribute('aria-invalid', 'true');
+      else field.removeAttribute('aria-invalid');
+      if (msg) msg.hidden = !bad;
+    }
+
+    function validateFields(): boolean {
+      let firstBad: HTMLElement | null = null;
+      for (const { id, ok } of REQUIRED) {
+        const field = document.getElementById(id) as HTMLInputElement | null;
+        if (!field) continue;
+        const bad = !ok(field.value.trim());
+        markField(id, bad);
+        if (bad && !firstBad) firstBad = field;
+      }
+      firstBad?.focus();
+      return !firstBad;
+    }
+
+    // Clear a field's mark as soon as it is fixed.
+    for (const { id, ok } of REQUIRED) {
+      const field = document.getElementById(id) as HTMLInputElement | null;
+      field?.addEventListener('input', () => {
+        if (field.getAttribute('aria-invalid') && ok(field.value.trim())) markField(id, false);
+      });
+    }
+
+    let inFlight = false;
+    let sent = false;
+
+    // Try Again keeps what was typed; Send Another starts a clean form.
     retryBtn?.addEventListener('click', resetState);
+    sendAnotherBtn?.addEventListener('click', () => {
+      sent = false;
+      form.reset();
+      for (const { id } of REQUIRED) markField(id, false);
+      resetState();
+      document.getElementById('name')?.focus();
+    });
 
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
-      resetState();
+      // One submission at a time, and none after a success until Send Another.
+      if (inFlight || sent) return;
+      showResult(null);
+      if (!validateFields()) return;
+      inFlight = true;
       setSending(true);
 
       const fd = new FormData(form);
@@ -241,14 +321,16 @@ const socialIcons: Record<string, string> = {
         });
         const data = await res.json().catch(() => ({}));
         if (res.ok && data?.success) {
-          form.reset();
-          successMsg?.classList.add('form-success--visible');
+          sent = true;
+          showResult('success');
         } else {
-          throw new Error(data?.error || 'Submission failed');
+          // The function's own message, as text, under the generic copy.
+          showResult('error', typeof data?.error === 'string' ? data.error : '');
         }
       } catch {
-        errorMsg?.classList.add('form-error--visible');
+        showResult('error');
       } finally {
+        inFlight = false;
         setSending(false);
       }
     });
@@ -362,6 +444,65 @@ const socialIcons: Record<string, string> = {
     min-height: 150px;
     resize: vertical;
     line-height: 1.5;
+  }
+
+  .form-required {
+    color: var(--color-yellow);
+  }
+
+  .contact-form__note {
+    font-family: var(--font-body);
+    font-size: 13px;
+    color: rgba(245, 245, 245, 0.6);
+    margin: 0 0 12px;
+  }
+
+  .form-input--invalid,
+  .form-input--invalid:focus {
+    border-color: #ff6a85;
+    box-shadow: 0 0 0 3px rgba(255, 106, 133, 0.15);
+  }
+
+  .field-error {
+    margin: 0;
+    font-family: var(--font-body);
+    font-size: 13px;
+    color: #ff8fa3;
+  }
+
+  /* After a successful send the fields step aside for the confirmation. */
+  .contact-form--sent .form-group,
+  .contact-form--sent .form-submit {
+    display: none;
+  }
+
+  .form-success__again {
+    display: block;
+    margin-top: 10px;
+    padding: 6px 14px;
+    background: transparent;
+    border: 1px solid var(--color-yellow);
+    border-radius: 4px;
+    color: var(--color-yellow);
+    font: inherit;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+  }
+
+  .form-success__again:hover {
+    background: rgba(245, 197, 24, 0.12);
+  }
+
+  .form-error__detail {
+    display: block;
+    margin-top: 6px;
+  }
+
+  .form-error__detail[hidden] {
+    display: none;
   }
 
   .form-submit {
