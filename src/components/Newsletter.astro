@@ -19,12 +19,14 @@
             required
             autocomplete="email"
           />
-          <button type="submit" class="newsletter__submit">
+          {/* Disabled until the script below is listening, so an early press is
+              not a native GET with the email in the URL. */}
+          <button type="submit" class="newsletter__submit" disabled>
             Subscribe
           </button>
         </div>
         <p class="newsletter__note">No spam, unsubscribe anytime. Rat's honour.</p>
-        <p class="newsletter__message" id="nl-message" aria-live="polite" style="display:none;"></p>
+        <p class="newsletter__message" id="nl-message" role="status" aria-live="polite" hidden></p>
       </form>
     </div>
   </div>
@@ -123,6 +125,46 @@
     font-style: italic;
   }
 
+  .newsletter__submit:disabled {
+    cursor: progress;
+    opacity: 0.75;
+  }
+
+  /* Result of the signup. Stays on screen (no timeout) and is announced
+     through the live region. */
+  .newsletter__message {
+    margin: 0;
+    max-width: 520px;
+    width: 100%;
+    padding: 14px 20px;
+    border-radius: var(--radius);
+    font-family: var(--font-heading);
+    font-weight: 700;
+    font-size: 16px;
+    line-height: 1.4;
+  }
+
+  .newsletter__message[hidden] {
+    display: none;
+  }
+
+  .newsletter__message--success {
+    background: var(--color-yellow);
+    color: var(--color-black);
+  }
+
+  .newsletter__message--error {
+    background: color-mix(in srgb, var(--color-black) 75%, transparent);
+    color: var(--color-white);
+    font-weight: 600;
+  }
+
+  /* After a successful signup the input row steps aside for the message. */
+  .newsletter__form--done .newsletter__input-wrap,
+  .newsletter__form--done .newsletter__note {
+    display: none;
+  }
+
   @media (max-width: 600px) {
     .newsletter__input-wrap {
       flex-direction: column;
@@ -145,18 +187,40 @@
 </style>
 
 <script>
-  const nlForm = document.getElementById('newsletterForm') as HTMLFormElement;
-  const nlBtn = nlForm?.querySelector('.newsletter__submit') as HTMLButtonElement;
+  const nlForm = document.getElementById('newsletterForm') as HTMLFormElement | null;
+  const nlInput = document.getElementById('nl-email') as HTMLInputElement | null;
+  const nlBtn = nlForm?.querySelector('.newsletter__submit') as HTMLButtonElement | null;
   const nlMsg = document.getElementById('nl-message');
+  const nlBtnText = nlBtn?.textContent?.trim() || 'Subscribe';
+
+  // A message that stays on screen and is read out. Before, the only feedback
+  // was the button label changing for four seconds while the field cleared,
+  // which visitors missed.
+  function showMessage(kind: 'success' | 'error', text: string) {
+    if (!nlMsg) return;
+    nlMsg.textContent = text;
+    nlMsg.classList.toggle('newsletter__message--success', kind === 'success');
+    nlMsg.classList.toggle('newsletter__message--error', kind === 'error');
+    nlMsg.hidden = false;
+  }
+
+  function setSending(on: boolean) {
+    if (!nlBtn) return;
+    nlBtn.disabled = on;
+    nlBtn.textContent = on ? 'Subscribing...' : nlBtnText;
+  }
+
+  let nlInFlight = false;
 
   nlForm?.addEventListener('submit', async (e) => {
     e.preventDefault();
-    const email = (document.getElementById('nl-email') as HTMLInputElement)?.value?.trim();
+    if (nlInFlight) return;
+    const email = nlInput?.value?.trim();
     if (!email) return;
 
-    const originalText = nlBtn.textContent;
-    nlBtn.textContent = 'Subscribing...';
-    nlBtn.disabled = true;
+    if (nlMsg) nlMsg.hidden = true;
+    nlInFlight = true;
+    setSending(true);
 
     try {
       const res = await fetch('/api/subscribe', {
@@ -166,21 +230,31 @@
       });
       const data = await res.json().catch(() => ({}));
 
-      if (res.ok && data.ok && !data.already) {
-        nlBtn.textContent = "You're in! Welcome to the lab.";
-        (document.getElementById('nl-email') as HTMLInputElement).value = '';
-        setTimeout(() => { nlBtn.textContent = originalText; nlBtn.disabled = false; }, 4000);
-      } else if (res.ok && data.ok && data.already) {
-        nlBtn.textContent = "You're already in the lab!";
-        (document.getElementById('nl-email') as HTMLInputElement).value = '';
-        setTimeout(() => { nlBtn.textContent = originalText; nlBtn.disabled = false; }, 3000);
+      if (res.ok && data.ok) {
+        showMessage(
+          'success',
+          data.already
+            ? "You're already in the lab. No need to sign up twice."
+            : "You're in. Welcome to the lab! Check your inbox for a squeak from us."
+        );
+        nlForm.classList.add('newsletter__form--done');
+        if (nlInput) nlInput.value = '';
       } else {
-        throw new Error('Subscription failed');
+        // Keep what they typed so they can fix it and try again.
+        // The function's own reason for a 4xx (e.g. a bad address); for a
+        // server-side failure the generic line, not internal wording.
+        const reason =
+          res.status < 500 && typeof data?.error === 'string' ? data.error.replace(/\.?$/, '.') : '';
+        showMessage('error', reason || "Couldn't sign you up just now. Please try again.");
       }
     } catch {
-      nlBtn.textContent = 'Something went wrong — try again';
-      nlBtn.disabled = false;
-      setTimeout(() => { nlBtn.textContent = originalText; }, 3000);
+      showMessage('error', "Couldn't reach the lab just now. Please try again.");
+    } finally {
+      nlInFlight = false;
+      setSending(false);
     }
   });
+
+  // Listening now; the button was rendered disabled until this point.
+  setSending(false);
 </script>
