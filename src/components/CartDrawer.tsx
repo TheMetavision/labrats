@@ -2,7 +2,7 @@
 import { productImg } from '../lib/sanityImage';
 import { useStore } from '@nanostores/react';
 import { useState, useEffect } from 'react';
-import { cartItems, cartOpen, cartTotal, qualifiesForFreeShipping, amountToFreeShipping, FREE_SHIPPING_THRESHOLD, addToCart, removeFromCart, updateQuantity, toggleCart, clearCart, cartSlug } from '../lib/cart';
+import { cartItems, cartOpen, cartTotal, qualifiesForFreeShipping, amountToFreeShipping, FREE_SHIPPING_THRESHOLD, addToCart, removeFromCart, updateQuantity, MAX_QTY_PER_LINE, toggleCart, clearCart, cartSlug } from '../lib/cart';
 import { prepareCheckout } from '../lib/analytics';
 // @ts-ignore — shared CommonJS pricing module (no .d.ts; resolved by Vite at build)
 import { isWallArt, artworkVariantLabel } from '../lib/artwork-pricing.mjs';
@@ -44,7 +44,7 @@ export default function CartDrawer() {
         image: d.image || '',
         productType: d.productType || '',
         format: d.format,
-      });
+      }, d.quantity);
     }
     window.addEventListener('add-to-cart', handleAdd as EventListener);
     return () => window.removeEventListener('add-to-cart', handleAdd as EventListener);
@@ -130,12 +130,17 @@ export default function CartDrawer() {
                     ? artworkVariantLabel(item.format || '', item.size)
                     : `${item.size}${item.colour ? ` / ${item.colour}` : ''}`}
                 </div>
-                <div style={{ display:'flex', alignItems:'center', gap:'8px', marginTop:'8px' }}>
-                  <button onClick={() => updateQuantity(item.productId, item.size, item.colour, item.quantity - 1)} style={{ background:'rgba(255,255,255,0.06)', border:`1px solid ${ACCENT}`, color:TEXT, width:'28px', height:'28px', cursor:'pointer', borderRadius:'4px' }}>{'\u2212'}</button>
-                  <span style={{ color:TEXT, fontSize:'14px', minWidth:'20px', textAlign:'center' as const }}>{item.quantity}</span>
-                  <button onClick={() => updateQuantity(item.productId, item.size, item.colour, item.quantity + 1)} style={{ background:'rgba(255,255,255,0.06)', border:`1px solid ${ACCENT}`, color:TEXT, width:'28px', height:'28px', cursor:'pointer', borderRadius:'4px' }}>+</button>
+                {/* − stops at 1 rather than removing the line, so tapping it a few
+                    times too many can't empty the basket; the ✕ removes it. */}
+                <div style={{ display:'flex', alignItems:'center', gap:'8px', marginTop:'8px' }} role="group" aria-label={`Quantity of ${item.name}`}>
+                  <button onClick={() => updateQuantity(item.productId, item.size, item.colour, item.quantity - 1)} disabled={item.quantity <= 1} aria-label={`Decrease quantity of ${item.name}`} style={{ background:'rgba(255,255,255,0.06)', border:`1px solid ${ACCENT}`, color:TEXT, width:'28px', height:'28px', cursor: item.quantity <= 1 ? 'not-allowed' : 'pointer', opacity: item.quantity <= 1 ? 0.35 : 1, borderRadius:'4px' }}>{'\u2212'}</button>
+                  <span aria-live="polite" style={{ color:TEXT, fontSize:'14px', minWidth:'20px', textAlign:'center' as const }}>{item.quantity}</span>
+                  <button onClick={() => updateQuantity(item.productId, item.size, item.colour, item.quantity + 1)} disabled={item.quantity >= MAX_QTY_PER_LINE} aria-label={`Increase quantity of ${item.name}`} style={{ background:'rgba(255,255,255,0.06)', border:`1px solid ${ACCENT}`, color:TEXT, width:'28px', height:'28px', cursor: item.quantity >= MAX_QTY_PER_LINE ? 'not-allowed' : 'pointer', opacity: item.quantity >= MAX_QTY_PER_LINE ? 0.35 : 1, borderRadius:'4px' }}>+</button>
                   <span style={{ marginLeft:'auto', color:TEXT, fontWeight:600 }}>{'\u00A3'}{(item.price * item.quantity).toFixed(2)}</span>
                 </div>
+                {item.quantity >= MAX_QTY_PER_LINE && (
+                  <div style={{ fontSize:'11px', color:'rgba(245,245,245,0.5)', marginTop:'6px' }}>Max {MAX_QTY_PER_LINE} per item. Need more? Get in touch.</div>
+                )}
               </div>
               <button onClick={() => removeFromCart(item.productId, item.size, item.colour)} aria-label={`Remove ${item.name}`} style={{ background:'none', border:'none', color:'rgba(255,255,255,0.2)', cursor:'pointer', fontSize:'1rem', alignSelf:'flex-start' }}>{'\u2715'}</button>
             </div>
