@@ -1,0 +1,99 @@
+---
+/**
+ * The card the newsletter's confirm pages share (/newsletter/confirm,
+ * /newsletter/confirmed, /newsletter/link-expired), in the order-success
+ * page's style. Body and buttons come in through the slot; their classes are
+ * styled with :global() below because scoped styles do not reach slotted
+ * content.
+ */
+import Layout from '../layouts/Layout.astro';
+import Navbar from './Navbar.astro';
+import Footer from './Footer.astro';
+
+interface Props {
+  title: string;
+  description: string;
+  label: string;
+  heading: string;
+}
+const { title, description, label, heading } = Astro.props;
+---
+
+<Layout title={title} description={description} noIndex={true}>
+  <Navbar />
+  <main class="nl-notice">
+    <div class="nl-notice__card">
+      <span class="nl-notice__label">{label}</span>
+      <h1 class="nl-notice__title">{heading}</h1>
+      <slot />
+    </div>
+  </main>
+  <Footer />
+</Layout>
+
+<style>
+  .nl-notice {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: calc(80px + 2rem) 1.5rem 4rem;
+    background: var(--color-bg);
+  }
+  .nl-notice__card {
+    max-width: 560px;
+    width: 100%;
+    text-align: center;
+    background: var(--color-bg-card);
+    border: 1px solid var(--color-teal);
+    border-radius: var(--radius-lg);
+    padding: 48px 32px;
+  }
+  .nl-notice__label {
+    display: inline-block;
+    font-family: var(--font-heading);
+    font-size: 12px; font-weight: 700;
+    letter-spacing: 3px; text-transform: uppercase;
+    color: var(--color-teal);
+    margin-bottom: 10px;
+  }
+  .nl-notice__title {
+    font-family: var(--font-display);
+    font-size: clamp(36px, 6vw, 56px);
+    color: var(--color-yellow);
+    line-height: 1.05;
+    text-transform: uppercase;
+    margin-bottom: 12px;
+  }
+  .nl-notice :global(.nl-notice__text) {
+    font-family: var(--font-body);
+    color: var(--color-text-muted);
+    line-height: 1.7;
+    margin: 12px 0 28px;
+  }
+  .nl-notice :global(.nl-notice__small) {
+    font-family: var(--font-body);
+    font-size: 14px;
+    color: var(--color-text-muted);
+    margin: 24px 0 0;
+  }
+  .nl-notice :global(.nl-notice__small a) { color: var(--color-teal); text-decoration: underline; }
+  .nl-notice :global(.nl-notice__actions) { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+  .nl-notice :global(.nl-notice__btn) {
+    font-family: var(--font-heading);
+    font-weight: 700; font-size: 14px;
+    letter-spacing: 1.5px; text-transform: uppercase;
+    padding: 13px 26px;
+    border-radius: var(--radius);
+    border: 0;
+    cursor: pointer;
+    transition: var(--transition);
+    background: var(--color-teal);
+    color: var(--color-black);
+  }
+  .nl-notice :global(.nl-notice__btn:hover) { filter: brightness(1.12); transform: translateY(-2px); }
+  .nl-notice :global(.nl-notice__btn:disabled) { opacity: 0.6; cursor: not-allowed; transform: none; filter: none; }
+  .nl-notice :global(.nl-notice__btn--ghost) { background: transparent; border: 2px solid var(--color-teal); color: var(--color-teal); }
+  .nl-notice :global(.nl-notice__btn--ghost:hover) { background: var(--color-teal); color: var(--color-black); }
+  .nl-notice :global([hidden]) { display: none !important; }
+</style>
