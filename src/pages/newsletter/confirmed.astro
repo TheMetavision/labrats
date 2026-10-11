@@ -1,0 +1,20 @@
+---
+/** /newsletter/confirmed/  (Labrats) -- where /api/newsletter-confirm sends a confirmed subscriber. */
+import NewsletterNotice from '../../components/NewsletterNotice.astro';
+---
+
+<NewsletterNotice
+  title="You're in — Labrats"
+  description="Your Labrats newsletter subscription is confirmed."
+  label="Subscription confirmed"
+  heading="You're in the lab!"
+>
+  <p class="nl-notice__text">
+    Welcome to the Labrats newsletter. Your welcome squeak is on its way, so keep an eye on your inbox
+    (and your spam folder, just in case).
+  </p>
+  <div class="nl-notice__actions">
+    <a href="/merch" class="nl-notice__btn">Browse the merch</a>
+    <a href="/" class="nl-notice__btn nl-notice__btn--ghost">Home</a>
+  </div>
+</NewsletterNotice>

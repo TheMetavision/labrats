@@ -1,4 +1,9 @@
 ---
+// Cloudflare Turnstile site key: public, baked in at build time, so a change
+// in Netlify needs a rebuild. Without it the form renders no widget and
+// /api/subscribe refuses its sign-ups.
+const TURNSTILE_SITE_KEY =
+  import.meta.env.TURNSTILE_SITE_KEY || process.env.TURNSTILE_SITE_KEY || '';
 ---
 
 <section class="newsletter" id="newsletter">
@@ -25,6 +30,21 @@
             Subscribe
           </button>
         </div>
+        {/* Honeypot: off-screen, unreachable by pointer, keyboard or screen
+            reader, with a name autofill does not recognise. Checked in
+            netlify/functions/subscribe.mts. */}
+        <div class="newsletter__extra" aria-hidden="true">
+          <label for="lr-nl-extra">Extra</label>
+          <input type="text" id="lr-nl-extra" name="lr_nl_extra" tabindex="-1" autocomplete="off" />
+        </div>
+        {TURNSTILE_SITE_KEY && (
+          <div
+            class="cf-turnstile newsletter__turnstile"
+            data-sitekey={TURNSTILE_SITE_KEY}
+            data-action="newsletter"
+            data-response-field-name="cf-turnstile-response"
+          ></div>
+        )}
         <p class="newsletter__note">No spam, unsubscribe anytime. Rat's honour.</p>
         <p class="newsletter__message" id="nl-message" role="status" aria-live="polite" hidden></p>
       </form>
@@ -32,6 +52,9 @@
   </div>
 </section>
 
+{TURNSTILE_SITE_KEY && (
+  <script is:inline async defer src="https://challenges.cloudflare.com/turnstile/v0/api.js"></script>
+)}
 
 <style>
   .newsletter {
@@ -119,6 +142,19 @@
     background: color-mix(in srgb, var(--color-yellow) 85%, var(--color-white));
   }
 
+  .newsletter__extra {
+    position: absolute;
+    left: -9999px;
+    top: auto;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+  }
+
+  .newsletter__turnstile {
+    min-height: 65px;
+  }
+
   .newsletter__note {
     font-size: 13px;
     color: color-mix(in srgb, var(--color-white) 80%, transparent);
@@ -161,6 +197,7 @@
 
   /* After a successful signup the input row steps aside for the message. */
   .newsletter__form--done .newsletter__input-wrap,
+  .newsletter__form--done .newsletter__turnstile,
   .newsletter__form--done .newsletter__note {
     display: none;
   }
@@ -192,6 +229,18 @@
   const nlBtn = nlForm?.querySelector('.newsletter__submit') as HTMLButtonElement | null;
   const nlMsg = document.getElementById('nl-message');
   const nlBtnText = nlBtn?.textContent?.trim() || 'Subscribe';
+  // Time on page: stamped now, compared with the submit time by the function.
+  const nlLoadedAt = Date.now();
+  const nlWidget = nlForm?.querySelector('.cf-turnstile') as HTMLElement | null;
+  const nlToken = () =>
+    (nlForm?.querySelector('input[name="cf-turnstile-response"]') as HTMLInputElement | null)?.value?.trim() || '';
+  // A Turnstile token is single use: reset the widget after any failed attempt.
+  function resetTurnstile() {
+    const ts = (window as any).turnstile;
+    if (nlWidget && ts && typeof ts.reset === 'function') {
+      try { ts.reset(nlWidget); } catch { /* not rendered yet */ }
+    }
+  }
 
   // A message that stays on screen and is read out. Before, the only feedback
   // was the button label changing for four seconds while the field cleared,
@@ -217,6 +266,10 @@
     if (nlInFlight) return;
     const email = nlInput?.value?.trim();
     if (!email) return;
+    if (nlWidget && !nlToken()) {
+      showMessage('error', 'Please complete the anti-spam check first.');
+      return;
+    }
 
     if (nlMsg) nlMsg.hidden = true;
     nlInFlight = true;
@@ -226,17 +279,19 @@
       const res = await fetch('/api/subscribe', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email })
+        body: JSON.stringify({
+          email,
+          turnstileToken: nlToken(),
+          lr_nl_extra: (nlForm.querySelector('input[name="lr_nl_extra"]') as HTMLInputElement | null)?.value || '',
+          lr_nl_ts_load: nlLoadedAt,
+          lr_nl_ts_submit: Date.now(),
+        })
       });
       const data = await res.json().catch(() => ({}));
 
       if (res.ok && data.ok) {
-        showMessage(
-          'success',
-          data.already
-            ? "You're already in the lab. No need to sign up twice."
-            : "You're in. Welcome to the lab! Check your inbox for a squeak from us."
-        );
+        // The same reply whoever the address belongs to (see subscribe.mts).
+        showMessage('success', "Nearly there! If you're new, check your inbox and click the link to confirm.");
         nlForm.classList.add('newsletter__form--done');
         if (nlInput) nlInput.value = '';
       } else {
@@ -246,9 +301,11 @@
         const reason =
           res.status < 500 && typeof data?.error === 'string' ? data.error.replace(/\.?$/, '.') : '';
         showMessage('error', reason || "Couldn't sign you up just now. Please try again.");
+        resetTurnstile();
       }
     } catch {
       showMessage('error', "Couldn't reach the lab just now. Please try again.");
+      resetTurnstile();
     } finally {
       nlInFlight = false;
       setSending(false);
