@@ -874,7 +874,7 @@ function resetRun() {
     slideT: 0, jumpBuf: 0, slideBuf: 0, chaserT: 0, invulnT: 0, boostT: 0, boostMax: 6,
     sinceSpawn: -20, cheese: 0, cheesePts: 0, bonusPts: 0, combo: 0, comboT: 0,
     section: 0, laneMoveT: 9, prevLane: 1, shake: 0, flash: 0, dyingT: 0, deathCause: '', lean: 0, nextAlarm: 0,
-    stageClear: false, magnetT: 0, rocketT: 0, springT: 0, dblT: 0, boardT: 0, grounded: true, ground: 0, distPts: 0, airSince: 0, airLane: 1
+    stageClear: false, chLane: null, chHop: 0, chDuck: 0, magnetT: 0, rocketT: 0, springT: 0, dblT: 0, boardT: 0, grounded: true, ground: 0, distPts: 0, airSince: 0, airLane: 1
   });
   setTheme(0, true);
   for (let i = 0; i < P_MAX; i++) { pLife[i] = 0; pPos[i * 3 + 1] = -999; }
@@ -1501,9 +1501,31 @@ function update(dt) {
   const chaseClose = (running && S.chaserT > 0) || (dying && S.deathCause === 'caught');
   const caughtNow = dying && S.deathCause === 'caught';
   const mz = caughtNow ? 1.0 : (chaseClose ? 3.2 : 17);
-  const mx = caughtNow ? S.x : LANES[S.lane] + (S.lane === 2 ? -1.45 : 1.45);
+  // chaser AI: run in a clear lane beside the player, and hop or duck anything that spans every lane
+  const chZ = mecha.root.position.z, isDrone = STAGES[stageIdx].chaser === 'drone';
+  const ahead = (o, l) => { const hd = o.len ? o.len / 2 + (o.ramp ? RAMP_L : 0) : (o.hd || 0.5);
+    return o.z + hd > chZ - 6.5 && o.z - hd < chZ + 1.2 && (l === undefined || Math.abs(o.x - LANES[l]) < o.halfW + 0.5); };
+  const laneClear = l => !obstacles.some(o => ahead(o, l));
+  if (S.chLane === undefined || S.chLane === null) S.chLane = S.lane === 2 ? 1 : S.lane + 1;
+  const prefer = [S.lane === 2 ? 1 : S.lane + 1, S.lane === 0 ? 1 : S.lane - 1, S.lane].filter((v, i, a) => a.indexOf(v) === i);
+  if (!laneClear(S.chLane) || (chaseClose && S.chLane === S.lane && laneClear(prefer[0]))) {
+    const free = prefer.find(laneClear); if (free !== undefined) S.chLane = free;
+  }
+  // anything still in its path spans every lane: hop it (steam, carts, fans) or duck it (laser grids); the drone simply climbs
+  let hop = 0, duck = false;
+  const chX = mecha.root.position.x;
+  obstacles.forEach(o => { if (!ahead(o, S.chLane) && !(ahead(o) && Math.abs(o.x - chX) < o.halfW + 0.6)) return;
+    const near = o.z - chZ < (o.len ? o.len / 2 + 1.2 : 1.6) && chZ - o.z < (o.len ? o.len / 2 + 6 : 6.5);
+    if (!near) return;
+    if (isDrone) hop = Math.max(hop, 1.7);
+    else hop = Math.max(hop, o.kind === 'cart' ? CART_H + 0.25 : (o.ymax || 1) + 0.35); });
+  const mx = caughtNow ? S.x : LANES[S.chLane];
   mecha.root.position.z += (mz - mecha.root.position.z) * Math.min(1, dt * (dying ? 6 : 2.2));
-  mecha.root.position.x += (mx - mecha.root.position.x) * Math.min(1, dt * 3);
+  mecha.root.position.x += (mx - mecha.root.position.x) * Math.min(1, dt * 5);
+  S.chHop = (S.chHop || 0) + ((caughtNow ? 0 : hop) - (S.chHop || 0)) * Math.min(1, dt * (hop > (S.chHop || 0) ? 22 : 7));
+  S.chDuck = (S.chDuck || 0) + ((duck && !caughtNow ? 1 : 0) - (S.chDuck || 0)) * Math.min(1, dt * 12);
+  mecha.root.position.y = S.chHop;
+  mecha.root.scale.set(0.9, 0.9 * (1 - 0.42 * S.chDuck), 0.9 * (1 + 0.25 * S.chDuck));
   mecha.pivot.position.y = Math.abs(Math.sin(S.t * 10)) * 0.06;
   mecha.head.rotation.y = Math.sin(S.t * 2.5) * 0.25;
   mecha.beacon.visible = Math.sin(S.t * 14) > 0;
@@ -1581,5 +1603,5 @@ addEventListener('resize', () => {
 
 // test hook for automated checks
 if (DEBUG) window.__vent = { S, get state() { return state; }, startRun, obstacles: () => obstacles.length, pickups: () => pickups.length,
-  obs: () => obstacles, addObstacle, applyStage, get stageIdx() { return stageIdx; }, step: (n, d) => { for (let i = 0; i < n; i++) update(d || 1 / 60); }, addCart, addPower, activatePower, useBoard, supportAt, get MS() { return MS; }, get rank() { return rank; } };
+  obs: () => obstacles, addObstacle, addCart, chaserPos: () => ({ x: mecha.root.position.x, y: mecha.root.position.y, z: mecha.root.position.z, sy: mecha.root.scale.y / 0.9 }), isDrone: () => STAGES[stageIdx].chaser === 'drone', applyStage, get stageIdx() { return stageIdx; }, step: (n, d) => { for (let i = 0; i < n; i++) update(d || 1 / 60); }, addCart, addPower, activatePower, useBoard, supportAt, get MS() { return MS; }, get rank() { return rank; } };
 })();

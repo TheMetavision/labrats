@@ -179,3 +179,22 @@
   @media (prefers-reduced-motion: reduce) {
     #warn.on { animation: none; }
   }
+
+  /* phones: the title screen must always be usable inside the site's frame */
+  .overlay { -webkit-overflow-scrolling: touch; overscroll-behavior: contain; touch-action: pan-y; }
+  #playBtn { position: sticky; bottom: calc(env(safe-area-inset-bottom, 0px) + 10px); z-index: 5; box-shadow: 0 10px 28px rgba(0,0,0,.65), 0 0 0 4px rgba(5,8,10,.55); }
+  @media (max-height: 820px), (max-width: 520px) {
+    .brandlogo { width: min(180px, 46vw); margin-bottom: 4px; }
+    .vr-title { font-size: clamp(40px, 11vw, 64px); }
+    .vr-title + .hazard { margin: 10px auto 12px; height: 9px; }
+    .lede { font-size: 16px; margin-bottom: 12px; }
+    .stages { gap: 8px; margin-bottom: 10px; }
+    .stages { grid-template-columns: repeat(2, 1fr); }
+    .stage { min-height: 74px; padding: 8px 10px; }
+    .stage .nm { font-size: 19px; }
+    .stage .st { font-size: 12px; }
+    .runners { margin-bottom: 12px; gap: 6px; }
+    .rp { padding: 6px 10px; font-size: 15px; }
+    #titleScreen .controls { display: none; }
+    #titleScreen .missions { margin-top: 14px; }
+  }
