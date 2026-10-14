@@ -1,0 +1,201 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import Navbar from '../../components/Navbar.astro';
+import Footer from '../../components/Footer.astro';
+
+// One card per game. Add the next one here; the grid makes room for it.
+const games = [
+  {
+    title: 'Vent Runner',
+    blurb: "Outrun the Rat Pack's enemies through the facility",
+    href: '/games/vent-runner/',
+    image: '/games/vent-runner/tex/card.jpg',
+    imageAlt: 'Vent Runner: a junction of ventilation ducts in the facility, lit teal and amber',
+  },
+];
+---
+
+<Layout
+  title="Games | Labrats"
+  description="Play Labrats games in your browser. Run with the Rat Pack in Vent Runner: dodge, jump and slide through the facility and collect the cheese."
+  canonical="/games"
+  ogImage={new URL('/games/vent-runner/tex/card.jpg', Astro.site).href}
+>
+  <Navbar />
+  <main class="page">
+
+    <section class="page-hero">
+      <div class="page-hero__bg"></div>
+      <div class="container page-hero__content">
+        <span class="page-hero__label">Play In Your Browser</span>
+        <h1 class="page-hero__title">Labrats Games</h1>
+        <p class="page-hero__subtitle">Play free in your browser. No downloads, no sign-up.</p>
+      </div>
+    </section>
+
+    <div class="section-divider"></div>
+
+    <section class="games-section">
+      <div class="container">
+        <div class="game-grid">
+          {games.map((game) => (
+            <article class="game-card">
+              <a href={game.href} class="game-card__thumb" tabindex="-1" aria-hidden="true">
+                <img
+                  class="game-card__thumb-img"
+                  src={game.image}
+                  alt={game.imageAlt}
+                  width="1600"
+                  height="893"
+                  loading="eager"
+                />
+              </a>
+              <div class="game-card__body">
+                <h2 class="game-card__title">{game.title}</h2>
+                <p class="game-card__desc">{game.blurb}</p>
+                <a href={game.href} class="btn btn-outline game-card__btn">Play</a>
+              </div>
+            </article>
+          ))}
+        </div>
+      </div>
+    </section>
+
+  </main>
+  <Footer />
+</Layout>
+
+<style>
+  /* Page chrome and card styles follow media.astro (page-hero, video-card). */
+  .page {
+    padding-top: 80px;
+    background: var(--color-black);
+    min-height: 100vh;
+  }
+
+  .page-hero {
+    position: relative;
+    padding: 96px 0 80px;
+    overflow: hidden;
+    background: var(--color-black);
+  }
+
+  .page-hero__bg {
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle at 60% 50%, color-mix(in srgb, var(--color-teal) 8%, transparent) 0%, transparent 60%);
+  }
+
+  .page-hero__content {
+    position: relative;
+    z-index: 1;
+    max-width: 720px;
+  }
+
+  .page-hero__label {
+    display: inline-block;
+    font-family: var(--font-heading);
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--color-teal);
+    margin-bottom: 12px;
+  }
+
+  .page-hero__title {
+    font-family: var(--font-display);
+    font-size: clamp(40px, 6vw, 88px);
+    color: var(--color-yellow);
+    line-height: 1;
+    margin-bottom: 16px;
+  }
+
+  .page-hero__subtitle {
+    font-family: var(--font-heading);
+    font-size: clamp(17px, 2vw, 22px);
+    font-weight: 600;
+    color: var(--color-white);
+    letter-spacing: 0.5px;
+  }
+
+  .section-divider {
+    height: 4px;
+    background: var(--color-teal);
+  }
+
+  .games-section {
+    padding: 80px 0 96px;
+    background: var(--color-black);
+  }
+
+  .game-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 28px;
+  }
+
+  .game-card {
+    background: color-mix(in srgb, var(--color-white) 5%, var(--color-black));
+    border: 1px solid color-mix(in srgb, var(--color-teal) 30%, transparent);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
+  }
+
+  .game-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 16px 40px color-mix(in srgb, var(--color-teal) 20%, transparent);
+    border-color: var(--color-teal);
+  }
+
+  .game-card__thumb {
+    display: block;
+    aspect-ratio: 16 / 9;
+    background: color-mix(in srgb, var(--color-teal) 8%, var(--color-black));
+    overflow: hidden;
+  }
+
+  .game-card__thumb-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .game-card__body {
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    flex: 1;
+  }
+
+  .game-card__title {
+    font-family: var(--font-heading);
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--color-white);
+    line-height: 1.2;
+  }
+
+  .game-card__desc {
+    font-size: 14px;
+    line-height: 1.65;
+    color: color-mix(in srgb, var(--color-white) 75%, transparent);
+    flex: 1;
+  }
+
+  .game-card__btn {
+    align-self: flex-start;
+  }
+
+  @media (max-width: 1024px) {
+    .game-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+
+  @media (max-width: 640px) {
+    .game-grid { grid-template-columns: 1fr; }
+  }
+</style>

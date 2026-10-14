@@ -74,3 +74,46 @@
   for = "/site.webmanifest"
   [headers.values]
     Content-Type = "application/manifest+json"
+
+# ── Vent Runner (public/games/vent-runner/) ───────────────────────────────
+# The game's static assets: a week in the browser cache.
+[[headers]]
+  for = "/games/vent-runner/models/*"
+  [headers.values]
+    Cache-Control = "public, max-age=604800"
+
+[[headers]]
+  for = "/games/vent-runner/models/*.glb"
+  [headers.values]
+    Content-Type = "model/gltf-binary"
+
+[[headers]]
+  for = "/games/vent-runner/tex/*"
+  [headers.values]
+    Cache-Control = "public, max-age=604800"
+
+[[headers]]
+  for = "/games/vent-runner/audio/*"
+  [headers.values]
+    Cache-Control = "public, max-age=604800"
+
+[[headers]]
+  for = "/games/vent-runner/vendor/*"
+  [headers.values]
+    Cache-Control = "public, max-age=604800"
+
+[[headers]]
+  for = "/games/vent-runner/img/*"
+  [headers.values]
+    Cache-Control = "public, max-age=604800"
+
+# The game page is shown in an iframe on /games/vent-runner/, but "/*" above
+# sends X-Frame-Options: DENY, which refuses framing even by this site.
+# Netlify merges every matching rule, so a second X-Frame-Options here would be
+# joined to DENY as a conflicting pair, which browsers treat as a block.
+# Instead: an enforced CSP that only sets frame-ancestors. Browsers obey
+# frame-ancestors in place of X-Frame-Options, and it allows this site alone.
+[[headers]]
+  for = "/games/vent-runner/play/*"
+  [headers.values]
+    Content-Security-Policy = "frame-ancestors 'self'"

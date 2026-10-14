@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Labrats: Vent Runner</title>
+<link rel="stylesheet" href="/fonts/fonts.css">
+<link rel="icon" href="/favicon.ico">
+<link rel="stylesheet" href="../game.css">
+</head>
+<body>
+<div id="stage" aria-label="Game view"></div>
+
+<div id="hud" aria-live="off">
+  <div>
+    <div class="score" id="score">0</div>
+    <div class="stats">
+      <span class="stat" id="dist">0 m</span>
+      <span class="stat"><i class="wedge" aria-hidden="true"></i><span id="cheese">0</span></span>
+      <span class="stat mult" id="mult">x1</span>
+    </div>
+    <div class="powers" id="powers"></div>
+  </div>
+  <div class="btns">
+    <button class="icon-btn" id="muteBtn" aria-label="Mute sound">
+      <svg id="icoSound" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5 6 9H2v6h4l5 4V5z"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/><path d="M19 5a10 10 0 0 1 0 14"/></svg>
+      <svg id="icoMute" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none"><path d="M11 5 6 9H2v6h4l5 4V5z"/><path d="m22 9-6 6M16 9l6 6"/></svg>
+    </button>
+    <button class="icon-btn" id="pauseBtn" aria-label="Pause">
+      <svg viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg>
+    </button>
+  </div>
+</div>
+
+<div id="banner"><small>Entering</small><b id="bannerName">Lab Zero</b></div>
+<div id="toast"></div>
+<div id="warn">MechaMouser 9000 is right behind you</div>
+<button id="boardBtn" aria-label="Ride a Cheese Board"><b id="boardCount">3</b><small>Board</small></button>
+
+<div class="overlay on" id="titleScreen">
+  <div class="card">
+    <img class="brandlogo" src="../img/logo.webp" alt="Labrats" width="640" height="209">
+    <h1 class="title vr-title" data-text="Vent Runner"><span>Vent Runner</span></h1>
+    <div class="hazard" aria-hidden="true"></div>
+    <p class="lede">The alarm's tripped and the Rat Pack's enemies are loose in the facility. Ride the supply carts, grab cheese and power-ups, keep running.</p>
+    <div class="stages" id="stagePicker"></div>
+    <div class="runners" id="runnerPicker"></div>
+    <div class="controls" id="controlsHelp"></div>
+    <div class="missions" id="missionsTitle"></div>
+    <button class="btn" id="playBtn">Start running</button>
+    <div class="best" id="titleBest" style="margin-top:16px"></div>
+  </div>
+</div>
+
+<div class="overlay" id="pauseScreen">
+  <div class="card">
+    <h2 class="title" style="font-size:clamp(64px,15vw,110px)">Paused</h2>
+    <div class="hazard" aria-hidden="true"></div>
+    <div class="row">
+      <button class="btn" id="resumeBtn">Keep running</button>
+      <button class="btn ghost" id="quitBtn">Quit</button>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="overScreen">
+  <div class="card">
+    <h2 class="over-head" id="overHead">Caught!</h2>
+    <p class="over-sub" id="overSub"></p>
+    <div class="final" id="finalScore">0</div>
+    <div id="newBest"></div>
+    <div class="breakdown">
+      <div><span>Distance</span><b id="finalDist">0 m</b></div>
+      <div><span>Cheese</span><b id="finalCheese">0</b></div>
+      <div><span>Best</span><b id="finalBest">0</b></div>
+    </div>
+    <div id="rankUp"></div>
+    <div class="missions" id="missionsOver"></div>
+    <div class="row">
+      <button class="btn" id="againBtn">Run again</button>
+    </div>
+    <div class="fine">Draft 2: runner mechanics in place, stand-in character models</div>
+  </div>
+</div>
+
+<div id="err">This game needs WebGL. Try a recent version of Chrome, Safari, Edge or Firefox.</div>
+
+<script src="../vendor/three.min.js"></script>
+<script src="../vendor/CopyShader.js"></script>
+<script src="../vendor/LuminosityHighPassShader.js"></script>
+<script src="../vendor/Pass.js"></script>
+<script src="../vendor/ShaderPass.js"></script>
+<script src="../vendor/MaskPass.js"></script>
+<script src="../vendor/EffectComposer.js"></script>
+<script src="../vendor/RenderPass.js"></script>
+<script src="../vendor/UnrealBloomPass.js"></script>
+<script src="../vendor/GLTFLoader.js"></script>
+<script>window.VR_BASE = "/games/vent-runner/";</script>
+<script src="../game.js"></script>
+</body>
+</html>
