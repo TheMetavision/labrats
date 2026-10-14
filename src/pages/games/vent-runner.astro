@@ -170,6 +170,23 @@ const controls = [
     overflow: hidden;
   }
 
+  /* Desktop and laptop: never taller than the screen under the fixed header
+     (80px below 1280px, 160px from 1280px) less a 24px margin. The frame
+     stays 16:9, so the cap is on its width; it stays centred. */
+  @media (min-width: 769px) {
+    .game-frame {
+      max-width: min(1200px, calc((100vh - 80px - 24px) * 16 / 9));
+      max-width: min(1200px, calc((100svh - 80px - 24px) * 16 / 9));
+    }
+  }
+
+  @media (min-width: 1280px) {
+    .game-frame {
+      max-width: min(1200px, calc((100vh - 160px - 24px) * 16 / 9));
+      max-width: min(1200px, calc((100svh - 160px - 24px) * 16 / 9));
+    }
+  }
+
   .game-frame__iframe {
     display: block;
     width: 100%;

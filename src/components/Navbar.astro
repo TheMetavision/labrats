@@ -171,8 +171,8 @@ const navLinks = [
     letter-spacing: 1px;
     text-transform: uppercase;
     color: var(--color-white);
-    /* 12px (was 16) so seven links fit on one line from 1280px, as six did. */
     padding: 8px 12px;
+    white-space: nowrap;
     border-radius: var(--radius);
     transition: color 0.2s, background 0.2s;
   }
@@ -301,7 +301,11 @@ const navLinks = [
     color: var(--color-yellow);
   }
 
-  @media (max-width: 768px) {
+  /* Below 1280px the seven links, the social icons and the cart no longer fit
+     on one row (measured: they overflow from about 1250px), so the compact
+     80px header takes over: small logo, cart and the burger with the mobile
+     menu. The full 160px header appears only with the desktop link row. */
+  @media (max-width: 1279px) {
     .navbar__inner {
       height: 80px;
       gap: 16px;
@@ -328,4 +332,12 @@ const navLinks = [
       display: flex;
     }
   }
+
+  /* A menu left open while the window widens past the burger breakpoint. */
+  @media (min-width: 1280px) {
+    .navbar__mobile--open {
+      display: none;
+    }
+  }
+
 </style>
