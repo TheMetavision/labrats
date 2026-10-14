@@ -734,9 +734,29 @@ function updateParticles(dt, worldMove) {
    ============================================================ */
 let actx = null;
 let muted = store.get('lr_vent_muted', false);
+// phones: audio must be started from a tap, and iPhones mute web audio on the silent switch unless told it's media playback
+const IS_IOS = /iPhone|iPad|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+let audioUnlocked = false, silentEl = null;
+function silentWavUrl() {  // half a second of silence, built in code (no file needed)
+  const n = 4000, buf = new ArrayBuffer(44 + n * 2), v = new DataView(buf);
+  const w = (o, s) => { for (let i = 0; i < s.length; i++) v.setUint8(o + i, s.charCodeAt(i)); };
+  w(0, 'RIFF'); v.setUint32(4, 36 + n * 2, true); w(8, 'WAVE'); w(12, 'fmt '); v.setUint32(16, 16, true); v.setUint16(20, 1, true); v.setUint16(22, 1, true);
+  v.setUint32(24, 8000, true); v.setUint32(28, 16000, true); v.setUint16(32, 2, true); v.setUint16(34, 16, true); w(36, 'data'); v.setUint32(40, n * 2, true);
+  return URL.createObjectURL(new Blob([buf], { type: 'audio/wav' }));
+}
 function ensureAudio() {
-  if (actx) { if (actx.state === 'suspended') actx.resume(); return; }
-  try { actx = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) { actx = null; }
+  try { if (navigator.audioSession) navigator.audioSession.type = 'playback'; } catch (e) {}  // iOS 17+: play through the silent switch
+  if (!actx) { try { actx = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) { actx = null; } }
+  if (!actx) return;
+  if (actx.state !== 'running') { const r = actx.resume(); if (r && r.catch) r.catch(() => {}); }
+  if (!audioUnlocked) {
+    audioUnlocked = true;
+    try { const b = actx.createBuffer(1, 1, 22050), s = actx.createBufferSource(); s.buffer = b; s.connect(actx.destination); s.start(0); } catch (e) {}
+    // older iPhones only leave silent mode while an HTML audio element is playing
+    if (IS_IOS && !navigator.audioSession) {
+      try { silentEl = new Audio(silentWavUrl()); silentEl.loop = true; silentEl.setAttribute('playsinline', ''); const p = silentEl.play(); if (p && p.catch) p.catch(() => {}); } catch (e) {}
+    }
+  }
 }
 function tone(f1, f2, d, wave, v, delay) {
   if (!actx || muted) return;
@@ -781,7 +801,16 @@ function musicDuck(level) {
   if (music.gain && actx) music.gain.gain.setTargetAtTime(muted ? 0 : MUSIC_VOL * level, actx.currentTime, 0.25);
 }
 // browsers only allow sound after a tap or key press: start the title theme on the first one
-['pointerdown', 'keydown'].forEach(ev => addEventListener(ev, () => { ensureAudio(); if (state === 'title') playMusic('theme'); }, { once: true }));
+// browsers only allow sound after a tap or key press: keep trying on each one until audio is running, then start the title theme
+const UNLOCK_EVENTS = ['touchend', 'click', 'pointerup', 'keydown'];
+function unlockAudio() {
+  ensureAudio();
+  if (state === 'title') playMusic('theme');
+  if (actx && actx.state === 'running') UNLOCK_EVENTS.forEach(ev => removeEventListener(ev, unlockAudio, true));
+}
+UNLOCK_EVENTS.forEach(ev => addEventListener(ev, unlockAudio, true));
+// after a phone call or switching apps, phones suspend audio: resume on the next tap
+addEventListener('touchend', () => { if (actx && actx.state !== 'running') { const r = actx.resume(); if (r && r.catch) r.catch(() => {}); } if (silentEl && silentEl.paused) silentEl.play().catch(() => {}); }, true);
 function noise(d, v, freq) {
   if (!actx || muted) return;
   const len = Math.floor(actx.sampleRate * d), buf = actx.createBuffer(1, len, actx.sampleRate), data = buf.getChannelData(0);
