@@ -1,0 +1,289 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import Navbar from '../../components/Navbar.astro';
+import Footer from '../../components/Footer.astro';
+
+// The game itself is static files in public/games/vent-runner/ and runs on
+// its own at /games/vent-runner/play/. This page frames it in the site.
+const PLAY = '/games/vent-runner/play/';
+
+const controls = [
+  { action: 'Change lane', keys: 'Left / right arrow keys', touch: 'Swipe left or right' },
+  { action: 'Jump', keys: 'Up arrow or Space', touch: 'Swipe up' },
+  { action: 'Slide', keys: 'Down arrow', touch: 'Swipe down' },
+  { action: 'Cheese Board', keys: 'B', touch: 'Double-tap' },
+];
+---
+
+<Layout
+  title="Vent Runner | Labrats"
+  description="Play Labrats: Vent Runner free in your browser. Race through The Ductways, Lab Zero and The Cheese Vault, and unlock Dr. Basil Whiskerworth."
+  canonical="/games/vent-runner"
+  ogImage={new URL('/games/vent-runner/tex/card.jpg', Astro.site).href}
+>
+  <Navbar />
+  <main class="page">
+
+    <section class="page-hero">
+      <div class="page-hero__bg"></div>
+      <div class="container page-hero__content">
+        <span class="page-hero__label">Labrats Games</span>
+        <h1 class="page-hero__title">Vent Runner</h1>
+        <p class="page-hero__subtitle">
+          The alarm's tripped and the Rat Pack's enemies are loose. Run three stages:
+          The Ductways, Lab Zero and The Cheese Vault. Clear Lab Zero to unlock
+          Dr. Basil Whiskerworth.
+        </p>
+      </div>
+    </section>
+
+    <section class="game-section" aria-label="Vent Runner game">
+      <div class="game-frame">
+        <iframe
+          id="ventRunnerFrame"
+          class="game-frame__iframe"
+          src={PLAY}
+          title="Labrats: Vent Runner"
+          allow="fullscreen; autoplay"
+          allowfullscreen
+          loading="eager"
+        ></iframe>
+      </div>
+      <div class="container game-actions">
+        <a href={PLAY} class="btn btn-outline" id="fullscreenBtn">Play full screen</a>
+      </div>
+    </section>
+
+    <div class="section-divider"></div>
+
+    <section class="how-section">
+      <div class="container">
+        <div class="section-header">
+          <span class="section-label">How To Play</span>
+          <h2 class="section-title">Keep running</h2>
+          <p class="section-subtitle">Grab cheese and power-ups, dodge everything else.</p>
+        </div>
+        <ul class="controls-grid">
+          {controls.map((c) => (
+            <li class="control-card">
+              <h3 class="control-card__action">{c.action}</h3>
+              <p class="control-card__line"><span>Keyboard</span>{c.keys}</p>
+              <p class="control-card__line"><span>Touch</span>{c.touch}</p>
+            </li>
+          ))}
+        </ul>
+      </div>
+    </section>
+
+  </main>
+  <Footer />
+</Layout>
+
+<script>
+  // Fullscreen the iframe where the browser allows it. iPhone Safari has no
+  // element fullscreen, so there (or if the request is refused) the button's
+  // own href opens the game on its own in this tab.
+  const btn = document.getElementById('fullscreenBtn') as HTMLAnchorElement | null;
+  const frame = document.getElementById('ventRunnerFrame') as any;
+  btn?.addEventListener('click', (e) => {
+    const request = frame?.requestFullscreen || frame?.webkitRequestFullscreen;
+    if (!frame || typeof request !== 'function') return;
+    e.preventDefault();
+    try {
+      Promise.resolve(request.call(frame))
+        .then(() => frame.contentWindow?.focus())
+        .catch(() => { window.location.href = btn.href; });
+    } catch {
+      window.location.href = btn.href;
+    }
+  });
+</script>
+
+<style>
+  /* Page chrome follows media.astro (page-hero, section-header, divider). */
+  .page {
+    padding-top: 80px;
+    background: var(--color-black);
+    min-height: 100vh;
+  }
+
+  .page-hero {
+    position: relative;
+    padding: 96px 0 48px;
+    overflow: hidden;
+    background: var(--color-black);
+  }
+
+  .page-hero__bg {
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle at 60% 50%, color-mix(in srgb, var(--color-teal) 8%, transparent) 0%, transparent 60%);
+  }
+
+  .page-hero__content {
+    position: relative;
+    z-index: 1;
+    max-width: 720px;
+  }
+
+  .page-hero__label {
+    display: inline-block;
+    font-family: var(--font-heading);
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--color-teal);
+    margin-bottom: 12px;
+  }
+
+  .page-hero__title {
+    font-family: var(--font-display);
+    font-size: clamp(40px, 6vw, 88px);
+    color: var(--color-yellow);
+    line-height: 1;
+    margin-bottom: 16px;
+  }
+
+  .page-hero__subtitle {
+    font-family: var(--font-heading);
+    font-size: clamp(17px, 2vw, 22px);
+    font-weight: 600;
+    color: var(--color-white);
+    letter-spacing: 0.5px;
+  }
+
+  .game-section {
+    padding: 0 24px 64px;
+    background: var(--color-black);
+  }
+
+  /* 16:9, up to ~1200px wide on desktop. */
+  .game-frame {
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
+    aspect-ratio: 16 / 9;
+    background: var(--color-bg-card);
+    border: 1px solid color-mix(in srgb, var(--color-teal) 30%, transparent);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+  }
+
+  .game-frame__iframe {
+    display: block;
+    width: 100%;
+    height: 100%;
+    border: 0;
+  }
+
+  .game-actions {
+    display: flex;
+    justify-content: center;
+    padding-top: 24px;
+  }
+
+  .section-divider {
+    height: 4px;
+    background: var(--color-teal);
+  }
+
+  .how-section {
+    padding: 80px 0 96px;
+    background: var(--color-white);
+  }
+
+  .section-header {
+    margin-bottom: 48px;
+  }
+
+  .section-label {
+    display: inline-block;
+    font-family: var(--font-heading);
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--color-teal);
+    margin-bottom: 12px;
+  }
+
+  .section-title {
+    font-family: var(--font-display);
+    font-size: clamp(32px, 4vw, 56px);
+    color: var(--color-black);
+    line-height: 1.05;
+    margin-bottom: 12px;
+  }
+
+  .section-subtitle {
+    font-family: var(--font-heading);
+    font-size: clamp(15px, 1.5vw, 18px);
+    font-weight: 500;
+    color: var(--color-black);
+  }
+
+  .controls-grid {
+    list-style: none;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 24px;
+  }
+
+  .control-card {
+    background: var(--color-white);
+    border: 2px solid var(--color-teal);
+    border-radius: var(--radius-lg);
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .control-card__action {
+    font-family: var(--font-heading);
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--color-black);
+    line-height: 1.2;
+  }
+
+  .control-card__line {
+    font-size: 14px;
+    line-height: 1.65;
+    color: var(--color-black);
+  }
+
+  .control-card__line span {
+    display: block;
+    font-family: var(--font-heading);
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--color-teal);
+  }
+
+  @media (max-width: 1024px) {
+    .controls-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+
+  /* Phones: the game fills the screen under the 80px site header. */
+  @media (max-width: 767px) {
+    .page-hero { padding: 48px 0 32px; }
+    .game-section { padding: 0 0 48px; }
+    .game-frame {
+      max-width: none;
+      aspect-ratio: auto;
+      height: calc(100vh - 80px);
+      height: calc(100svh - 80px);
+      border-radius: 0;
+      border-left: 0;
+      border-right: 0;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .controls-grid { grid-template-columns: 1fr; }
+  }
+</style>
