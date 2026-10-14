@@ -198,3 +198,25 @@
     #titleScreen .controls { display: none; }
     #titleScreen .missions { margin-top: 14px; }
   }
+
+  /* stage goal: progress bar in the HUD, goal line in the start banner, stage-clear screen */
+  .goal { margin-top: 6px; width: min(240px, 48vw); font-family: var(--cond); font-weight: 600; font-size: 14px; color: var(--muted); text-shadow: 0 1px 0 #000; }
+  .goal i { display: block; height: 6px; margin-top: 3px; border-radius: 99px; background: rgba(255,255,255,.16); overflow: hidden; }
+  .goal b { display: block; height: 100%; width: 0; border-radius: inherit; background: var(--sec, var(--teal)); box-shadow: 0 0 10px var(--sec, var(--teal)); transition: width .25s linear; }
+  .goal.done { color: var(--yellow); }
+  .goal.done b { background: var(--yellow); box-shadow: 0 0 12px var(--yellow); }
+  #banner .sub { margin-top: 10px; color: var(--ink); font-size: 20px; }
+  .clear-kicker { font-family: var(--display); letter-spacing: 6px; font-size: clamp(22px, 5vw, 30px); color: var(--teal); text-transform: uppercase; }
+  #clearScreen .vr-title { font-size: clamp(40px, 10vw, 76px); }
+  .unlocks { list-style: none; padding: 0; margin: 0 auto 18px; display: grid; gap: 8px; max-width: 380px; }
+  .unlocks li { font-family: var(--cond); font-weight: 700; font-size: 18px; padding: 8px 12px; border-radius: 10px; background: rgba(245,197,24,.12); border: 1px solid rgba(245,197,24,.45); color: var(--yellow); }
+  #clearMenuBtn { margin-top: 12px; }
+  .btn.small { font-size: 18px; padding: 8px 18px; }
+
+  /* game over: how this run went against the stage goal */
+  .stagebox { max-width: 380px; margin: 14px auto 4px; padding: 10px 14px; border-radius: 10px; background: rgba(10,16,19,.75); border: 1px solid rgba(255,255,255,.14);
+    font-family: var(--cond); font-weight: 600; font-size: 17px; color: var(--ink); }
+  .stagebox i { display: block; height: 7px; margin-top: 7px; border-radius: 99px; background: rgba(255,255,255,.16); overflow: hidden; }
+  .stagebox i b { display: block; height: 100%; border-radius: inherit; background: var(--sec, var(--teal)); }
+  .stagebox.done { color: var(--yellow); border-color: rgba(245,197,24,.45); background: rgba(245,197,24,.1); }
+  #overMenuBtn { margin-top: 12px; }

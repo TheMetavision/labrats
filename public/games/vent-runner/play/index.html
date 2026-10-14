@@ -19,6 +19,7 @@
       <span class="stat"><i class="wedge" aria-hidden="true"></i><span id="cheese">0</span></span>
       <span class="stat mult" id="mult">x1</span>
     </div>
+    <div class="goal" id="goal"><span id="goalTxt"></span><i><b id="goalBar"></b></i></div>
     <div class="powers" id="powers"></div>
   </div>
   <div class="btns">
@@ -32,7 +33,7 @@
   </div>
 </div>
 
-<div id="banner"><small>Entering</small><b id="bannerName">Lab Zero</b></div>
+<div id="banner"><small>Entering</small><b id="bannerName">Lab Zero</b><small id="bannerSub" class="sub"></small></div>
 <div id="toast"></div>
 <div id="warn">MechaMouser 9000 is right behind you</div>
 <button id="boardBtn" aria-label="Ride a Cheese Board"><b id="boardCount">3</b><small>Board</small></button>
@@ -49,6 +50,21 @@
     <div class="controls" id="controlsHelp"></div>
     <div class="missions" id="missionsTitle"></div>
     <div class="best" id="titleBest" style="margin-top:16px"></div>
+  </div>
+</div>
+
+<div class="overlay" id="clearScreen">
+  <div class="card">
+    <div class="clear-kicker">Stage clear</div>
+    <h2 class="title vr-title" id="clearTitle" data-text="The Ductways"><span>The Ductways</span></h2>
+    <div class="hazard" aria-hidden="true"></div>
+    <p class="lede" id="clearInfo"></p>
+    <ul class="unlocks" id="clearUnlocks"></ul>
+    <div class="row">
+      <button class="btn" id="nextBtn">Next stage</button>
+      <button class="btn ghost" id="keepBtn">Keep running</button>
+    </div>
+    <button class="btn ghost small" id="clearMenuBtn">Back to menu</button>
   </div>
 </div>
 
@@ -74,12 +90,14 @@
       <div><span>Cheese</span><b id="finalCheese">0</b></div>
       <div><span>Best</span><b id="finalBest">0</b></div>
     </div>
+    <div class="stagebox" id="stageProgress"></div>
     <div id="rankUp"></div>
     <div class="missions" id="missionsOver"></div>
     <div class="row">
       <button class="btn" id="againBtn">Run again</button>
+      <button class="btn ghost" id="overNextBtn">Next stage</button>
     </div>
-    <div class="fine">Draft 2: runner mechanics in place, stand-in character models</div>
+    <button class="btn ghost small" id="overMenuBtn">Back to menu</button>
   </div>
 </div>
 

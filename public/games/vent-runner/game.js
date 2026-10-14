@@ -16,7 +16,7 @@ const SECTION_LEN = 700;
 const CART_H = 1.5, CART_W = 1.45, RAMP_L = 3.4;
 /* ---------------- stages (stage map) ---------------- */
 const STAGES = [
-  { id: 'ductways', name: 'The Ductways', blurb: "The basement's covert access network", goal: 1500,
+  { id: 'ductways', name: 'The Ductways', blurb: "The basement's covert access network", goal: 1000,
     tex: { wall: 'wall', wallN: 'wallN', floor: 'floor', floorN: 'floorN', vista: 'vista', hazard: 'fan' }, card: 'card',
     wallColor: 0x9aa3ab, ceilColor: 0x6c747c, floorColor: 0xb4bac0, ribs: true, chaser: 'mecha', chaserName: 'MechaMouser 9000', crash: ['Smacked into a fan unit', 'Fan units need a lane change, or Spring Paws to clear them.'],
     decals: [['d0', 0.72, 0.71], ['d1', 0.86, 0.59], ['d2', 0.74, 0.65], ['d3', 0.8, 0.69], ['d4', 1.0, 0.46], ['d5', 1.7, 0.4, 2.75]], decalY: [1.35, 2.65],
@@ -24,7 +24,7 @@ const STAGES = [
       { name: 'The Ductways',       light: [0.00, 2.30, 2.60], fog: 0x04090b, ui: '#00c2d4' },
       { name: 'Duct Junction B-7',  light: [2.80, 2.10, 0.20], fog: 0x0e0a03, ui: '#f5c518' },
       { name: 'Maintenance Shafts', light: [3.00, 0.45, 0.35], fog: 0x0d0405, ui: '#ff5a4a' } ] },
-  { id: 'labzero', name: 'Lab Zero', blurb: 'Where the experiment decided it was done', goal: 1500,
+  { id: 'labzero', name: 'Lab Zero', blurb: 'Where the experiment decided it was done', goal: 1250,
     tex: { wall: 'lz_wall', wallN: 'lz_wallN', floor: 'lz_floor', floorN: 'lz_floorN', vista: 'lz_vista', hazard: 'lz_door' }, card: 'lz_card',
     wallColor: 0xa9b2ad, ceilColor: 0x59605c, floorColor: 0xa8aea8, ribs: false, chaser: 'fenrir', chaserName: 'Ludwig Fenrir', crash: ['Slammed into a blast door', 'Blast doors need a lane change, or Spring Paws to vault them.'],
     unlockNote: 'Clear Lab Zero to unlock Dr. Basil Whiskerworth',
@@ -1174,7 +1174,12 @@ $('muteBtn').addEventListener('click', e => { e.stopPropagation(); muted = !mute
 $('pauseBtn').addEventListener('click', e => { e.stopPropagation(); if (state === 'run') pause(); });
 $('playBtn').addEventListener('click', startRun);
 $('againBtn').addEventListener('click', startRun);
+$('overNextBtn').addEventListener('click', e => { e.stopPropagation(); $('overScreen').classList.remove('on'); applyStage(stageIdx + 1); startRun(); });
+$('overMenuBtn').addEventListener('click', e => { e.stopPropagation(); $('overScreen').classList.remove('on'); toTitle(); });
 $('resumeBtn').addEventListener('click', resume);
+$('keepBtn').addEventListener('click', e => { e.stopPropagation(); resume(); });
+$('nextBtn').addEventListener('click', e => { e.stopPropagation(); saveBest(); $('clearScreen').classList.remove('on'); applyStage(stageIdx + 1); startRun(); });
+$('clearMenuBtn').addEventListener('click', e => { e.stopPropagation(); saveBest(); $('clearScreen').classList.remove('on'); toTitle(); });
 $('quitBtn').addEventListener('click', () => { $('pauseScreen').classList.remove('on'); toTitle(); });
 
 let toastTimer = 0;
@@ -1182,8 +1187,23 @@ function toast(text, color) {
   const el = $('toast'); el.textContent = text; el.style.color = color || '';
   el.classList.remove('show'); void el.offsetWidth; el.classList.add('show');
 }
-function banner(name) {
-  $('bannerName').textContent = name;
+// stage-clear moment: pause the run, celebrate, show unlocks, then keep running or move on
+sfx.fanfare = () => { [[523, 0], [659, 0.12], [784, 0.24], [1047, 0.4]].forEach(([f, d], i) => {
+  tone(f, f, i === 3 ? 0.6 : 0.16, 'square', 0.08, d); tone(f / 2, f / 2, i === 3 ? 0.6 : 0.16, 'triangle', 0.1, d); }); };
+function saveBest() { const sc = scoreNow(); if (sc > best) { best = sc; store.set('lr_vent_best', best); } }
+function showClear(st, firstClear, bonus) {
+  state = 'paused'; musicDuck(0.35); sfx.fanfare();
+  const t = $('clearTitle'); t.dataset.text = st.name; t.firstElementChild.textContent = st.name;
+  $('clearInfo').textContent = `${Math.floor(S.dist).toLocaleString()} m · ${scoreNow().toLocaleString()} points (including a ${bonus.toLocaleString()} clear bonus)`;
+  const next = STAGES[stageIdx + 1], nr = RUNNERS.find(r => r.unlockStage === st.id), ul = [];
+  if (firstClear && next) ul.push(`Unlocked: ${next.name}`);
+  if (firstClear && nr) ul.push(`New runner unlocked: ${nr.name}`);
+  $('clearUnlocks').innerHTML = ul.map(x => `<li>${x}</li>`).join(''); $('clearUnlocks').style.display = ul.length ? '' : 'none';
+  $('nextBtn').style.display = next ? '' : 'none'; if (next) $('nextBtn').textContent = `Next stage: ${next.name}`;
+  $('clearScreen').classList.add('on'); (next ? $('nextBtn') : $('keepBtn')).focus();
+}
+function banner(name, sub) {
+  $('bannerName').textContent = name; $('bannerSub').textContent = sub || '';
   const el = $('banner'); el.classList.remove('show'); void el.offsetWidth; el.classList.add('show');
 }
 
@@ -1191,9 +1211,10 @@ function startRun() {
   ensureAudio();
   resetRun();
   state = 'run';
-  ['titleScreen', 'overScreen', 'pauseScreen'].forEach(id => $(id).classList.remove('on'));
+  ['titleScreen', 'overScreen', 'pauseScreen', 'clearScreen'].forEach(id => $(id).classList.remove('on'));
   $('hud').classList.add('on');
-  banner(SECTIONS[0].name);
+  { const st = STAGES[stageIdx];
+    banner(SECTIONS[0].name, store.get('lr_vent_clear_' + st.id, false) ? 'Cleared: go for a high score' : `Reach ${st.goal.toLocaleString()} m to clear`); }
   playMusic(STAGES[stageIdx].id); musicDuck(1);
   mecha.root.position.z = 16;
   boardShown = ''; updateBoardBtn(); $('boardBtn').classList.add('on');
@@ -1206,7 +1227,7 @@ function toTitle() {
   showBestOnTitle(); $('titleScreen').classList.add('on');
 }
 function pause() { musicDuck(0.35); state = 'paused'; $('pauseScreen').classList.add('on'); $('resumeBtn').focus(); }
-function resume() { musicDuck(1); state = 'run'; $('pauseScreen').classList.remove('on'); last = performance.now(); }
+function resume() { musicDuck(1); state = 'run'; $('pauseScreen').classList.remove('on'); $('clearScreen').classList.remove('on'); last = performance.now(); }
 document.addEventListener('visibilitychange', () => { if (document.hidden && state === 'run') pause(); });
 
 function scoreNow() { return Math.floor(S.distPts) + S.cheesePts + S.bonusPts; }
@@ -1245,6 +1266,13 @@ function finish() {
   $('finalBest').textContent = best.toLocaleString();
   $('newBest').innerHTML = isBest && sc > 0 ? '<span class="newbest">New best score</span>' : '';
   $('hud').classList.remove('on'); $('warn').classList.remove('on');
+  { const st = STAGES[stageIdx], cleared = store.get('lr_vent_clear_' + st.id, false), next = STAGES[stageIdx + 1];
+    const gd = Math.floor(Math.min(S.dist, st.goal)), el = $('stageProgress');
+    el.innerHTML = cleared ? `${st.name}: cleared${S.stageClear ? ' on this run' : ''}`
+      : `${st.name}: ${gd.toLocaleString()} / ${st.goal.toLocaleString()} m to clear<i><b style="width:${(gd / st.goal * 100).toFixed(1)}%"></b></i>`;
+    el.classList.toggle('done', cleared);
+    const nb = $('overNextBtn'), canNext = !!next && stageUnlocked(stageIdx + 1);
+    nb.style.display = canNext ? '' : 'none'; if (canNext) nb.textContent = `Next stage: ${next.name}`; }
   $('overScreen').classList.add('on');
   S.overReady = false; setTimeout(() => { S.overReady = true; $('againBtn').focus(); }, 500);
 }
@@ -1284,11 +1312,10 @@ function update(dt) {
     S.dist += move;
     if (!S.stageClear && S.dist >= STAGES[stageIdx].goal) {
       S.stageClear = true; const st = STAGES[stageIdx];
+      const firstClear = !store.get('lr_vent_clear_' + st.id, false);
       store.set('lr_vent_clear_' + st.id, true);
-      toast(`${st.name} cleared!`, '#f5c518'); sfx.mission(); S.bonusPts += 500 * multiplier();
-      if (STAGES[stageIdx + 1]) setTimeout(() => toast(`${STAGES[stageIdx + 1].name} unlocked`, '#00c2d4'), 1400);
-      const nr = RUNNERS.find(r => r.unlockStage === st.id);
-      if (nr) setTimeout(() => toast(`${nr.name} unlocked`, '#f5c518'), 2800);
+      const bonus = 500 * multiplier(); S.bonusPts += bonus;
+      showClear(st, firstClear, bonus);
     }
     S.distPts += move * multiplier();
     // section change
@@ -1602,6 +1629,10 @@ function update(dt) {
   if (running) {
     $('score').textContent = scoreNow().toLocaleString();
     $('dist').textContent = Math.floor(S.dist).toLocaleString() + ' m';
+    { const st = STAGES[stageIdx], gd = Math.floor(Math.min(S.dist, st.goal));
+      if (S.goalShown !== gd + (S.stageClear ? 'c' : '')) { S.goalShown = gd + (S.stageClear ? 'c' : '');
+        $('goalTxt').textContent = S.stageClear ? `${st.name} cleared` : `${st.name} · ${gd.toLocaleString()} / ${st.goal.toLocaleString()} m`;
+        $('goalBar').style.width = (gd / st.goal * 100).toFixed(1) + '%'; $('goal').classList.toggle('done', !!S.stageClear); } }
     $('cheese').textContent = S.cheese;
     $('mult').textContent = 'x' + multiplier();
     updatePowersHud(); updateBoardBtn();
