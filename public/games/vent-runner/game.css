@@ -220,3 +220,13 @@
   .stagebox i b { display: block; height: 100%; border-radius: inherit; background: var(--sec, var(--teal)); }
   .stagebox.done { color: var(--yellow); border-color: rgba(245,197,24,.45); background: rgba(245,197,24,.1); }
   #overMenuBtn { margin-top: 12px; }
+
+  /* phones: everything on the title screen must fit above the pinned Start button */
+  @media (max-height: 760px) and (max-width: 820px) {
+    #titleScreen .lede { display: none; }
+    #titleScreen .card { padding-bottom: 86px; }
+    .vr-title + .hazard { margin: 8px auto 10px; }
+    .stage { min-height: 64px; }
+    .runners .rp-label { display: none; }
+    .rp:not(.locked) small { display: none; }
+  }
