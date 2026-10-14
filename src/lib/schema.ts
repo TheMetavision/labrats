@@ -1,4 +1,5 @@
 import { canonicalUrl } from './url';
+import { SOCIAL_LINKS } from './socialLinks';
 
 /* The real trader: Labrats is a trading name of The Metavision Multimedia
    Limited (not a separate subsidiary), at its registered office. */
@@ -10,7 +11,7 @@ export function organizationSchema() {
     address: { '@type': 'PostalAddress', streetAddress: '167-169 Great Portland Street, 5th Floor', addressLocality: 'London', postalCode: 'W1W 5PF', addressCountry: 'GB' },
     vatID: 'GB503753017',
     identifier: { '@type': 'PropertyValue', propertyID: 'Companies House', value: '16282479' },
-    sameAs: ['https://www.youtube.com/@LabratsUK', 'https://www.instagram.com/labrats2025', 'https://www.tiktok.com/@labrats.uk', 'https://www.facebook.com/Labratsmm/'] };
+    sameAs: SOCIAL_LINKS.map((s) => s.href) };
 }
 export function websiteSchema() {
   return { '@context': 'https://schema.org', '@type': 'WebSite', name: 'Labrats', url: canonicalUrl('/'),

@@ -4,6 +4,7 @@
 // under villains and rivals.
 import type { APIRoute } from 'astro';
 import { client } from '../lib/sanity';
+import { SOCIAL_LINKS } from '../lib/socialLinks';
 
 type Character = { name: string; role?: string; bio?: string; characterType?: string; tag?: string };
 
@@ -42,10 +43,7 @@ Labrats merch features character apparel, collectibles, accessories, and art pri
 ## Links
 
 - Website: https://labrats.uk
-- YouTube: https://www.youtube.com/@LabratsMedia
-- Instagram: https://www.instagram.com/labratsmedia
-- TikTok: https://www.tiktok.com/@labratsmedia
-- X (Twitter): https://x.com/labratsmedia
+${SOCIAL_LINKS.map((s) => `- ${s.label}: ${s.href}`).join('\n')}
 - Blog: https://labrats.uk/rat-tales
 
 ## Parent Company
