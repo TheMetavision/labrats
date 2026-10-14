@@ -302,10 +302,20 @@ const navLinks = [
   }
 
   /* Below 1280px the seven links, the social icons and the cart no longer fit
-     on one row (measured: they overflow from about 1250px), so the burger and
-     the mobile menu take over. The header keeps its height here; it only
-     shrinks to 80px at 768px and below. */
+     on one row (measured: they overflow from about 1250px), so the compact
+     80px header takes over: small logo, cart and the burger with the mobile
+     menu. The full 160px header appears only with the desktop link row. */
   @media (max-width: 1279px) {
+    .navbar__inner {
+      height: 80px;
+      gap: 16px;
+      justify-content: space-between;
+    }
+
+    .navbar__logo-img {
+      height: 72px;
+    }
+
     .navbar__nav {
       display: none;
     }
@@ -330,15 +340,4 @@ const navLinks = [
     }
   }
 
-  @media (max-width: 768px) {
-    .navbar__inner {
-      height: 80px;
-      gap: 16px;
-      justify-content: space-between;
-    }
-
-    .navbar__logo-img {
-      height: 72px;
-    }
-  }
 </style>
