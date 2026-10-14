@@ -68,6 +68,7 @@ const SUPPRESSION_PATTERNS = [
   /^\/order(\/.*)?$/,
   /^\/missions(\/.*)?$/,
   /^\/media(\/.*)?$/,
+  /^\/games(\/.*)?$/, // the game has its own soundtrack
 ];
 const isSuppressedRoute = SUPPRESSION_PATTERNS.some((p) => p.test(Astro.url.pathname));
 const renderThemeAudio = themeAudio.enabled && !!themeAudio.audioUrl && !isSuppressedRoute;
