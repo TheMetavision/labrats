@@ -10,10 +10,15 @@
  * Pages with the site footer get "Cookie settings" there; the fallback link
  * below covers any page without it and is hidden by CSS when the footer's
  * link is present.
+ *
+ * On the Games pages it sits at the top, just under the site header, so it
+ * does not cover the game's Start button at the bottom of the game frame.
+ * Position only: the content, buttons and consent script are the same.
  */
+const atTop = /^\/games(\/|$)/.test(Astro.url.pathname);
 ---
 
-<div id="consent-banner" class="consent" role="region" aria-label="Cookie choices" hidden>
+<div id="consent-banner" class:list={["consent", { "consent--top": atTop }]} role="region" aria-label="Cookie choices" hidden>
   <div class="consent__inner">
     <p class="consent__text">
       We'd like to use Google Analytics to see how the lab is used. Its cookies are only set if you accept.
@@ -44,6 +49,13 @@
     color: var(--color-text, #f5f5f5);
   }
   .consent[hidden] { display: none; }
+  /* Games pages: under the fixed 160px header (80px at 768px and below), and
+     beneath it in the stacking order so the burger menu opens over it. */
+  .consent--top {
+    top: 160px; bottom: auto; z-index: 99;
+    border-top: 0; border-bottom: 2px solid var(--color-teal, #00c2d4);
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.5);
+  }
   .consent__inner {
     max-width: var(--max-width, 1280px); margin: 0 auto; padding: 16px 24px;
     display: flex; align-items: center; justify-content: space-between; gap: 24px;
@@ -76,6 +88,7 @@
   .lr-audio-log { margin-bottom: var(--consent-h, 0px); }
 
   @media (max-width: 768px) {
+    .consent--top { top: 80px; }
     .consent__inner { flex-direction: column; align-items: stretch; gap: 12px; padding: 14px 16px; }
     .consent__btn { flex: 1; }
   }
