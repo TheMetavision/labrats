@@ -1,0 +1,12 @@
+// GET /api/vr-board?period=month|all|YYYY-MM  ->  { period, entries: [{ rank, nick, dist, score, stage, runner, at }] }
+// Public view: no device ids, run ids or timings.
+import { vrStore, monthId, publicEntry, json, PUBLIC_SIZE } from '../lib/vr-shared.mjs';
+
+export default async (req) => {
+  const q = new URL(req.url).searchParams.get('period') || 'month';
+  const period = q === 'all' ? 'all' : /^\d{4}-\d{2}$/.test(q) ? q : monthId();
+  const store = await vrStore();
+  const board = await store.get(`board/${period}`, { type: 'json' });
+  const entries = (board ? board.entries : []).slice(0, PUBLIC_SIZE).map(publicEntry);
+  return json({ period, entries }, 200, { 'cache-control': 'public, max-age=20' });
+};
