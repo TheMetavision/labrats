@@ -1,0 +1,118 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import Navbar from '../../components/Navbar.astro';
+import Footer from '../../components/Footer.astro';
+
+// Copy: docs/vent-runner-leaderboard-copy.md (page 1). Styles follow the
+// legal pages (src/pages/legal/[slug].astro).
+---
+
+<Layout
+  title="Vent Runner leaderboard rules | Labrats"
+  description="Rules for the free Vent Runner monthly leaderboard on labrats.uk: the furthest run each month wins a Labrats t-shirt."
+  canonical="/games/leaderboard-terms"
+>
+  <Navbar />
+  <article class="legal">
+    <header class="legal__header">
+      <p class="legal__eyebrow">Labrats Games</p>
+      <h1 class="legal__title">Vent Runner leaderboard rules</h1>
+    </header>
+
+    <div class="legal__body">
+      <p><strong>Who runs it.</strong> The Vent Runner leaderboard is run by The Metavision Multimedia Limited (company number 16282479), 167-169 Great Portland Street, London, trading as Labrats ("we").</p>
+
+      <p><strong>Free to play, no purchase needed.</strong> Every run of Vent Runner played on labrats.uk is entered automatically under the player's racing name. Nobody has to buy anything or sign up to take part.</p>
+
+      <p><strong>Young players.</strong> Players under 18 need a parent or guardian's permission to take part. Only a parent or guardian aged 18 or over can claim a prize.</p>
+
+      <p><strong>How the winner is decided.</strong> Each month is a separate competition, running from the 1st to the last day of the calendar month, UK time, and starting from an empty leaderboard. Runs from earlier months don't count. The winner is the player with the furthest distance in a single run that month, as recorded by our leaderboard. If two runs are equal, the earlier one wins. Each device's best run counts once.</p>
+
+      <p><strong>The prize.</strong> One Labrats t-shirt each month, in a size chosen when the prize is claimed. There's no cash alternative. If that t-shirt isn't available, we may send a Labrats item of equal or higher value instead.</p>
+
+      <p><strong>Claiming.</strong> The winner sees a "You won!" message with a prize code the next time they open Vent Runner on the device they played on. A parent or guardian claims the prize at <a href="/games/claim/">labrats.uk/games/claim/</a> using that code within 30 days of the end of the month. Prizes can only be sent to UK addresses. Prizes not claimed in time lapse. We post prizes within 28 days of a valid claim.</p>
+
+      <p><strong>Fair play.</strong> Runs are checked automatically. We review the winning run before sending the prize and may disqualify any entry we reasonably believe involved cheating, automation, or tampering with the game. If the winner is disqualified or the prize isn't claimed, we may offer it to the next eligible player.</p>
+
+      <p><strong>Racing names.</strong> Players don't type their own names: the game creates a random racing name (for example "SneakyCheddar42"), which can be changed with the New name button. We may show the winning racing name and distance on our website and social media. We never publish real names.</p>
+
+      <p><strong>Changes.</strong> We may change or end the leaderboard by updating this page. Prizes already won will still be honoured.</p>
+
+      <p><strong>Questions.</strong> Email <a href="mailto:contact@labrats.uk">contact@labrats.uk</a>.</p>
+    </div>
+
+    <nav class="legal__siblings" aria-label="Related pages">
+      <h2>Related</h2>
+      <ul>
+        <li><a href="/games/vent-runner/">Play Vent Runner</a></li>
+        <li><a href="/legal/privacy-policy/">Privacy policy</a></li>
+      </ul>
+    </nav>
+  </article>
+  <Footer />
+</Layout>
+
+<style>
+  .legal {
+    max-width: 760px;
+    margin: 0 auto;
+    padding: 14rem 1.25rem 6rem;
+    color: #f5f5f5;
+  }
+  .legal__header {
+    margin-bottom: 3rem;
+    padding-bottom: 2rem;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+  }
+  .legal__eyebrow {
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--color-primary, #00d4ff);
+    font-weight: 700;
+    margin: 0 0 0.5rem;
+  }
+  .legal__title {
+    font-size: clamp(2rem, 4vw, 3rem);
+    line-height: 1.1;
+    margin: 0;
+  }
+  .legal__body {
+    font-size: 1.0625rem;
+    line-height: 1.7;
+  }
+  .legal__body p { margin: 0 0 1rem; }
+  .legal__body a {
+    color: var(--color-primary, #00d4ff);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+  .legal__siblings {
+    margin-top: 4rem;
+    padding-top: 2rem;
+    border-top: 1px solid rgba(255,255,255,0.1);
+  }
+  .legal__siblings h2 {
+    font-size: 0.875rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: #aaa;
+    margin: 0 0 1rem;
+  }
+  .legal__siblings ul {
+    list-style: none;
+    padding: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem 1.5rem;
+  }
+  .legal__siblings a {
+    color: #f5f5f5;
+    text-decoration: none;
+    border-bottom: 1px solid currentColor;
+    padding-bottom: 1px;
+  }
+  .legal__siblings a:hover {
+    color: var(--color-primary, #00d4ff);
+  }
+</style>
