@@ -1,0 +1,331 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import Navbar from '../../components/Navbar.astro';
+import Footer from '../../components/Footer.astro';
+
+// Prize claim form for the Vent Runner monthly leaderboard. Copy:
+// docs/vent-runner-leaderboard-copy.md (page 2). The game links here with
+// ?month=YYYY-MM&code=XXXXXXXX; the script below reads both and POSTs JSON to
+// /api/vr-claim (netlify/functions/vr-claim.mjs). Form styles follow contact.astro.
+const sizes = ['Kids 3-4', 'Kids 5-6', 'Kids 7-8', 'Kids 9-11', 'Kids 12-14', 'Adult S', 'Adult M', 'Adult L', 'Adult XL'];
+---
+
+<Layout
+  title="Claim a Vent Runner prize | Labrats"
+  description="Claim the Labrats t-shirt your Vent Runner champion won on the monthly leaderboard."
+  canonical="/games/claim"
+  noIndex
+>
+  <Navbar />
+  <main class="claim">
+    <header class="claim__header">
+      <p class="claim__eyebrow">Labrats Games</p>
+      <h1 class="claim__title">Claim a Vent Runner prize</h1>
+      <p class="claim__intro"><em>Congratulations to your Vent Runner champion! Fill in this form to claim their Labrats t-shirt. You'll need the prize code shown in the game.</em></p>
+    </header>
+
+    <form class="claim-form" id="claimForm" novalidate>
+      <input type="hidden" name="month" id="month" />
+
+      <div class="form-group">
+        <label for="claimCode" class="form-label">Prize code</label>
+        <input id="claimCode" name="claimCode" class="form-input claim-form__code" type="text" required minlength="8" maxlength="8" autocomplete="off" autocapitalize="characters" spellcheck="false" />
+      </div>
+
+      <div class="form-group" id="monthGroup" hidden>
+        <label for="monthPick" class="form-label">Month won</label>
+        <select id="monthPick" class="form-input form-select"></select>
+      </div>
+
+      <div class="form-group">
+        <label for="guardianName" class="form-label">Your name (parent or guardian)</label>
+        <input id="guardianName" name="guardianName" class="form-input" type="text" required maxlength="80" autocomplete="name" />
+      </div>
+
+      <div class="form-group">
+        <label for="email" class="form-label">Your email</label>
+        <input id="email" name="email" class="form-input" type="email" required maxlength="120" autocomplete="email" />
+      </div>
+
+      <div class="form-group">
+        <label for="address1" class="form-label">Address line 1</label>
+        <input id="address1" name="address1" class="form-input" type="text" required maxlength="120" autocomplete="address-line1" />
+      </div>
+
+      <div class="form-group">
+        <label for="address2" class="form-label">Address line 2 (optional)</label>
+        <input id="address2" name="address2" class="form-input" type="text" maxlength="120" autocomplete="address-line2" />
+      </div>
+
+      <div class="form-group">
+        <label for="town" class="form-label">Town or city</label>
+        <input id="town" name="town" class="form-input" type="text" required maxlength="80" autocomplete="address-level2" />
+      </div>
+
+      <div class="form-group">
+        <label for="postcode" class="form-label">Postcode</label>
+        <input id="postcode" name="postcode" class="form-input" type="text" required maxlength="12" autocomplete="postal-code" autocapitalize="characters" aria-describedby="postcode-note" />
+        <p class="form-note" id="postcode-note">Prizes can only be sent to UK addresses.</p>
+      </div>
+
+      <div class="form-group">
+        <label for="size" class="form-label">T-shirt size</label>
+        <select id="size" name="size" class="form-input form-select" required>
+          <option value="" disabled selected>Choose a size</option>
+          {sizes.map((s) => <option value={s}>{s}</option>)}
+        </select>
+      </div>
+
+      <div class="form-check">
+        <input id="consent" name="consent" type="checkbox" required />
+        <label for="consent">I'm the winner's parent or guardian, I'm 18 or over, and I agree to the <a href="/games/leaderboard-terms/">leaderboard rules</a>. See our <a href="/legal/privacy-policy/">privacy policy</a>.</label>
+      </div>
+
+      <button type="submit" class="form-submit" id="claimSubmit">
+        <span class="submit-text">Claim prize</span>
+        <span class="submit-sending" hidden>Sending...</span>
+      </button>
+
+      <p class="form-message form-message--error" id="claimError" role="alert" hidden></p>
+    </form>
+
+    <p class="form-message form-message--success" id="claimSuccess" aria-live="polite" hidden><em>Thanks! We've emailed you a receipt. We'll check the winning run and post the t-shirt within 28 days.</em></p>
+  </main>
+  <Footer />
+</Layout>
+
+<script>
+  const MESSAGES: Record<string, string> = {
+    code: "That prize code doesn't match this month's winner. Check the code shown in the game.",
+    claimed: 'This prize has already been claimed. Questions? Email contact@labrats.uk.',
+    form: "Please fill in every field and tick the box to confirm you're the winner's parent or guardian.",
+    other: 'Something went wrong sending your claim. Please try again, or email contact@labrats.uk.',
+  };
+  // UK postcodes, including BFPO and GIR 0AA; spaces optional.
+  const UK_POSTCODE = /^(GIR ?0AA|BFPO ?\d{1,4}|[A-Z]{1,2}\d[A-Z\d]? ?\d[A-Z]{2})$/i;
+
+  const form = document.getElementById('claimForm') as HTMLFormElement;
+  const monthInput = document.getElementById('month') as HTMLInputElement;
+  const monthGroup = document.getElementById('monthGroup') as HTMLElement;
+  const monthPick = document.getElementById('monthPick') as HTMLSelectElement;
+  const codeInput = document.getElementById('claimCode') as HTMLInputElement;
+  const submit = document.getElementById('claimSubmit') as HTMLButtonElement;
+  const errorEl = document.getElementById('claimError') as HTMLElement;
+  const successEl = document.getElementById('claimSuccess') as HTMLElement;
+
+  const params = new URLSearchParams(location.search);
+  const code = params.get('code');
+  if (code) codeInput.value = code.trim().toUpperCase().slice(0, 8);
+
+  const month = params.get('month');
+  if (month && /^\d{4}-\d{2}$/.test(month)) {
+    monthInput.value = month;
+  } else {
+    // No month in the link: offer the last two calendar months.
+    const now = new Date();
+    for (let back = 1; back <= 2; back++) {
+      const d = new Date(now.getFullYear(), now.getMonth() - back, 1);
+      const value = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+      monthPick.add(new Option(d.toLocaleDateString('en-GB', { month: 'long', year: 'numeric' }), value));
+    }
+    monthGroup.hidden = false;
+  }
+
+  const showError = (reason: string) => {
+    errorEl.textContent = MESSAGES[reason] || MESSAGES.other;
+    errorEl.hidden = false;
+  };
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    errorEl.hidden = true;
+    const val = (id: string) => ((form.elements.namedItem(id) as HTMLInputElement).value || '').trim();
+    const body = {
+      month: monthInput.value || monthPick.value,
+      claimCode: val('claimCode').toUpperCase(),
+      guardianName: val('guardianName'),
+      email: val('email'),
+      address1: val('address1'),
+      address2: val('address2'),
+      town: val('town'),
+      postcode: val('postcode').toUpperCase(),
+      size: val('size'),
+      consent: (form.elements.namedItem('consent') as HTMLInputElement).checked,
+    };
+    if (!form.checkValidity() || !UK_POSTCODE.test(body.postcode)) {
+      form.reportValidity();
+      showError('form');
+      return;
+    }
+
+    submit.disabled = true;
+    (submit.querySelector('.submit-text') as HTMLElement).hidden = true;
+    (submit.querySelector('.submit-sending') as HTMLElement).hidden = false;
+    try {
+      const res = await fetch('/api/vr-claim', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (res.ok && data.ok) {
+        form.hidden = true;
+        successEl.hidden = false;
+        successEl.scrollIntoView({ block: 'center' });
+        return;
+      }
+      showError(data.reason || 'other');
+    } catch {
+      showError('other');
+    }
+    submit.disabled = false;
+    (submit.querySelector('.submit-text') as HTMLElement).hidden = false;
+    (submit.querySelector('.submit-sending') as HTMLElement).hidden = true;
+  });
+</script>
+
+<style>
+  /* Page chrome follows the legal pages; fields follow contact.astro. */
+  .claim {
+    max-width: 640px;
+    margin: 0 auto;
+    padding: 14rem 1.25rem 6rem;
+    color: #f5f5f5;
+  }
+  .claim__header {
+    margin-bottom: 2.5rem;
+    padding-bottom: 2rem;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+  }
+  .claim__eyebrow {
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--color-primary, #00d4ff);
+    font-weight: 700;
+    margin: 0 0 0.5rem;
+  }
+  .claim__title {
+    font-size: clamp(2rem, 4vw, 3rem);
+    line-height: 1.1;
+    margin: 0 0 1rem;
+  }
+  .claim__intro {
+    font-size: 1.125rem;
+    line-height: 1.6;
+    color: #ccc;
+    margin: 0;
+  }
+
+  .claim-form {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+  .claim-form[hidden], .form-group[hidden] { display: none; }
+
+  .form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .form-label {
+    font-family: var(--font-heading);
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--color-white);
+    letter-spacing: 0.5px;
+  }
+  .form-input {
+    background: #111111;
+    border: 1px solid var(--color-teal);
+    color: var(--color-white);
+    border-radius: 6px;
+    padding: 12px;
+    font-family: var(--font-body);
+    font-size: 15px;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    outline: none;
+    width: 100%;
+  }
+  .form-input:focus {
+    border-color: var(--color-yellow);
+    box-shadow: 0 0 0 3px rgba(245, 197, 24, 0.12);
+  }
+  .claim-form__code {
+    font-family: var(--font-heading);
+    letter-spacing: 3px;
+    text-transform: uppercase;
+  }
+  .form-select {
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2300c2d4' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    padding-right: 40px;
+    cursor: pointer;
+  }
+  .form-select option {
+    background: #111111;
+    color: var(--color-white);
+  }
+  .form-note {
+    margin: 0;
+    font-size: 13px;
+    color: #aaa;
+  }
+  .form-check {
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+    font-size: 15px;
+    line-height: 1.55;
+  }
+  .form-check input {
+    width: 20px;
+    height: 20px;
+    margin-top: 2px;
+    flex-shrink: 0;
+    accent-color: var(--color-teal);
+  }
+  .form-check a {
+    color: var(--color-primary, #00d4ff);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+  .form-submit {
+    width: 100%;
+    padding: 14px 32px;
+    background: var(--color-teal);
+    color: #0a0a0a;
+    font-family: var(--font-heading);
+    font-size: 16px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+  .form-submit:hover { background: var(--color-yellow); }
+  .form-submit:disabled { opacity: 0.6; cursor: default; }
+  .form-message {
+    margin: 0;
+    padding: 14px 16px;
+    border-radius: 6px;
+    font-size: 15px;
+    line-height: 1.55;
+  }
+  .form-message[hidden] { display: none; }
+  .form-message--error {
+    border: 1px solid #ff8fa3;
+    color: #ff8fa3;
+    background: rgba(255, 143, 163, 0.06);
+  }
+  .form-message--success {
+    border: 1px solid var(--color-teal);
+    color: var(--color-white);
+    background: rgba(0, 194, 212, 0.08);
+  }
+</style>

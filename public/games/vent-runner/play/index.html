@@ -47,6 +47,7 @@
     <div class="stages" id="stagePicker"></div>
     <div class="runners" id="runnerPicker"></div>
     <button class="btn" id="playBtn">Start running</button>
+    <button class="btn ghost small lb-only" id="lbOpenTitle">Leaderboard</button>
     <div class="controls" id="controlsHelp"></div>
     <div class="missions" id="missionsTitle"></div>
     <div class="best" id="titleBest" style="margin-top:16px"></div>
@@ -65,6 +66,33 @@
       <button class="btn ghost" id="keepBtn">Keep running</button>
     </div>
     <button class="btn ghost small" id="clearMenuBtn">Back to menu</button>
+  </div>
+</div>
+
+<div class="overlay" id="lbScreen">
+  <div class="card">
+    <h2 class="lbhead">Furthest runs</h2>
+    <div class="lbtabs" role="tablist">
+      <button class="lbtab sel" data-p="month" role="tab" aria-selected="true">This month</button>
+      <button class="lbtab" data-p="all" role="tab" aria-selected="false">All time</button>
+    </div>
+    <ol class="lblist" id="lbList"></ol>
+    <div class="lbme">Your racing name: <b id="lbNick"></b> <button class="btn ghost small" id="lbShuffle">New name</button></div>
+    <p class="lbnote">The furthest run each month wins a Labrats t-shirt. A parent or guardian claims the prize. <a href="/games/leaderboard-terms/" target="_top">Leaderboard rules</a></p>
+    <button class="btn" id="lbClose">Back</button>
+  </div>
+</div>
+
+<div class="overlay" id="winScreen">
+  <div class="card">
+    <h2 class="title vr-title" data-text="You won!"><span>You won!</span></h2>
+    <p class="lede" id="winText"></p>
+    <div class="wincode">Prize code <b id="winCode"></b></div>
+    <p class="lbnote">Ask a parent or guardian to claim your Labrats t-shirt. They'll need this code.</p>
+    <div class="row">
+      <a class="btn" id="winClaim" href="/games/claim/" target="_top">Claim the prize (grown-ups)</a>
+      <button class="btn ghost" id="winLater">Later</button>
+    </div>
   </div>
 </div>
 
@@ -97,7 +125,9 @@
       <button class="btn" id="againBtn">Run again</button>
       <button class="btn ghost" id="overNextBtn">Next stage</button>
     </div>
+    <div class="lbresult lb-only" id="lbResult"></div>
     <button class="btn ghost small" id="overMenuBtn">Back to menu</button>
+    <button class="btn ghost small lb-only" id="lbOpenOver">Leaderboard</button>
   </div>
 </div>
 
@@ -113,7 +143,7 @@
 <script src="../vendor/RenderPass.js"></script>
 <script src="../vendor/UnrealBloomPass.js"></script>
 <script src="../vendor/GLTFLoader.js"></script>
-<script>window.VR_BASE = "/games/vent-runner/";</script>
+<script>window.VR_BASE = "/games/vent-runner/"; window.VR_API = "/api";</script>
 <script src="../game.js"></script>
 </body>
 </html>
