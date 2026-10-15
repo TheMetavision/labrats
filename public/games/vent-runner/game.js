@@ -46,16 +46,33 @@ const STAGES = [
 ];
 const DEBUG = new URLSearchParams(location.search).has('debug');
 const UNLOCK_ALL = DEBUG;  // ?debug unlocks every stage and runner for testing; players unlock them by clearing stages
+const store = {
+  get(k, d) { try { const v = localStorage.getItem(k); return v === null ? d : JSON.parse(v); } catch (e) { return d; } },
+  set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} }
+};
+/* ---------------- leaderboard (only on labrats.uk, where the server functions live) ----------------
+   Ranks the furthest single run. Each run gets a ticket stamped with the server's clock when it starts;
+   the server rejects any distance that couldn't physically be reached in the real time since then. */
+const VR_API = window.VR_API || null;
+const LB = !!VR_API && (!DEBUG || window.VR_TEST_LB === true);   // test mode never posts scores (except in automated tests)
+const NICK_A = ['Sneaky', 'Speedy', 'Clever', 'Brave', 'Swift', 'Zippy', 'Mighty', 'Cosmic', 'Turbo', 'Daring', 'Nimble', 'Rapid', 'Bold', 'Lucky', 'Jolly', 'Fizzy', 'Super', 'Rocket', 'Sparky', 'Plucky'];
+const NICK_B = ['Cheddar', 'Whisker', 'Scurry', 'Gouda', 'Squeak', 'Nibbler', 'Brie', 'Paws', 'Dasher', 'Sprinter', 'Scout', 'Gizmo', 'Pixel', 'Comet', 'Ratlet', 'Rascal', 'Edam', 'Bolt', 'Nugget', 'Zoomer'];
+const pick = a => a[Math.floor(Math.random() * a.length)];
+const newNick = () => pick(NICK_A) + pick(NICK_B) + String(Math.floor(Math.random() * 100)).padStart(2, '0');
+let lbNick = store.get('lr_vent_nick', null);
+if (!lbNick || !/^[A-Z][a-z]+[A-Z][a-z]+\d{2}$/.test(lbNick)) { lbNick = newNick(); store.set('lr_vent_nick', lbNick); }
+function lbDeviceKey() {
+  let k = store.get('lr_vent_dev', null);
+  if (!k || !/^[a-f0-9]{64}$/.test(k)) { const a = new Uint8Array(32); crypto.getRandomValues(a); k = Array.from(a, b => b.toString(16).padStart(2, '0')).join(''); store.set('lr_vent_dev', k); }
+  return k;
+}
+async function sha256hex(s) { const d = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(s)); return Array.from(new Uint8Array(d), b => b.toString(16).padStart(2, '0')).join(''); }
 let stageIdx = Math.min(STAGES.length - 1, store0('lr_vent_stage', 0));
 let SECTIONS = STAGES[stageIdx].sections;
 function store0(k, d) { try { const v = localStorage.getItem(k); return v === null ? d : JSON.parse(v); } catch (e) { return d; } }
 const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
 const coarse = matchMedia('(pointer: coarse)').matches;
 
-const store = {
-  get(k, d) { try { const v = localStorage.getItem(k); return v === null ? d : JSON.parse(v); } catch (e) { return d; } },
-  set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} }
-};
 const $ = id => document.getElementById(id);
 
 /* ============================================================
@@ -507,7 +524,7 @@ function syncChaser() {
 // characters download on demand: only the chosen runner and the current stage's chaser
 const CHAR_LOAD = {
   shadow: () => loadCharacter('glb-shadow', 1.3, rat.root, ch => { CH.shadow = ch; syncRunner(); }),
-  basil: () => loadCharacter('glb-basil', 1.3 / 1.27, rat.root, ch => { ch.model.traverse(o => { if (o.isMesh) { o.material.emissiveIntensity = 0.12; o.material.metalness = 0.15; o.material.roughness = 0.75; o.material.needsUpdate = true; } }); CH.basil = ch; syncRunner(); }),
+  basil: () => loadCharacter('glb-basil2', 1.3, rat.root, ch => { ch.model.traverse(o => { if (o.isMesh) { o.material.emissiveIntensity = 0.12; o.material.metalness = 0.15; o.material.roughness = 0.75; o.material.needsUpdate = true; } }); CH.basil = ch; syncRunner(); }),
   mecha: () => loadCharacter('glb-mecha', 1.75 / 0.9, mecha.root, ch => { CH.mecha = ch; syncChaser(); }),
   fenrir: () => loadCharacter('glb-fenrir', 2.0 / 0.9, mecha.root, ch => { CH.fenrir = ch; syncChaser(); })
 };
@@ -767,7 +784,9 @@ function tone(f1, f2, d, wave, v, delay) {
   o.connect(g); g.connect(actx.destination); o.start(t); o.stop(t + d + 0.03);
 }
 /* ---------------- music: looping stage tracks + title theme (hosted audio assets) ---------------- */
-const MUSIC_URLS = Object.fromEntries(['theme', 'ductways', 'labzero', 'vault'].map(k => [k, [VR_BASE + 'audio/' + k + '.mp4', VR_BASE + 'audio/' + k + '.webm']]));
+// file names change whenever a track is replaced, because the site caches audio for a week
+const MUSIC_FILES = { theme: 'theme', ductways: 'ductways', labzero: 'labzero', vault: 'vault2' };
+const MUSIC_URLS = Object.fromEntries(Object.entries(MUSIC_FILES).map(([k, f]) => [k, [VR_BASE + 'audio/' + f + '.mp4', VR_BASE + 'audio/' + f + '.webm']]));
 const MUSIC_VOL = 0.42;
 const music = { gain: null, bufs: {}, loading: {}, cur: null, key: null, want: null, level: 1 };
 function musicGainNode() {
@@ -1144,6 +1163,7 @@ function renderStagePicker() {
   }));
 }
 applyStage(stageIdx);
+lbInit();
 const PW_ROWS = {};
 [...Object.entries(POWERS), ['board', BOARD]].forEach(([k, P]) => {
   const d = document.createElement('div'); d.className = 'pw'; d.style.setProperty('--c', P.css);
@@ -1190,7 +1210,7 @@ function toast(text, color) {
 // stage-clear moment: pause the run, celebrate, show unlocks, then keep running or move on
 sfx.fanfare = () => { [[523, 0], [659, 0.12], [784, 0.24], [1047, 0.4]].forEach(([f, d], i) => {
   tone(f, f, i === 3 ? 0.6 : 0.16, 'square', 0.08, d); tone(f / 2, f / 2, i === 3 ? 0.6 : 0.16, 'triangle', 0.1, d); }); };
-function saveBest() { const sc = scoreNow(); if (sc > best) { best = sc; store.set('lr_vent_best', best); } }
+function saveBest() { const sc = scoreNow(); if (sc > best) { best = sc; store.set('lr_vent_best', best); } lbSubmitRun(sc); }  // leaving a cleared run also posts it to the leaderboard
 function showClear(st, firstClear, bonus) {
   state = 'paused'; musicDuck(0.35); sfx.fanfare();
   const t = $('clearTitle'); t.dataset.text = st.name; t.firstElementChild.textContent = st.name;
@@ -1210,6 +1230,7 @@ function banner(name, sub) {
 function startRun() {
   ensureAudio();
   resetRun();
+  lbBeginRun();
   state = 'run';
   ['titleScreen', 'overScreen', 'pauseScreen', 'clearScreen'].forEach(id => $(id).classList.remove('on'));
   $('hud').classList.add('on');
@@ -1230,6 +1251,69 @@ function pause() { musicDuck(0.35); state = 'paused'; $('pauseScreen').classList
 function resume() { musicDuck(1); state = 'run'; $('pauseScreen').classList.remove('on'); $('clearScreen').classList.remove('on'); last = performance.now(); }
 document.addEventListener('visibilitychange', () => { if (document.hidden && state === 'run') pause(); });
 
+let lbDevHash = null, lbTicket = null;
+async function lbPost(path, body) {
+  const r = await fetch(VR_API + '/' + path, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) });
+  return r.json();
+}
+function lbBeginRun() {
+  if ($('lbResult')) $('lbResult').textContent = '';
+  if (!LB) return;
+  const run = { stage: STAGES[stageIdx].id, runner: RUNNERS[runnerIdx].id };
+  lbTicket = (async () => { lbDevHash = lbDevHash || await sha256hex(lbDeviceKey()); const r = await lbPost('vr-start', { ...run, dev: lbDevHash }); return r.token || null; })().catch(() => null);
+}
+function lbSubmitRun(score) {
+  const el = $('lbResult'); if (!LB || !el) return;
+  el.textContent = '';
+  const ticket = lbTicket; lbTicket = null;
+  const dist = Math.floor(S.dist);
+  if (!ticket || dist < 100) return;
+  el.textContent = 'Sending your run to the leaderboard…';
+  ticket.then(token => token ? lbPost('vr-submit', { token, nick: lbNick, dist, score }) : null).then(r => {
+    if (!r) { el.textContent = ''; return; }
+    if (r.ok && r.monthRank) el.textContent = `Leaderboard: you're ${ordinal(r.monthRank)} this month as ${lbNick}`;
+    else if (r.ok) el.textContent = `Run saved. The top 100 this month are further ahead, keep going!`;
+    else el.textContent = '';
+  }).catch(() => { el.textContent = ''; });
+}
+function ordinal(n) { const s = ['th', 'st', 'nd', 'rd'], v = n % 100; return n + (s[(v - 20) % 10] || s[v] || s[0]); }
+let lbPeriod = 'month', lbReturnTo = 'titleScreen';
+const STAGE_SHORT = { ductways: 'Ductways', labzero: 'Lab Zero', vault: 'Cheese Vault' }, RUNNER_NAME = { shadow: 'Shadow', basil: 'Basil' };
+async function lbShow(from) {
+  lbReturnTo = from; $(from).classList.remove('on'); $('lbScreen').classList.add('on');
+  $('lbNick').textContent = lbNick; lbLoad();
+}
+async function lbLoad() {
+  const list = $('lbList'); list.innerHTML = '<li><span class="empty">Loading…</span></li>';
+  document.querySelectorAll('.lbtab').forEach(t => { const on = t.dataset.p === lbPeriod; t.classList.toggle('sel', on); t.setAttribute('aria-selected', on); });
+  try {
+    const r = await (await fetch(VR_API + '/vr-board?period=' + lbPeriod)).json();
+    list.innerHTML = r.entries.length ? r.entries.map(e => `<li class="${e.nick === lbNick ? 'me' : ''}"><b>${e.rank}</b><span>${e.nick}<small>${STAGE_SHORT[e.stage] || ''} · ${RUNNER_NAME[e.runner] || ''}</small></span><span class="d">${e.dist.toLocaleString()} m</span></li>`).join('')
+      : `<li><span class="empty">No runs yet${lbPeriod === 'month' ? ' this month' : ''}. Be the first!</span></li>`;
+  } catch (e) { list.innerHTML = '<li><span class="empty">The leaderboard is unavailable right now.</span></li>'; }
+}
+function lbInit() {
+  if (!LB) return;
+  document.body.classList.add('lb');
+  $('lbOpenTitle').addEventListener('click', e => { e.stopPropagation(); lbShow('titleScreen'); });
+  $('lbOpenOver').addEventListener('click', e => { e.stopPropagation(); lbShow('overScreen'); });
+  $('lbClose').addEventListener('click', e => { e.stopPropagation(); $('lbScreen').classList.remove('on'); $(lbReturnTo).classList.add('on'); });
+  document.querySelectorAll('.lbtab').forEach(t => t.addEventListener('click', e => { e.stopPropagation(); lbPeriod = t.dataset.p; lbLoad(); }));
+  $('lbShuffle').addEventListener('click', e => { e.stopPropagation(); lbNick = newNick(); store.set('lr_vent_nick', lbNick); $('lbNick').textContent = lbNick; lbLoad(); });
+  $('winLater').addEventListener('click', e => { e.stopPropagation(); $('winScreen').classList.remove('on'); $('titleScreen').classList.add('on'); });
+  // did this device win last month?
+  const p = new Intl.DateTimeFormat('en-GB', { timeZone: 'Europe/London', year: 'numeric', month: '2-digit' }).formatToParts(new Date());
+  let y = +p.find(x => x.type === 'year').value, m = +p.find(x => x.type === 'month').value - 1; if (m === 0) { m = 12; y--; }
+  const month = y + '-' + String(m).padStart(2, '0');
+  lbPost('vr-winner', { month, deviceKey: lbDeviceKey() }).then(r => {
+    if (!r || !r.won || r.claimed || state !== 'title') return;
+    const mn = new Date(Date.UTC(y, m - 1, 15)).toLocaleString('en-GB', { month: 'long', timeZone: 'UTC' });
+    $('winText').textContent = `${r.nick}, your ${r.dist.toLocaleString()} m run was the furthest in ${mn}!`;
+    $('winCode').textContent = r.claimCode;
+    $('winClaim').href = `/games/claim/?month=${month}&code=${encodeURIComponent(r.claimCode)}`;
+    $('titleScreen').classList.remove('on'); $('winScreen').classList.add('on');
+  }).catch(() => {});
+}
 function scoreNow() { return Math.floor(S.distPts) + S.cheesePts + S.bonusPts; }
 function multiplier() { return (1 + rank + Math.min(4, Math.floor(S.dist / 500))) * (S.dblT > 0 ? 2 : 1); }
 
@@ -1273,6 +1357,7 @@ function finish() {
     el.classList.toggle('done', cleared);
     const nb = $('overNextBtn'), canNext = !!next && stageUnlocked(stageIdx + 1);
     nb.style.display = canNext ? '' : 'none'; if (canNext) nb.textContent = `Next stage: ${next.name}`; }
+  lbSubmitRun(sc);
   $('overScreen').classList.add('on');
   S.overReady = false; setTimeout(() => { S.overReady = true; $('againBtn').focus(); }, 500);
 }
