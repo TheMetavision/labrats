@@ -2,6 +2,7 @@
 import Layout from '../../layouts/Layout.astro';
 import Navbar from '../../components/Navbar.astro';
 import Footer from '../../components/Footer.astro';
+import VentRunnerBanner from '../../components/VentRunnerBanner.astro';
 
 // One card per game. Add the next one here; the grid makes room for it.
 const games = [
@@ -9,17 +10,22 @@ const games = [
     title: 'Vent Runner',
     blurb: "Outrun the Rat Pack's enemies through the facility",
     href: '/games/vent-runner/',
-    image: '/games/vent-runner/tex/card.jpg',
-    imageAlt: 'Vent Runner: a junction of ventilation ducts in the facility, lit teal and amber',
   },
 ];
+
+// Eager: the card is above the fold on desktop.
+// Rendered card width: one column to 640px, two to 1024px, then three in the
+// 1280px container (24px gutters, 28px gaps).
+const CARD_SIZES = '(max-width: 640px) calc(100vw - 48px), (max-width: 1024px) calc(50vw - 38px), 392px';
 ---
 
 <Layout
   title="Games | Labrats"
   description="Play Labrats games in your browser. Run with the Rat Pack in Vent Runner: dodge, jump and slide through the facility and collect the cheese."
   canonical="/games"
-  ogImage={new URL('/games/vent-runner/tex/card.jpg', Astro.site).href}
+  ogImage={new URL('/games/vent-runner/img/banner/vent-runner-share.jpg', Astro.site).href}
+  ogImageWidth={1200}
+  ogImageHeight={630}
 >
   <Navbar />
   <main class="page">
@@ -41,14 +47,7 @@ const games = [
           {games.map((game) => (
             <article class="game-card">
               <a href={game.href} class="game-card__thumb" tabindex="-1" aria-hidden="true">
-                <img
-                  class="game-card__thumb-img"
-                  src={game.image}
-                  alt={game.imageAlt}
-                  width="1600"
-                  height="893"
-                  loading="eager"
-                />
+                <VentRunnerBanner class="game-card__banner" loading="eager" sizes={CARD_SIZES} />
               </a>
               <div class="game-card__body">
                 <h2 class="game-card__title">{game.title}</h2>
@@ -153,15 +152,13 @@ const games = [
 
   .game-card__thumb {
     display: block;
-    aspect-ratio: 16 / 9;
-    background: color-mix(in srgb, var(--color-teal) 8%, var(--color-black));
+    background: color-mix(in srgb, var(--color-white) 5%, var(--color-black));
     overflow: hidden;
   }
 
-  .game-card__thumb-img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
+  /* The stacked (narrow) banner sits on the card's own background. */
+  .game-card__thumb :global(.game-card__banner) {
+    --vr-banner-bg: color-mix(in srgb, var(--color-white) 5%, var(--color-black));
   }
 
   .game-card__body {

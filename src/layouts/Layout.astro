@@ -17,6 +17,9 @@ export interface Props {
   noIndex?: boolean;
   /** Absolute social-card image; defaults to the heroes line-up. */
   ogImage?: string;
+  /** Pixel size of ogImage, emitted as og:image:width/height when given. */
+  ogImageWidth?: number;
+  ogImageHeight?: number;
 }
 
 const {
@@ -26,6 +29,8 @@ const {
   jsonLd,
   noIndex = false,
   ogImage = socialImg('/images/Heroes.jpg'),
+  ogImageWidth,
+  ogImageHeight,
 } = Astro.props;
 
 // Apex host, trailing slash: the address Netlify actually serves. (The
@@ -98,6 +103,8 @@ const preloadAudio = renderThemeAudio ? themeAudio.audioUrl : null;
     <meta property="og:url" content={canonicalUrl} />
     <meta property="og:site_name" content="Labrats" />
     <meta property="og:image" content={ogImage} />
+    {ogImageWidth && <meta property="og:image:width" content={String(ogImageWidth)} />}
+    {ogImageHeight && <meta property="og:image:height" content={String(ogImageHeight)} />}
     <meta name="twitter:image" content={ogImage} />
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content={title} />

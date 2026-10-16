@@ -2,6 +2,7 @@
 import Layout from '../../layouts/Layout.astro';
 import Navbar from '../../components/Navbar.astro';
 import Footer from '../../components/Footer.astro';
+import VentRunnerBanner from '../../components/VentRunnerBanner.astro';
 
 // The game itself is static files in public/games/vent-runner/ and runs on
 // its own at /games/vent-runner/play/. This page frames it in the site.
@@ -19,16 +20,22 @@ const controls = [
   title="Vent Runner | Labrats"
   description="Play Labrats: Vent Runner free in your browser. Race through The Ductways, Lab Zero and The Cheese Vault, and unlock Dr. Basil Whiskerworth."
   canonical="/games/vent-runner"
-  ogImage={new URL('/games/vent-runner/tex/card.jpg', Astro.site).href}
+  ogImage={new URL('/games/vent-runner/img/banner/vent-runner-share.jpg', Astro.site).href}
+  ogImageWidth={1200}
+  ogImageHeight={630}
 >
   <Navbar />
   <main class="page">
 
     <section class="page-hero">
       <div class="page-hero__bg"></div>
+      <VentRunnerBanner
+        class="page-hero__banner"
+        heading="h1"
+        loading="eager"
+        sizes="(max-width: 767px) 100vw, (max-width: 1248px) calc(100vw - 48px), 1200px"
+      />
       <div class="container page-hero__content">
-        <span class="page-hero__label">Labrats Games</span>
-        <h1 class="page-hero__title">Vent Runner</h1>
         <p class="page-hero__subtitle">
           The alarm's tripped and the Rat Pack's enemies are loose. Run three stages:
           The Ductways, Lab Zero and The Cheese Vault. Clear Lab Zero to unlock
@@ -110,11 +117,30 @@ const controls = [
     min-height: 100vh;
   }
 
+  /* The banner starts right under the fixed header, which is 160px from 1280px. */
+  @media (min-width: 1280px) {
+    .page { padding-top: 160px; }
+  }
+
   .page-hero {
     position: relative;
-    padding: 96px 0 48px;
+    padding: 24px 0 48px;
     overflow: hidden;
     background: var(--color-black);
+  }
+
+  /* Same width and frame as the game below it. */
+  .page-hero :global(.page-hero__banner) {
+    position: relative;
+    z-index: 1;
+    max-width: 1200px;
+    margin: 0 auto 32px;
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+  }
+
+  @media (min-width: 768px) {
+    .page-hero :global(.page-hero__banner) { width: calc(100% - 48px); }
   }
 
   .page-hero__bg {
@@ -127,25 +153,6 @@ const controls = [
     position: relative;
     z-index: 1;
     max-width: 720px;
-  }
-
-  .page-hero__label {
-    display: inline-block;
-    font-family: var(--font-heading);
-    font-size: 12px;
-    font-weight: 700;
-    letter-spacing: 3px;
-    text-transform: uppercase;
-    color: var(--color-teal);
-    margin-bottom: 12px;
-  }
-
-  .page-hero__title {
-    font-family: var(--font-display);
-    font-size: clamp(40px, 6vw, 88px);
-    color: var(--color-yellow);
-    line-height: 1;
-    margin-bottom: 16px;
   }
 
   .page-hero__subtitle {
@@ -305,7 +312,8 @@ const controls = [
 
   /* Phones: the game fills the screen under the 80px site header. */
   @media (max-width: 767px) {
-    .page-hero { padding: 48px 0 32px; }
+    .page-hero { padding: 0 0 32px; }
+    .page-hero :global(.page-hero__banner) { border-radius: 0; margin-bottom: 24px; }
     .game-section { padding: 0 0 48px; }
     .game-frame {
       max-width: none;
