@@ -1,0 +1,27 @@
+/* SHARED FILE, KEEP IN SYNC: loaded by both the game's play page (play/index.html) and the site's
+   Vent Runner banner (src/components/VentRunnerBanner.astro). The repo copy is the source of truth for
+   game packages; a change here changes both, so check the game title screen and the banner together.
+
+   Vent Runner title lockup: the Labrats logo (.brandlogo), the game title (.title.vr-title) and the
+   hazard stripe (.hazard). The play page loads this before game.css, which keeps the game-screen size
+   overrides.
+   Uses --display and --yellow: game.css sets them on :root, the banner sets them on itself.
+   Fixed details (outline, extrusion, stripes, shadows) are in --vr-px units: 1px in the game, so it
+   renders exactly as before; the banner scales the unit with its width. */
+  .title {
+    font-family: var(--display); font-weight: 400; margin: 0; line-height: .82;
+    font-size: clamp(76px, 19vw, 150px); color: var(--yellow);
+    text-shadow: 0 calc(5 * var(--vr-px, 1px)) 0 #000, 0 0 calc(40 * var(--vr-px, 1px)) rgba(245,197,24,.35);
+  }
+  .hazard { height: 12px; margin: 14px auto 18px; width: 72%; border-radius: 2px;
+    background: repeating-linear-gradient(-45deg, var(--yellow) 0 calc(14 * var(--vr-px, 1px)), #111 calc(14 * var(--vr-px, 1px)) calc(28 * var(--vr-px, 1px))); box-shadow: 0 0 calc(18 * var(--vr-px, 1px)) rgba(245,197,24,.25); }
+  .brandlogo { display: block; width: min(250px, 56vw); height: auto; margin: 0 auto 10px; filter: drop-shadow(0 calc(6 * var(--vr-px, 1px)) calc(14 * var(--vr-px, 1px)) rgba(0,0,0,.55)); }
+  /* game title lockup: gold gradient face, dark outline, stepped 3D extrusion, tilted like the Labrats logo */
+  .vr-title { position: relative; display: inline-block; margin: 4px 0 6px; line-height: 1; letter-spacing: 3px; text-transform: uppercase;
+    font-size: clamp(52px, 12.5vw, 92px); color: transparent; text-shadow: none; transform: rotate(-3deg); }
+  .vr-title::before { content: attr(data-text); position: absolute; inset: 0; z-index: 0; color: #8a4300; -webkit-text-stroke: calc(7 * var(--vr-px, 1px)) #2b1300;
+    text-shadow:
+      calc(1 * var(--vr-px, 1px)) calc(1 * var(--vr-px, 1px)) 0 #7a3a00, calc(2 * var(--vr-px, 1px)) calc(2 * var(--vr-px, 1px)) 0 #703400, calc(3 * var(--vr-px, 1px)) calc(3 * var(--vr-px, 1px)) 0 #642e00, calc(4 * var(--vr-px, 1px)) calc(4 * var(--vr-px, 1px)) 0 #582800, calc(5 * var(--vr-px, 1px)) calc(5 * var(--vr-px, 1px)) 0 #4c2200, calc(6 * var(--vr-px, 1px)) calc(6 * var(--vr-px, 1px)) 0 #3e1b00, calc(7 * var(--vr-px, 1px)) calc(8 * var(--vr-px, 1px)) 0 #2b1300, 0 calc(16 * var(--vr-px, 1px)) calc(28 * var(--vr-px, 1px)) rgba(0,0,0,.65); }
+  .vr-title span { position: relative; z-index: 1; background: linear-gradient(180deg, #fff6b8 0%, #ffd424 42%, #ffb000 70%, #f07800 100%);
+    -webkit-background-clip: text; background-clip: text; color: transparent; -webkit-text-stroke: calc(1.5 * var(--vr-px, 1px)) #5c2b00; }
+  .vr-title + .hazard { width: 58%; margin-top: 16px; }
