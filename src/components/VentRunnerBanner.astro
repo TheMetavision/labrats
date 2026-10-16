@@ -1,0 +1,144 @@
+---
+// Vent Runner banner: the text-free artwork with the game's own title lockup
+// (Labrats logo, gold "Vent Runner" title, hazard stripe) as live HTML. The
+// lockup rules come from the game's shared stylesheet,
+// public/games/vent-runner/title-lockup.css; this file only places and sizes them.
+// Used by /games/vent-runner/ (h1) and the /games hub card (h2), both eager.
+interface Props {
+  heading?: 'h1' | 'h2';
+  loading?: 'eager' | 'lazy';
+  /** The rendered width of the banner, for the srcset. */
+  sizes: string;
+  class?: string;
+}
+
+const { heading = 'h2', loading = 'lazy', sizes, class: className } = Astro.props;
+const Heading = heading;
+const DIR = '/games/vent-runner/img/banner/vent-runner-banner';
+---
+
+<link rel="stylesheet" href="/games/vent-runner/title-lockup.css" />
+<div class:list={['vr-banner', className]}>
+  <div class="vr-banner__lockup">
+    <img class="brandlogo" src="/games/vent-runner/img/logo.webp" alt="Labrats" width="640" height="209" loading={loading} />
+    <Heading class="title vr-title" data-text="Vent Runner"><span>Vent Runner</span></Heading>
+    <div class="hazard" aria-hidden="true"></div>
+  </div>
+  <picture class="vr-banner__art">
+    <source
+      type="image/webp"
+      srcset={`${DIR}-960.webp 960w, ${DIR}-1600.webp 1600w, ${DIR}-2400.webp 2400w`}
+      sizes={sizes}
+    />
+    <img
+      src={`${DIR}-1600.jpg`}
+      alt="Shadow Sneakerson and Dr. Basil Whiskerworth crouch as MechaMouser 9000, Ludwig Fenrir and a security drone close in"
+      width="3840"
+      height="2160"
+      loading={loading}
+      fetchpriority={loading === 'eager' ? 'high' : undefined}
+      decoding="async"
+    />
+  </picture>
+</div>
+
+<style>
+  .vr-banner {
+    /* The lockup rules read these; the game sets them on its own :root. */
+    --display: var(--font-display);
+    --yellow: var(--color-yellow);
+    /* Background the stacked (narrow) layout sits on; a page can override it. */
+    --vr-banner-bg: var(--color-black);
+    position: relative;
+    container-type: inline-size;
+  }
+
+  .vr-banner__art {
+    position: relative;
+    display: block;
+  }
+
+  .vr-banner__art img {
+    display: block;
+    width: 100%;
+    height: auto;
+  }
+
+  /* Over the art: centred at the top, sized to the banner width, in the gap
+     between MechaMouser's ear (~34%) and Ludwig's (~67%), ending above the drone. */
+  .vr-banner__lockup {
+    position: absolute;
+    z-index: 2;
+    top: 0.4cqw;
+    left: 50%;
+    transform: translateX(-50%);
+    width: max-content;
+    text-align: center;
+    pointer-events: none;
+    /* 1px at a 1600px banner, so the title's fixed details scale with it. */
+    --vr-px: calc(100cqw / 1600);
+  }
+
+  /* Soft dark glow behind the lockup, no visible edge. */
+  .vr-banner__art::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    background: radial-gradient(ellipse 45% 32% at 50% 6%, rgba(4, 6, 8, 0.62), transparent);
+    pointer-events: none;
+  }
+
+  .vr-banner .brandlogo {
+    width: 8cqw;
+    margin: 0 auto 0.2cqw;
+  }
+
+  .vr-banner .vr-title {
+    font-size: 4.9cqw;
+    line-height: 0.9;
+    margin: 0;
+    letter-spacing: 0.19cqw;
+    white-space: nowrap;
+  }
+
+  .vr-banner .vr-title + .hazard {
+    width: 15cqw;
+    height: 0.5cqw;
+    margin: 0.5cqw auto 0;
+  }
+
+  /* 700px and narrower: the lockup sits above the art on the page background,
+     at the game's own phone sizes, and the art's top edge fades into it. */
+  @container (max-width: 700px) {
+    .vr-banner__lockup {
+      position: static;
+      transform: none;
+      width: auto;
+      padding: 12px 16px 4px;
+      background: var(--vr-banner-bg);
+      --vr-px: 1px;
+    }
+
+    .vr-banner .brandlogo {
+      width: min(180px, 46cqw);
+      margin-bottom: 4px;
+    }
+
+    .vr-banner .vr-title {
+      font-size: clamp(36px, 11cqw, 64px);
+      letter-spacing: 3px;
+      white-space: normal;
+    }
+
+    .vr-banner .vr-title + .hazard {
+      width: min(58%, 260px);
+      height: 9px;
+      margin: 10px auto 0;
+    }
+
+    .vr-banner__art::after {
+      background: linear-gradient(180deg, var(--vr-banner-bg) 0%, transparent 14%);
+    }
+  }
+</style>
