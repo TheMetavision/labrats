@@ -2,14 +2,17 @@ import { createClient } from '@sanity/client';
 import imageUrlBuilder from '@sanity/image-url';
 
 // perspective:'published' — keeps drafts out of the static build even though a
-// token is present (same fix as the Fuglys double-listing bug).
+// token is present (same fix as the Fuglys double-listing bug). A deploy preview may
+// set SANITY_PERSPECTIVE=previewDrafts (deploy-preview / branch-deploy contexts only)
+// so a catalogue change can be checked before it is published.
+const PERSPECTIVE = import.meta.env.SANITY_PERSPECTIVE === 'previewDrafts' ? 'previewDrafts' : 'published';
 export const client = createClient({
   projectId: import.meta.env.SANITY_PROJECT_ID || 'o9qrmykx',
   dataset: import.meta.env.SANITY_DATASET || 'production',
   // Never the CDN: a build triggered by a Sanity publish must read what was just published.
   apiVersion: '2024-01-01', useCdn: false,
   token: import.meta.env.SANITY_API_TOKEN,
-  perspective: 'published',
+  perspective: PERSPECTIVE,
 });
 
 // Non-CDN client for content that needs fresh reads (e.g. legal pages)
@@ -18,7 +21,7 @@ export const liveClient = createClient({
   dataset: import.meta.env.SANITY_DATASET || 'production',
   apiVersion: '2024-01-01', useCdn: false,
   token: import.meta.env.SANITY_API_TOKEN,
-  perspective: 'published',
+  perspective: PERSPECTIVE,
 });
 
 const builder = imageUrlBuilder(client);

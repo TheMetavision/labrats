@@ -131,12 +131,12 @@ test('inactive product is rejected; active items still resolve', () => {
 
 /* ── handler (Stripe and Sanity stubbed) ───────────────────────────────── */
 
-async function post(items, products = PRODUCTS) {
+async function post(items, products = PRODUCTS, country = 'GB') {
   sessionParams = null;
   const realFetch = globalThis.fetch;
   globalThis.fetch = async () => ({ ok: true, json: async () => ({ result: products }) });
   try {
-    const res = await handler({ httpMethod: 'POST', body: JSON.stringify({ items }) });
+    const res = await handler({ httpMethod: 'POST', body: JSON.stringify({ items, country }) });
     return { status: res.statusCode, body: JSON.parse(res.body || '{}') };
   } finally {
     globalThis.fetch = realFetch;
