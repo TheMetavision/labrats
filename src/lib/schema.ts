@@ -36,8 +36,8 @@ export function productSchema(product: { name: string; description: string; pric
     brand: { '@type': 'Brand', name: 'Labrats' },
     offers: { '@type': 'Offer', price: product.price, priceCurrency: 'GBP', availability: product.availability || 'https://schema.org/InStock', seller: { '@type': 'Organization', name: 'Labrats' } } };
 }
-export function articleSchema(post: { title: string; excerpt: string; publishedAt: string; image?: string; url: string }) {
-  return { '@context': 'https://schema.org', '@type': 'Article', headline: post.title, description: post.excerpt, datePublished: post.publishedAt, image: post.image, url: post.url,
+export function articleSchema(post: { title: string; excerpt: string; publishedAt: string; modifiedAt?: string; image?: string; url: string }) {
+  return { '@context': 'https://schema.org', '@type': 'Article', headline: post.title, description: post.excerpt, datePublished: post.publishedAt, dateModified: post.modifiedAt || post.publishedAt, image: post.image, url: post.url,
     author: { '@type': 'Organization', name: 'Labrats' }, publisher: { '@type': 'Organization', name: 'The Metavision Multimedia Limited' } };
 }
 export function videoSchema(video: { title: string; description: string; youtubeId: string; publishedAt?: string; duration?: string; thumbnail?: string }) {
