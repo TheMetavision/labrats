@@ -146,6 +146,24 @@ Steps done (18–19 Oct 2026, printful-sync):
 7. Production env: `PRINTFUL_AUTO_CONFIRM=true` (production context only) makes live orders confirmed; without it they are
    Printful drafts to confirm by hand. Previews never confirm (test-mode payments are always drafts).
 
+### Launch record (19 Oct 2026, Alan's approval; after Cats On Crack)
+
+1. **Merged** PR #6 (`85baa1f`); Netlify production deploy of it ready.
+2. **Studio schema deployed** from a clean worktree of `main`: `npx sanity schema deploy` and
+   `npx sanity deploy` → https://labrats.sanity.studio/. The deployed `order` type has the `other-brand` status and the `test` flag
+   (checked through the Sanity MCP).
+3. **Drafts published** (`publish-drafts.mjs labrats`): 32 (28 designs, 4 inactive pin sets), after `verify-drafts.mjs` showed no problems.
+   Published: 28 with the #585 tumbler (£32.95, White) and the mug (£12.95), 0 with a can glass, 0 active pin sets.
+4. **Production rebuilt** (Netlify build of `main`) and checked live, all passing: merch shows Mugs and no Can Glasses or
+   Badges tab; /products/boomer-blazeclaw-boom/ has £32.95 and £12.95 and no £22.50 or can glass; badge set pages 404, stickers live; size
+   guide shows 8.4″ (21.4 cm) and 3.8″ (9.6 cm); checkout refuses no country (400), an unknown country (400), Brazil (422).
+   No live Stripe Checkout page was opened.
+5. **Old products deleted** (`delete-old-products.mjs labrats`, dry run then `--apply`; exact external ids, each checked
+   to be on #909 / #690 / #660; no unfinished Printful orders): 28 #909 tumblers, 28 #690 can glasses, 4 pin sets (437528876, 437528915, 437528996, 437529034). Store 372 → 312 products. `store-check.mjs`:
+   0 #909 tumblers, 0 can glasses; 28 tumbler585, 28 mug. `check-live-ids.mjs labrats`: all 11,848 variant ids on
+   the 30 active products are live.
+6. The `product-badge-set-*` docs stay in Sanity, inactive.
+
 ### After every preview test payment
 
 Test-mode orders reach Printful as **drafts** (never confirmed) and the Sanity log as `test: true`. Delete them after each test:
