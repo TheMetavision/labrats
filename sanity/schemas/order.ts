@@ -31,7 +31,13 @@ export default defineType({
         { title: 'In-house (make & dispatch)', value: 'inhouse' },
         { title: 'Shipped (Printful dispatched)', value: 'shipped' },
         { title: 'Fulfilment FAILED — action needed', value: 'fulfilment-failed' },
+        { title: 'Another brand’s order (logged here in error, see reason)', value: 'other-brand' },
       ] },
+    }),
+    ro({
+      name: 'test', title: 'Test order (Stripe test mode)', type: 'boolean',
+      description: 'Paid with Stripe test keys on a preview. Nobody was charged.',
+      hidden: ({ value }: { value?: boolean }) => !value,
     }),
     ro({ name: 'customerName', title: 'Customer Name', type: 'string' }),
     ro({ name: 'customerEmail', title: 'Customer Email', type: 'string' }),
@@ -107,7 +113,8 @@ export default defineType({
     ro({ name: 'trackingNumber', title: 'Tracking Number', type: 'string' }),
     ro({ name: 'trackingUrl', title: 'Tracking URL', type: 'url' }),
     ro({ name: 'shippedAt', title: 'Shipped At', type: 'datetime' }),
-    ro({ name: 'failureReason', title: 'Printful Failure Reason', type: 'string' }),
+    ro({ name: 'failureReason', title: 'Printful Failure Reason', type: 'string',
+      description: 'Why Printful didn’t take or make the order: Printful’s reason, a variant that isn’t in this store, or a note on a record that isn’t this brand’s.' }),
   ],
   orderings: [
     { title: 'Newest first', name: 'placedAtDesc', by: [{ field: 'placedAt', direction: 'desc' }] },
