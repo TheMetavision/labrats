@@ -107,7 +107,25 @@ Config: `printful-sync/brands/labrats.config.mjs`.
 | `mug` | #19 White Glossy Mug 11 oz (UK + EU) | £12.95 | design twice, at ¼ and ¾ of the 2700×1050 wrap (`make-mug-wraps.mjs` → `designs.mugPrintFileUrl`); images: Front, "Printed on both sides", Handle on Left |
 | `glass` | #690 | — | removed from the config |
 
-<!-- PART-B-DATA -->
+Steps done (18–19 Oct 2026, printful-sync):
+
+1. Mockup check before creating anything (`mockup-check.mjs`, Mockup Generator, no products): the two-sided tumbler (Left and
+   Right) and the mug (Front and Handle on Left) on boomer-blazeclaw-boom. Images: `printful-sync/mockup-checks/labrats/`.
+2. Wraps for all 28 designs uploaded to the Sanity CDN: `make-mug-wraps.mjs labrats --kind=mug` and `--kind=tumbler`.
+3. Printful products created in batches of 6 (`run-batches.ps1 -Brand labrats -Stage printful -Flags "--types=tumbler,mug"`,
+   waiting whenever printful-sync was busy): one #585 tumbler and one mug per design, 56 products.
+   `store-check.mjs labrats tumbler585,mug`: every design has one of each, no duplicate external ids.
+4. Pin sets: drafts with `active: false` (`draft-inactive.mjs`) for the 4 pin sets (`product-badge-set-1` … `-4`; Printful 437528876, 437528915, 437528996, 437529034). No unfinished Printful orders.
+5. Mockups for the new garments only, in small resumable runs (`next-mockups.ps1 -Brand labrats -Count 3`, memory checked
+   between runs): every tumbler has Left, "Printed on both sides" and Right; every mug Front, "Printed on both sides" and
+   Handle on Left (Mockup Generator, re-hosted on the Sanity CDN).
+6. Sanity **drafts** (`run-batches.ps1 -Brand labrats -Stage sync -Flags "--types=tumbler,mug --drop-types=glass"`): on all 28 designs
+   the tumbler is replaced by #585 (£32.95, White), the mug added (£12.95), the can glass removed; every other garment, all
+   copy and images exactly as published. `verify-drafts.mjs labrats tumbler,mug glass`: no problems, every variant id in the
+   live store. Production still shows the published (old) catalogue; the deploy preview reads the drafts.
+7. Size guide: tumbler 20 oz / 600 ml, 8.4″ (21.4 cm); mug 11 oz, 3.8″ (9.6 cm), from Printful's catalogue for #585 and #19.
+8. Preview: https://deploy-preview-6--labratsuk.netlify.app. The checkout function refuses no country (400), an unknown one (400), a Printful item to Brazil
+   or a tee to Ukraine (422), all before Stripe.
 
 ### Launch order, after Alan approves the preview (in this order, nothing earlier)
 
