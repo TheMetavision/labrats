@@ -3,10 +3,12 @@
  * into worldLocation.referenceGallery from the Higgsfield gallery manifest.
  * One-off content tool; not part of the site build.
  *
- *   node --env-file=.env scripts/upload-location-gallery.mjs --dry-run       lists what would be uploaded
- *   node --env-file=.env scripts/upload-location-gallery.mjs --limit 1       uploads the first pending entry only
- *   node --env-file=.env scripts/upload-location-gallery.mjs                 uploads every pending entry
- *   ... --manifest <path>                                                    overrides the manifest location
+ *   node --env-file=.env scripts/upload-location-gallery.mjs --manifest <path> --dry-run   lists what would be uploaded
+ *   node --env-file=.env scripts/upload-location-gallery.mjs --manifest <path> --limit 1   uploads the first pending entry only
+ *   node --env-file=.env scripts/upload-location-gallery.mjs --manifest <path>             uploads every pending entry
+ *
+ * --manifest is required; there is no default, so a run can never pick up
+ * another brand's manifest.
  *
  * Writes go to the DRAFT of each document (drafts.<documentId>); a missing
  * draft is created from the published doc. Nothing is published. Entries whose
@@ -17,14 +19,18 @@ import fs from 'node:fs';
 import { randomUUID } from 'node:crypto';
 import { createClient } from '@sanity/client';
 
-const DEFAULT_MANIFEST = 'C:\\Users\\chris\\Documents\\The Fuglys\\Locations\\fuglys-location-gallery-manifest.json';
-
 const args = process.argv.slice(2);
 const flag = (name) => args.includes(name);
 const opt = (name) => { const i = args.indexOf(name); return i === -1 ? undefined : args[i + 1]; };
 const DRY_RUN = flag('--dry-run');
 const LIMIT = opt('--limit') ? Number(opt('--limit')) : Infinity;
-const MANIFEST = opt('--manifest') ?? DEFAULT_MANIFEST;
+const MANIFEST = opt('--manifest');
+
+if (!MANIFEST || MANIFEST.startsWith('--')) {
+  console.error('Usage: node --env-file=.env scripts/upload-location-gallery.mjs --manifest <path> [--dry-run] [--limit N]');
+  console.error('Error: --manifest <path> is required.');
+  process.exit(1);
+}
 
 if (!process.env.SANITY_API_TOKEN) throw new Error('SANITY_API_TOKEN is not set (run with --env-file=.env)');
 
