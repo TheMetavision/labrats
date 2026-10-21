@@ -1,6 +1,9 @@
 // Reconstructed 2026-05-30 from the live Sanity dataset.
 // Original source not in local repo; this schema mirrors the field shape
 // of all 8 worldLocation documents in production (Lab Zero, Lab 7, etc).
+// 2026-10-21: referenceGallery added (canon environment renders, copied from
+// The Fuglys schema with Labrats lighting states). Not rendered by the site.
+// image (hero) added before it to match The Fuglys.
 
 export default {
   name: 'worldLocation',
@@ -25,6 +28,60 @@ export default {
       title: 'Tagline',
       type: 'string',
       description: 'One-line evocative subtitle for the location.',
+    },
+    {
+      name: 'image',
+      title: 'Hero image',
+      type: 'image',
+      description: 'Main image for the location. Use the hotspot to control where the focal point sits on crops.',
+      options: { hotspot: true },
+      fields: [
+        {
+          name: 'alt',
+          title: 'Alt text',
+          type: 'string',
+          validation: (Rule) => Rule.required().warning('Alt text is important for SEO and accessibility'),
+        },
+      ],
+    },
+    {
+      name: 'referenceGallery',
+      title: 'Reference gallery (canon renders)',
+      description: 'Approved environment renders: the official look of this location for books, animation and games. Not shown on the site.',
+      type: 'array',
+      options: { layout: 'grid' },
+      of: [
+        {
+          type: 'image',
+          options: { hotspot: true },
+          fields: [
+            {
+              name: 'view',
+              title: 'View',
+              type: 'string',
+              validation: (Rule) => Rule.required(),
+              options: {
+                list: ['master', 'reverse', 'ground-level', 'close-up', 'elevated', 'aerial', 'interior', 'detail', 'other'],
+              },
+            },
+            {
+              name: 'timeOfDay',
+              title: 'Time of day',
+              type: 'string',
+              validation: (Rule) => Rule.required(),
+              options: {
+                list: ['dawn', 'midday', 'golden-hour', 'sunset', 'night', 'storm', 'normal', 'alert', 'power-cut', 'lockdown', 'flashback', 'royal-gold', 'security-armed'],
+              },
+            },
+            { name: 'isMaster', title: 'Master plate', type: 'boolean', initialValue: false },
+            { name: 'label', title: 'Label', type: 'string' },
+            { name: 'higgsfieldJobId', title: 'Higgsfield job ID', type: 'string', readOnly: true },
+          ],
+          preview: {
+            select: { title: 'label', subtitle: 'timeOfDay', media: 'asset' },
+          },
+        },
+      ],
     },
     {
       name: 'order',
