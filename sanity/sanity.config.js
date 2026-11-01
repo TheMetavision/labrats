@@ -1,6 +1,7 @@
 import { defineConfig } from 'sanity';
 import { structureTool } from 'sanity/structure';
 import { schemaTypes } from './schemas';
+import { shippingDeskItems, shippingTemplates, shippingActions } from './lib/shipping-desk';
 export default defineConfig({
   name: 'labrats', title: 'Labrats CMS', projectId: 'o9qrmykx', dataset: 'production',
   plugins: [structureTool({
@@ -23,8 +24,11 @@ export default defineConfig({
       S.documentTypeListItem('legalPage').title('Legal Pages'),
       S.divider(),
       S.documentTypeListItem('order').title('Orders'),
+      // Sendcloud wall art: only with SANITY_STUDIO_SHIPPING_ENABLED=true (lib/shipping-desk.js).
+      ...shippingDeskItems(S),
       S.documentTypeListItem('contactSubmission').title('Contact Submissions'),
     ]),
   })],
-  schema: { types: schemaTypes },
+  schema: { types: schemaTypes, templates: shippingTemplates },
+  document: { actions: shippingActions },
 });

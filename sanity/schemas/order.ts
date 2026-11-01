@@ -1,4 +1,5 @@
 import { defineType, defineField } from 'sanity';
+import { shippingFields, wallArtDispatchFields } from './shippingFields';
 
 /**
  * Order — a record written by the Stripe webhook on a completed checkout, then
@@ -9,6 +10,12 @@ import { defineType, defineField } from 'sanity';
  * Mirrors Cats On Crack's order.ts, plus the Labrats in-house wall-art fields
  * stripe-webhook.cjs writes (`fulfilment` per line, `hasInhouse`, `inhouseStatus`,
  * status "inhouse").
+ *
+ * WALL ART (feat/sendcloud-dispatch): wallArtDispatchFields() adds the
+ * wall-art carrier / tracking number (In-house Status -> Dispatched with a
+ * tracking number emails the customer once) and shippingFields() the
+ * Sendcloud shipment, both from shippingFields.ts. The Printful fields below
+ * stay Printful's.
  *
  * DEPLOY: registered in schemas/index.js; `npx sanity deploy` from the Studio
  * folder (NOT the MCP deploy_schema tool).
@@ -75,6 +82,8 @@ export default defineType({
         { title: 'Dispatched', value: 'dispatched' },
       ] },
     }),
+    ...wallArtDispatchFields(),
+    ...shippingFields(),
     ro({
       name: 'crossBrandCode', title: '⚠ Other brand’s code', type: 'text', rows: 3,
       description: 'A promotion code that belongs to another IP brand (shared Stripe account). The order stands; decide whether to follow up.',
