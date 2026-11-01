@@ -15,6 +15,7 @@ export interface CartItem {
   image: string;
   productType?: string;       // used by checkout to resolve the exact Printful variant
   format?: string;            // WALL ART ONLY: format id (poster | canvas-standard | canvas-gallery)
+  orientation?: string;       // WALL ART ONLY: landscape | portrait, for the size label (older saved carts lack it = landscape)
   stripePriceId?: string;     // optional: nested model uses ad-hoc price_data
   printfulVariantId?: string; // optional: resolved server-side at checkout
   quantity: number;

@@ -167,7 +167,7 @@ export default function CartDrawer() {
                 <div style={{ fontFamily:HEADING_FONT, fontWeight:700, fontSize:'15px', color:HIGHLIGHT, letterSpacing:'1px', textTransform:'uppercase' as const }}>{item.name}</div>
                 <div style={{ fontSize:'12px', color:'rgba(245,245,245,0.4)', marginTop:'2px' }}>
                   {isWallArt(item)
-                    ? artworkVariantLabel(item.format || '', item.size)
+                    ? artworkVariantLabel(item.format || '', item.size, item.orientation)
                     : `${item.size}${item.colour ? ` / ${item.colour}` : ''}`}
                 </div>
                 {/* − stops at 1 rather than removing the line, so tapping it a few

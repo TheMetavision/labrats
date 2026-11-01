@@ -150,7 +150,8 @@ function inhouseLineLabel(lineItem) {
   const fmt = meta(lineItem, 'wallart_format');
   const size = meta(lineItem, 'wallart_size');
   if (fmt && size) {
-    try { return artworkVariantLabel(fmt, size); } catch (_) { /* fall through */ }
+    // wallart_orientation is stamped by create-checkout; sessions from before it carry none (= landscape).
+    try { return artworkVariantLabel(fmt, size, meta(lineItem, 'wallart_orientation')); } catch (_) { /* fall through */ }
   }
   return lineItem.description || 'Wall art';
 }
@@ -718,3 +719,4 @@ async function fulfil(session, lineItems, alreadyRecorded, promo) {
 // For tests.
 exports.isLabratsSession = isLabratsSession;
 exports.printfulConfirm = printfulConfirm;
+exports.inhouseLineLabel = inhouseLineLabel;
