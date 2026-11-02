@@ -1,5 +1,6 @@
 import { defineType, defineField } from 'sanity';
 import { shippingFields, wallArtDispatchFields } from './shippingFields';
+import { postDeliveryFields } from './postDeliveryFields';
 
 /**
  * Order — a record written by the Stripe webhook on a completed checkout, then
@@ -124,6 +125,8 @@ export default defineType({
     ro({ name: 'shippedAt', title: 'Shipped At', type: 'datetime' }),
     ro({ name: 'failureReason', title: 'Printful Failure Reason', type: 'string',
       description: 'Why Printful didn’t take or make the order: Printful’s reason, a variant that isn’t in this store, or a note on a record that isn’t this brand’s.' }),
+    // Consent, referral programme, post-delivery sequence, Printful packages (all server-written).
+    ...postDeliveryFields(),
   ],
   orderings: [
     { title: 'Newest first', name: 'placedAtDesc', by: [{ field: 'placedAt', direction: 'desc' }] },

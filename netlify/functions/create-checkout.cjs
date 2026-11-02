@@ -264,7 +264,7 @@ exports.handler = async (event) => {
   if (!process.env.STRIPE_SECRET_KEY) return { statusCode: 500, headers, body: JSON.stringify({ error: 'Stripe not configured' }) };
 
   try {
-    const { items, ga, country: rawCountry } = JSON.parse(event.body || '{}');
+    const { items, ga, country: rawCountry, marketingOptOut } = JSON.parse(event.body || '{}');
     if (!items || items.length === 0) return { statusCode: 400, headers, body: JSON.stringify({ error: 'Cart is empty' }) };
 
     // Destination first: one country, in a region we deliver to.
@@ -414,7 +414,10 @@ exports.handler = async (event) => {
       allow_promotion_codes: true,
       // brand: the shared-Stripe brand guard (stripe-webhook isLabratsSession);
       // source kept for sessions created before brand was stamped.
-      metadata: { brand: 'labrats', source: 'labrats-web', delivery_country: country, ...gaMetadata(ga) },
+      // marketing_opt_out: the cart drawer's "Don't send me offers or referral
+      // emails" box ('true' only when ticked; _shared/marketing-consent.mjs
+      // optOutMetadata). stripe-webhook records it as the order's marketingConsent.
+      metadata: { brand: 'labrats', source: 'labrats-web', delivery_country: country, marketing_opt_out: marketingOptOut === true ? 'true' : 'false', ...gaMetadata(ga) },
     });
 
     return { statusCode: 200, headers, body: JSON.stringify({ url: session.url }) };

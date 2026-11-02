@@ -52,6 +52,10 @@ export default function CartDrawer() {
   const [confirmClear, setConfirmClear] = useState(false);
   // 'GB' on the server render; the saved or guessed country once mounted.
   const [country, setCountry] = useState('GB');
+  // "Don't send me offers or referral emails": unticked by default (soft
+  // opt-in). Ticked, create-checkout stamps metadata.marketing_opt_out and the
+  // order gets no referral code and is never added to MailerLite.
+  const [noOffers, setNoOffers] = useState(false);
   const [regions] = useState(countryOptions);
   useEffect(() => { setCountry(initialCountry()); }, []);
   function chooseCountry(cc: string) {
@@ -103,6 +107,7 @@ export default function CartDrawer() {
         body: JSON.stringify({
           ga,
           country,
+          marketingOptOut: noOffers,
           items: lines.map((item) => ({
             /* id + productType let create-checkout resolve the exact Printful
                sync variant (id = product-{slug}-{productType}, set by the PDP).
@@ -238,6 +243,10 @@ export default function CartDrawer() {
             <p style={{ color:'rgba(245,245,245,0.45)', fontFamily:BODY_FONT, fontSize:'11px', lineHeight:1.5, textAlign:'center' as const, margin:'0 0 12px' }}>
               Payments are taken by The Metavision Multimedia Ltd and show on your statement as THE METAVISION.
             </p>
+            <label style={{ display:'flex', alignItems:'flex-start', gap:'8px', margin:'0 0 12px', color:'rgba(245,245,245,0.6)', fontFamily:BODY_FONT, fontSize:'12px', lineHeight:1.4, cursor:'pointer' }}>
+              <input type="checkbox" checked={noOffers} onChange={(e) => setNoOffers(e.target.checked)} style={{ marginTop:'2px', accentColor:ACCENT }} />
+              <span>Don&rsquo;t send me offers or referral emails</span>
+            </label>
             <button onClick={handleCheckout} disabled={cantShip.length > 0} style={{ width:'100%', background:ACCENT, color:'#0a0a0a', border:'none', padding:'14px', fontFamily:HEADING_FONT, fontWeight:700, fontSize:'15px', letterSpacing:'1.5px', textTransform:'uppercase' as const, cursor: cantShip.length > 0 ? 'not-allowed' : 'pointer', opacity: cantShip.length > 0 ? 0.4 : 1, borderRadius:'4px', transition:'all 0.25s ease' }}
               onMouseEnter={(e) => { e.currentTarget.style.filter = 'brightness(1.15)'; e.currentTarget.style.transform = 'translateY(-2px)'; }}
               onMouseLeave={(e) => { e.currentTarget.style.filter = 'none'; e.currentTarget.style.transform = 'translateY(0)'; }}>

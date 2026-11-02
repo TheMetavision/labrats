@@ -34,10 +34,10 @@ export const SITE_CONFIG = Object.freeze({
   // In email subjects: "Your Labrats wall art is on its way".
   BRAND_SHORT: 'Labrats',
 
-  // Customer emails come from the same sender as Printful's "It's shipped"
-  // email (NOTIFICATION_FROM in Netlify); replies go to the address the
-  // Returns & Refunds policy gives.
-  EMAIL_FROM: 'Labrats <contact@labrats.uk>',
+  // Customer emails come from orders@, like the order confirmation
+  // (stripe-webhook ORDER_EMAIL_FROM default) and the other three brands;
+  // replies go to the address the Returns & Refunds policy gives.
+  EMAIL_FROM: 'Labrats <orders@labrats.uk>',
   EMAIL_REPLY_TO: 'contact@themetavision.co.uk',
   // Shipping, returns and alert emails to the team (NOTIFICATION_TO).
   TEAM_EMAIL: 'squeak@labrats.uk',
@@ -84,6 +84,21 @@ export const SITE_CONFIG = Object.freeze({
   RETURN_POINT_INPOST: 'InPost locker, 59 West Road, Shoeburyness',
   RETURN_POINT_EVRI: 'ASDA Shoebury, North Shoebury Road',
   RETURN_POINT_UPS: 'Skanda, 93-95 West Road, Shoeburyness',
+
+  // ── Post-delivery sequence and referral programme (post-delivery.mjs,
+  // referral.mjs). BRAND_KEY is the metadata.brand create-checkout stamps on
+  // every session (the stripe-webhook brand guard); every referral code and
+  // coupon carries it too. Coupons are created in Stripe on first use.
+  BRAND_KEY: 'labrats',
+  REFERRAL_FRIEND_PREFIX: 'RAT',
+  REFERRAL_REWARD_PREFIX: 'LRTHX',
+  REFERRAL_FRIEND_COUPON_ID: 'lr-referral-friend-10',
+  REFERRAL_REWARD_COUPON_ID: 'lr-referral-reward-10',
+  // MailerLite "LR - Customers" (existing group); its automation sends the
+  // post-delivery emails. Only lr_-prefixed fields are written.
+  MAILERLITE_CUSTOMERS_GROUP: 'LR - Customers',
+  MAILERLITE_CUSTOMERS_GROUP_ID: '200061471544051345',
+  MAILERLITE_FIELD_PREFIX: 'lr',
 });
 
 /**
