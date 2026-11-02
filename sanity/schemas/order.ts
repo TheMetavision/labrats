@@ -62,6 +62,7 @@ export default defineType({
           { name: 'quantity', title: 'Qty', type: 'number' },
           { name: 'price', title: 'Line Total (£)', type: 'number' },
           { name: 'fulfilment', title: 'Fulfilment', type: 'string', options: { list: ['printful', 'inhouse'] } },
+          { name: 'productType', title: 'Product type', type: 'string', description: 'Printful product type (merchandise), for the return band.' },
         ],
         preview: {
           select: { title: 'title', qty: 'quantity', price: 'price', fulfilment: 'fulfilment' },
