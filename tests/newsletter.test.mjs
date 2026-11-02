@@ -178,7 +178,8 @@ test('a new address gets one branded confirmation email via Resend, and nothing 
   assert.equal(mlWrites().length, 0, 'MailerLite only looked up');
   const [mail] = mails();
   assert.deepEqual(mail.to, ['reader@realmail.example']);
-  assert.equal(mail.from, 'Labrats <hello@labrats.example>');
+  assert.equal(mail.from, "Labrats <squeak@labrats.uk>", 'the brand address, never NOTIFICATION_FROM');
+  assert.equal(mail.reply_to, "squeak@labrats.uk");
   assert.equal(mail.subject, 'Confirm your subscription — Labrats');
   assert.match(mail.html, /^<!DOCTYPE html>/);
   assert.match(mail.html, /<img src="https:\/\/labrats\.example\/logo\.png" alt="Labrats"/);
@@ -283,8 +284,8 @@ test('Resend refusing: a generic 502 with no provider detail', async () => {
   assert.deepEqual(r.body, { error: 'Could not sign you up right now. Please try again later.' });
 });
 
-test('no NEWSLETTER_CONFIRM_SECRET, Resend key or sender: closed with a 503, nothing looked up or sent', async () => {
-  for (const missing of ['NEWSLETTER_CONFIRM_SECRET', 'RESEND_API_KEY', 'NOTIFICATION_FROM']) {
+test('no NEWSLETTER_CONFIRM_SECRET or Resend key: closed with a 503, nothing looked up or sent', async () => {
+  for (const missing of ['NEWSLETTER_CONFIRM_SECRET', 'RESEND_API_KEY']) {
     calls = [];
     Object.assign(process.env, ENV);
     delete process.env[missing];

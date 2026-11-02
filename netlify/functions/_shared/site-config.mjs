@@ -34,11 +34,17 @@ export const SITE_CONFIG = Object.freeze({
   // In email subjects: "Your Labrats wall art is on its way".
   BRAND_SHORT: 'Labrats',
 
-  // Customer emails come from orders@, like the order confirmation
-  // (stripe-webhook ORDER_EMAIL_FROM default) and the other three brands;
-  // replies go to the address the Returns & Refunds policy gives.
-  EMAIL_FROM: 'Labrats <orders@labrats.uk>',
-  EMAIL_REPLY_TO: 'contact@themetavision.co.uk',
+  // EVERY customer email sent through Resend (order confirmation, Printful's
+  // "it's shipped", wall-art dispatch, returns, referral thank-you, contact-form
+  // acknowledgement, newsletter confirmation and any other) comes from, and
+  // takes replies at, the brand's own address. Nothing else may set a
+  // customer sender: no hard-coded address, no other environment variable.
+  EMAIL_FROM: 'Labrats <squeak@labrats.uk>',
+  EMAIL_REPLY_TO: 'squeak@labrats.uk',
+  // The team's own emails (shipping-emails.mjs toTeam) keep the sender they
+  // had before the customer emails moved to the brand address.
+  TEAM_EMAIL_FROM: 'Labrats <orders@labrats.uk>',
+  TEAM_EMAIL_REPLY_TO: 'contact@themetavision.co.uk',
   // Shipping, returns and alert emails to the team (NOTIFICATION_TO).
   TEAM_EMAIL: 'squeak@labrats.uk',
   // The address the policies tell customers to write to.
