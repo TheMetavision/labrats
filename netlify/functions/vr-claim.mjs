@@ -37,6 +37,7 @@ export default async (req, context) => {
     customer: true,
     to: f.email,
     subject: 'Your Labrats Vent Runner prize claim',
+    title: 'Prize claim received',
     html: `<p>Hi ${esc(f.name)},</p><p>Thanks for claiming the ${esc(month)} Vent Runner leaderboard prize for <b>${esc(w.nick)}</b>. We'll check the winning run and post the t-shirt (size ${esc(f.size)}) within 28 days.</p><p>We only use these details to send the prize, and delete them once it has been sent.</p><p>The Labrats team</p>`,
   });
   return json({ ok: true });
