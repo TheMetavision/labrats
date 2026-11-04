@@ -4,15 +4,16 @@ import Navbar from '../../components/Navbar.astro';
 import Footer from '../../components/Footer.astro';
 
 // Prize claim form for the Vent Runner monthly leaderboard. Copy:
-// docs/vent-runner-leaderboard-copy.md (page 2). The game links here with
-// ?month=YYYY-MM&code=XXXXXXXX; the script below reads both and POSTs JSON to
-// /api/vr-claim (netlify/functions/vr-claim.mjs). Form styles follow contact.astro.
-const sizes = ['Kids 3-4', 'Kids 5-6', 'Kids 7-8', 'Kids 9-11', 'Kids 12-14', 'Adult S', 'Adult M', 'Adult L', 'Adult XL'];
+// docs/vent-runner-leaderboard-copy.md (page 2, DRAFT for review). The game links here with
+// ?month=YYYY-MM&code=XXXXXXXX; the script below reads both, loads the T-shirt choices from
+// /api/vr-prize-options and POSTs JSON to /api/vr-claim (netlify/functions/vr-claim.mjs), or to
+// /api/vr-decline to pass the prize on. Postcodes: src/lib/uk-postcode.mjs (shared with the server).
+// Form styles follow contact.astro.
 ---
 
 <Layout
   title="Claim a Vent Runner prize | Labrats"
-  description="Claim the Labrats t-shirt your Vent Runner champion won on the monthly leaderboard."
+  description="Claim the Labrats T-shirt won on the Vent Runner monthly leaderboard."
   canonical="/games/claim"
   noIndex
 >
@@ -21,7 +22,7 @@ const sizes = ['Kids 3-4', 'Kids 5-6', 'Kids 7-8', 'Kids 9-11', 'Kids 12-14', 'A
     <header class="claim__header">
       <p class="claim__eyebrow">Labrats Games</p>
       <h1 class="claim__title">Claim a Vent Runner prize</h1>
-      <p class="claim__intro"><em>Congratulations to your Vent Runner champion! Fill in this form to claim their Labrats t-shirt. You'll need the prize code shown in the game.</em></p>
+      <p class="claim__intro"><em>Congratulations! Fill in this form to claim the Labrats T-shirt won on the Vent Runner leaderboard. The prize is claimed by the winner, or their parent or guardian if they're under 18. You'll need the prize code shown in the game.</em></p>
     </header>
 
     <form class="claim-form" id="claimForm" novalidate>
@@ -37,9 +38,55 @@ const sizes = ['Kids 3-4', 'Kids 5-6', 'Kids 7-8', 'Kids 9-11', 'Kids 12-14', 'A
         <select id="monthPick" class="form-input form-select"></select>
       </div>
 
+      <fieldset class="form-fieldset">
+        <legend class="form-label">Who's claiming?</legend>
+        <div class="form-check">
+          <input id="claimantWinner" name="claimant" type="radio" value="winner" required />
+          <label for="claimantWinner">I'm the winner and I'm 18 or over</label>
+        </div>
+        <div class="form-check">
+          <input id="claimantGuardian" name="claimant" type="radio" value="guardian" required />
+          <label for="claimantGuardian">I'm the winner's parent or guardian</label>
+        </div>
+      </fieldset>
+
+      <fieldset class="form-fieldset">
+        <legend class="form-label">Choose the T-shirt</legend>
+        <p class="form-note">Any Labrats T-shirt design from our shop, in the colours and sizes that design comes in.</p>
+        <div class="prize-pick">
+          <img id="prizeImage" class="prize-pick__image" alt="" width="160" height="160" hidden />
+          <div class="prize-pick__fields">
+            <div class="form-group">
+              <label for="design" class="form-label">Design</label>
+              <select id="design" name="design" class="form-input form-select" required disabled>
+                <option value="" selected>Loading designs...</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="garment" class="form-label">T-shirt</label>
+              <select id="garment" name="garment" class="form-input form-select" required disabled>
+                <option value="" selected>Choose a design first</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="colour" class="form-label">Colour</label>
+              <select id="colour" name="colour" class="form-input form-select" required disabled>
+                <option value="" selected>Choose a design first</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="size" class="form-label">Size</label>
+              <select id="size" name="size" class="form-input form-select" required disabled>
+                <option value="" selected>Choose a colour first</option>
+              </select>
+            </div>
+          </div>
+        </div>
+      </fieldset>
+
       <div class="form-group">
-        <label for="guardianName" class="form-label">Your name (parent or guardian)</label>
-        <input id="guardianName" name="guardianName" class="form-input" type="text" required maxlength="80" autocomplete="name" />
+        <label for="name" class="form-label">Your name</label>
+        <input id="name" name="name" class="form-input" type="text" required maxlength="80" autocomplete="name" />
       </div>
 
       <div class="form-group">
@@ -65,20 +112,17 @@ const sizes = ['Kids 3-4', 'Kids 5-6', 'Kids 7-8', 'Kids 9-11', 'Kids 12-14', 'A
       <div class="form-group">
         <label for="postcode" class="form-label">Postcode</label>
         <input id="postcode" name="postcode" class="form-input" type="text" required maxlength="12" autocomplete="postal-code" autocapitalize="characters" aria-describedby="postcode-note" />
-        <p class="form-note" id="postcode-note">Prizes can only be sent to UK addresses.</p>
+        <p class="form-note" id="postcode-note">Prizes can only be posted to England, Scotland, Wales and Northern Ireland. We can't use Channel Islands, Isle of Man or BFPO addresses.</p>
       </div>
 
       <div class="form-group">
-        <label for="size" class="form-label">T-shirt size</label>
-        <select id="size" name="size" class="form-input form-select" required>
-          <option value="" disabled selected>Choose a size</option>
-          {sizes.map((s) => <option value={s}>{s}</option>)}
-        </select>
+        <span class="form-label">Country</span>
+        <p class="form-static">United Kingdom</p>
       </div>
 
       <div class="form-check">
         <input id="consent" name="consent" type="checkbox" required />
-        <label for="consent">I'm the winner's parent or guardian, I'm 18 or over, and I agree to the <a href="/games/leaderboard-terms/">leaderboard rules</a>. See our <a href="/legal/privacy-policy/">privacy policy</a>.</label>
+        <label for="consent">What I've ticked above is true, and I agree to the <a href="/games/leaderboard-terms/">leaderboard rules</a>. See our <a href="/legal/privacy-policy/">privacy policy</a>.</label>
       </div>
 
       <button type="submit" class="form-submit" id="claimSubmit">
@@ -87,31 +131,60 @@ const sizes = ['Kids 3-4', 'Kids 5-6', 'Kids 7-8', 'Kids 9-11', 'Kids 12-14', 'A
       </button>
 
       <p class="form-message form-message--error" id="claimError" role="alert" hidden></p>
+
+      <section class="claim-decline" aria-labelledby="declineTitle">
+        <h2 class="claim-decline__title" id="declineTitle">Can't use a UK address?</h2>
+        <p>We can only post prizes to England, Scotland, Wales and Northern Ireland. If you can't give an address there, you can pass the prize to the next player on the leaderboard. Enter the prize code above first. This can't be undone.</p>
+        <button type="button" class="form-secondary" id="declineStart">Pass the prize on</button>
+        <div class="claim-decline__confirm" id="declineConfirm" hidden>
+          <p><strong>Pass the prize to the next player?</strong></p>
+          <button type="button" class="form-secondary" id="declineYes">Yes, pass it on</button>
+          <button type="button" class="form-secondary form-secondary--ghost" id="declineNo">No, go back</button>
+        </div>
+      </section>
     </form>
 
-    <p class="form-message form-message--success" id="claimSuccess" aria-live="polite" hidden><em>Thanks! We've emailed you a receipt. We'll check the winning run and post the t-shirt within 28 days.</em></p>
+    <p class="form-message form-message--success" id="claimSuccess" aria-live="polite" hidden><em>Thanks! We've emailed you a receipt. We'll check the winning run and post the T-shirt within 28 days.</em></p>
+    <p class="form-message form-message--success" id="declineSuccess" aria-live="polite" hidden><em>Thanks for letting us know. The prize has passed to the next player.</em></p>
   </main>
   <Footer />
 </Layout>
 
 <script>
+  import { ukPostcode, POSTCODE_MESSAGES } from '../../lib/uk-postcode.mjs';
+
+  type Colour = { colour: string; image: string | null; sizes: string[] };
+  type Garment = { type: string; label: string; colours: Colour[] };
+  type Design = { slug: string; name: string; garments: Garment[] };
+
   const MESSAGES: Record<string, string> = {
-    code: "That prize code doesn't match this month's winner. Check the code shown in the game.",
+    code: "That prize code doesn't match a prize waiting to be claimed. Check the code and month shown in the game.",
     claimed: 'This prize has already been claimed. Questions? Email contact@labrats.uk.',
-    form: "Please fill in every field and tick the box to confirm you're the winner's parent or guardian.",
+    expired: 'The time to claim this prize has run out, so it has passed to the next player. Questions? Email contact@labrats.uk.',
+    busy: 'This prize is being claimed right now. Please wait a couple of minutes and try again.',
+    form: "Please fill in every field, choose who's claiming and the T-shirt, and tick the box.",
+    prize: "That T-shirt isn't available any more. Please choose another colour or size.",
+    'postcode-crown': POSTCODE_MESSAGES.crown,
+    'postcode-bfpo': POSTCODE_MESSAGES.bfpo,
+    'postcode-format': POSTCODE_MESSAGES.format,
+    options: "We couldn't load the T-shirt designs. Please refresh the page, or email contact@labrats.uk.",
     other: 'Something went wrong sending your claim. Please try again, or email contact@labrats.uk.',
   };
-  // UK postcodes, including BFPO and GIR 0AA; spaces optional.
-  const UK_POSTCODE = /^(GIR ?0AA|BFPO ?\d{1,4}|[A-Z]{1,2}\d[A-Z\d]? ?\d[A-Z]{2})$/i;
 
-  const form = document.getElementById('claimForm') as HTMLFormElement;
-  const monthInput = document.getElementById('month') as HTMLInputElement;
-  const monthGroup = document.getElementById('monthGroup') as HTMLElement;
-  const monthPick = document.getElementById('monthPick') as HTMLSelectElement;
-  const codeInput = document.getElementById('claimCode') as HTMLInputElement;
-  const submit = document.getElementById('claimSubmit') as HTMLButtonElement;
-  const errorEl = document.getElementById('claimError') as HTMLElement;
-  const successEl = document.getElementById('claimSuccess') as HTMLElement;
+  const $ = <T extends HTMLElement = HTMLElement>(id: string) => document.getElementById(id) as T;
+  const form = $<HTMLFormElement>('claimForm');
+  const monthInput = $<HTMLInputElement>('month');
+  const monthGroup = $('monthGroup');
+  const monthPick = $<HTMLSelectElement>('monthPick');
+  const codeInput = $<HTMLInputElement>('claimCode');
+  const submit = $<HTMLButtonElement>('claimSubmit');
+  const errorEl = $('claimError');
+  const successEl = $('claimSuccess');
+  const designSel = $<HTMLSelectElement>('design');
+  const garmentSel = $<HTMLSelectElement>('garment');
+  const colourSel = $<HTMLSelectElement>('colour');
+  const sizeSel = $<HTMLSelectElement>('size');
+  const prizeImage = $<HTMLImageElement>('prizeImage');
 
   const params = new URLSearchParams(location.search);
   const code = params.get('code');
@@ -121,52 +194,97 @@ const sizes = ['Kids 3-4', 'Kids 5-6', 'Kids 7-8', 'Kids 9-11', 'Kids 12-14', 'A
   if (month && /^\d{4}-\d{2}$/.test(month)) {
     monthInput.value = month;
   } else {
-    // No month in the link: offer the last two calendar months.
+    // No month in the link: offer the last six calendar months (a prize can pass down for months).
     const now = new Date();
-    for (let back = 1; back <= 2; back++) {
+    for (let back = 1; back <= 6; back++) {
       const d = new Date(now.getFullYear(), now.getMonth() - back, 1);
       const value = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
       monthPick.add(new Option(d.toLocaleDateString('en-GB', { month: 'long', year: 'numeric' }), value));
     }
     monthGroup.hidden = false;
   }
+  const monthValue = () => monthInput.value || monthPick.value;
 
   const showError = (reason: string) => {
     errorEl.textContent = MESSAGES[reason] || MESSAGES.other;
     errorEl.hidden = false;
+    errorEl.scrollIntoView({ block: 'center' });
   };
 
+  /* ---------- the T-shirt: design -> adult/kids -> colour -> size, from the design's real variants ---------- */
+  let designs: Design[] = [];
+  const fill = (sel: HTMLSelectElement, placeholder: string, options: { value: string; label: string }[]) => {
+    const first = new Option(placeholder, '');
+    first.disabled = true;
+    sel.replaceChildren(first);
+    for (const o of options) sel.add(new Option(o.label, o.value));
+    sel.value = options.length === 1 ? options[0].value : '';
+    sel.disabled = options.length === 0;
+  };
+  const design = () => designs.find((d) => d.slug === designSel.value);
+  const garment = () => design()?.garments.find((g) => g.type === garmentSel.value);
+  const colour = () => garment()?.colours.find((c) => c.colour === colourSel.value);
+  const showImage = () => {
+    const img = colour()?.image || garment()?.colours.find((c) => c.image)?.image || null;
+    prizeImage.hidden = !img;
+    if (img) {
+      prizeImage.src = `${img}?w=320&h=320&fit=crop&auto=format`;
+      prizeImage.alt = [design()?.name, garment()?.label, colour()?.colour].filter(Boolean).join(', ');
+    }
+  };
+  const onColour = () => { fill(sizeSel, 'Choose a size', (colour()?.sizes || []).map((s) => ({ value: s, label: s }))); showImage(); };
+  const onGarment = () => { fill(colourSel, 'Choose a colour', (garment()?.colours || []).map((c) => ({ value: c.colour, label: c.colour }))); onColour(); };
+  const onDesign = () => { fill(garmentSel, 'Adult or kids', (design()?.garments || []).map((g) => ({ value: g.type, label: g.label }))); onGarment(); };
+  designSel.addEventListener('change', onDesign);
+  garmentSel.addEventListener('change', onGarment);
+  colourSel.addEventListener('change', onColour);
+
+  fetch('/api/vr-prize-options')
+    .then((r) => r.json())
+    .then((data: { designs?: Design[] }) => {
+      designs = data.designs || [];
+      if (!designs.length) throw new Error('no designs');
+      fill(designSel, 'Choose a design', designs.map((d) => ({ value: d.slug, label: d.name })));
+      onDesign();
+    })
+    .catch(() => { fill(designSel, 'Designs unavailable', []); showError('options'); });
+
+  /* ---------- claim ---------- */
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
     errorEl.hidden = true;
-    const val = (id: string) => ((form.elements.namedItem(id) as HTMLInputElement).value || '').trim();
+    const val = (id: string) => ((form.elements.namedItem(id) as HTMLInputElement | null)?.value || '').trim();
+    const claimant = (form.querySelector('input[name="claimant"]:checked') as HTMLInputElement | null)?.value || '';
     const body = {
-      month: monthInput.value || monthPick.value,
+      month: monthValue(),
       claimCode: val('claimCode').toUpperCase(),
-      guardianName: val('guardianName'),
+      claimant,
+      name: val('name'),
       email: val('email'),
       address1: val('address1'),
       address2: val('address2'),
       town: val('town'),
       postcode: val('postcode').toUpperCase(),
-      size: val('size'),
+      design: designSel.value,
+      garment: garmentSel.value,
+      colour: colourSel.value,
+      size: sizeSel.value,
       consent: (form.elements.namedItem('consent') as HTMLInputElement).checked,
     };
-    if (!form.checkValidity() || !UK_POSTCODE.test(body.postcode)) {
+    if (!form.checkValidity() || !claimant || !body.design || !body.garment || !body.colour || !body.size) {
       form.reportValidity();
       showError('form');
       return;
     }
+    const pc = ukPostcode(body.postcode);
+    if (!pc.ok) { showError('postcode-' + pc.reason); $('postcode').focus(); return; }
+    body.postcode = pc.postcode;
 
     submit.disabled = true;
     (submit.querySelector('.submit-text') as HTMLElement).hidden = true;
     (submit.querySelector('.submit-sending') as HTMLElement).hidden = false;
     try {
-      const res = await fetch('/api/vr-claim', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(body),
-      });
+      const res = await fetch('/api/vr-claim', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
       const data = await res.json().catch(() => ({}));
       if (res.ok && data.ok) {
         form.hidden = true;
@@ -181,6 +299,29 @@ const sizes = ['Kids 3-4', 'Kids 5-6', 'Kids 7-8', 'Kids 9-11', 'Kids 12-14', 'A
     submit.disabled = false;
     (submit.querySelector('.submit-text') as HTMLElement).hidden = false;
     (submit.querySelector('.submit-sending') as HTMLElement).hidden = true;
+  });
+
+  /* ---------- "can't use a UK address": pass the prize on (two clicks, no browser dialog) ---------- */
+  const declineConfirm = $('declineConfirm');
+  const declineStart = $<HTMLButtonElement>('declineStart');
+  const declineYes = $<HTMLButtonElement>('declineYes');
+  declineStart.addEventListener('click', () => {
+    errorEl.hidden = true;
+    if (codeInput.value.trim().length !== 8) { showError('code'); codeInput.focus(); return; }
+    declineStart.hidden = true; declineConfirm.hidden = false;
+  });
+  $('declineNo').addEventListener('click', () => { declineConfirm.hidden = true; declineStart.hidden = false; });
+  declineYes.addEventListener('click', async () => {
+    declineYes.disabled = true;
+    try {
+      const res = await fetch('/api/vr-decline', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ month: monthValue(), claimCode: codeInput.value.trim().toUpperCase() }) });
+      const data = await res.json().catch(() => ({}));
+      if (res.ok && data.ok) { form.hidden = true; $('declineSuccess').hidden = false; return; }
+      showError(data.reason || 'other');
+    } catch {
+      showError('other');
+    }
+    declineYes.disabled = false; declineConfirm.hidden = true; declineStart.hidden = false;
   });
 </script>
 
@@ -328,4 +469,47 @@ const sizes = ['Kids 3-4', 'Kids 5-6', 'Kids 7-8', 'Kids 9-11', 'Kids 12-14', 'A
     color: var(--color-white);
     background: rgba(0, 194, 212, 0.08);
   }
+  .form-fieldset {
+    border: 1px solid rgba(255,255,255,0.15);
+    border-radius: 6px;
+    padding: 16px;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    min-width: 0;
+  }
+  .form-fieldset legend { padding: 0 6px; }
+  .form-static { margin: 0; font-size: 15px; color: var(--color-white); }
+  .prize-pick { display: flex; gap: 16px; align-items: flex-start; flex-wrap: wrap; }
+  .prize-pick__image { width: 160px; height: 160px; object-fit: cover; border-radius: 6px; background: #111; flex-shrink: 0; }
+  .prize-pick__image[hidden] { display: none; }
+  .prize-pick__fields { flex: 1 1 240px; display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+  .form-select:disabled { opacity: 0.6; cursor: default; }
+  .claim-decline {
+    margin-top: 12px;
+    padding-top: 20px;
+    border-top: 1px solid rgba(255,255,255,0.1);
+    font-size: 15px;
+    line-height: 1.55;
+    color: #ccc;
+  }
+  .claim-decline__title { font-size: 18px; margin: 0 0 8px; color: var(--color-white); }
+  .claim-decline p { margin: 0 0 12px; }
+  .claim-decline [hidden] { display: none; }
+  .form-secondary {
+    padding: 10px 20px;
+    background: transparent;
+    color: var(--color-white);
+    border: 1px solid var(--color-teal);
+    border-radius: 6px;
+    font-family: var(--font-heading);
+    font-size: 14px;
+    letter-spacing: 1px;
+    cursor: pointer;
+    margin: 0 8px 8px 0;
+  }
+  .form-secondary:hover { border-color: var(--color-yellow); }
+  .form-secondary--ghost { border-color: rgba(255,255,255,0.3); }
+  .form-secondary:disabled { opacity: 0.6; cursor: default; }
 </style>

@@ -11,7 +11,16 @@ setStoreForTests({
   async *list({ prefix }) { yield { blobs: [...mem.keys()].filter(k => k.startsWith(prefix)).map(key => ({ key })) }; },
   async delete(k) { mem.delete(k); },
 });
-const sent = []; globalThis.fetch = async (url, init) => { sent.push(JSON.parse(init.body)); return new Response('{"id":"x"}', { status: 200 }); };
+const sent = []; // Resend is recorded; the prize claim also reads the T-shirt from Sanity and makes a Printful draft (faked here).
+const PRODUCT = { name: 'Boomer Blazeclaw Boom', slug: 'boomer', variants: [{ productType: 'kids-tshirt', printfulVariants: [{ colour: 'Black', size: 'M', syncVariantId: '6001' }] }] };
+process.env.PRINTFUL_API_KEY = 'pf_test';
+globalThis.fetch = async (url, init = {}) => {
+  const u = new URL(String(url));
+  if (u.hostname === 'api.resend.com') { sent.push(JSON.parse(init.body)); return new Response('{"id":"x"}', { status: 200 }); }
+  if (u.hostname.endsWith('api.sanity.io')) return new Response(JSON.stringify({ result: PRODUCT }), { status: 200 });
+  if (u.hostname === 'api.printful.com') return new Response(JSON.stringify({ result: { id: 555 } }), { status: 200 });
+  throw new Error('unexpected network call ' + url);
+};
 const start = (await import('../functions/vr-start.mjs')).default, submit = (await import('../functions/vr-submit.mjs')).default;
 const board = (await import('../functions/vr-board.mjs')).default, winner = (await import('../functions/vr-winner.mjs')).default;
 const claim = (await import('../functions/vr-claim.mjs')).default, { closeMonth } = await import('../functions/vr-close-month.mjs');
@@ -44,7 +53,7 @@ const c2 = await closeMonth(next); ok(c2.winner === 'already closed' && sent.len
 const month = monthId();
 r = await (await post(winner, { month, deviceKey: keyA })).json(); ok(r.won === false, "another player's device is not told the claim code");
 r = await (await post(winner, { month, deviceKey: keyB })).json(); ok(r.won && /^[A-Z2-9]{8}$/.test(r.claimCode), "the winner's device sees its claim code");
-const form = { month, claimCode: r.claimCode, guardianName: 'Pat Parent', email: 'pat@example.com', address1: '1 Cheese Lane', town: 'Southend-on-Sea', postcode: 'SS1 1AA', size: 'Kids 9-11', consent: true };
+const form = { month, claimCode: r.claimCode, claimant: 'guardian', name: 'Pat Parent', email: 'pat@example.com', address1: '1 Cheese Lane', town: 'Southend-on-Sea', postcode: 'SS1 1AA', design: 'boomer', garment: 'kids-tshirt', colour: 'Black', size: 'M', consent: true };
 let cr = await (await post(claim, { ...form, claimCode: 'WRONG123' })).json(); ok(cr.ok === false && cr.reason === 'code', 'a wrong claim code is refused');
 cr = await (await post(claim, { ...form, consent: false })).json(); ok(cr.ok === false, 'a claim without the parent/guardian consent box is refused');
 cr = await (await post(claim, form)).json(); ok(cr.ok && sent.length === 3 && sent[1].to === 'contact@labrats.uk' && sent[2].to === 'pat@example.com', 'a valid claim emails you the details and sends the parent a receipt');

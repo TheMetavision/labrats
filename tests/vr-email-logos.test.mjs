@@ -33,7 +33,16 @@ setStoreForTests({
   async delete(k) { mem.delete(k); },
 });
 const sent = [];
-globalThis.fetch = async (_url, init) => { sent.push(JSON.parse(init.body)); return new Response('{"id":"x"}', { status: 200 }); };
+// Resend is recorded; the prize claim also reads the T-shirt from Sanity and makes a Printful draft (faked here).
+const PRODUCT = { name: 'Boomer Blazeclaw Boom', slug: 'boomer', variants: [{ productType: 'kids-tshirt', printfulVariants: [{ colour: 'Black', size: 'M', syncVariantId: '6001' }] }] };
+process.env.PRINTFUL_API_KEY = 'pf_test';
+globalThis.fetch = async (url, init = {}) => {
+  const u = new URL(String(url));
+  if (u.hostname === 'api.resend.com') { sent.push(JSON.parse(init.body)); return new Response('{"id":"x"}', { status: 200 }); }
+  if (u.hostname.endsWith('api.sanity.io')) return new Response(JSON.stringify({ result: PRODUCT }), { status: 200 });
+  if (u.hostname === 'api.printful.com') return new Response(JSON.stringify({ result: { id: 555 } }), { status: 200 });
+  throw new Error('unexpected network call ' + url);
+};
 
 const submit = (await import('../netlify/functions/vr-submit.mjs')).default;
 const winner = (await import('../netlify/functions/vr-winner.mjs')).default;
@@ -63,7 +72,7 @@ test('month close, prize claim and receipt: Labrats logo on all three; team bar 
   const month = monthId();
   const w = await (await post(winner, { month, deviceKey: key })).json();
   assert.ok(w.won, 'winner sees the claim code');
-  const cr = await (await post(claim, { month, claimCode: w.claimCode, guardianName: 'Pat Parent', email: 'pat@example.com', address1: '1 Cheese Lane', town: 'Southend-on-Sea', postcode: 'SS1 1AA', size: 'Kids 9-11', consent: true }, '2.2.2.2')).json();
+  const cr = await (await post(claim, { month, claimCode: w.claimCode, claimant: 'guardian', name: 'Pat Parent', email: 'pat@example.com', address1: '1 Cheese Lane', town: 'Southend-on-Sea', postcode: 'SS1 1AA', design: 'boomer', garment: 'kids-tshirt', colour: 'Black', size: 'M', consent: true }, '2.2.2.2')).json();
   assert.ok(cr.ok, JSON.stringify(cr));
   assert.equal(sent.length, 3);
   const [summary, claimMail, receipt] = sent;

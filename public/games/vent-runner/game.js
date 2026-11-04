@@ -1301,16 +1301,20 @@ function lbInit() {
   document.querySelectorAll('.lbtab').forEach(t => t.addEventListener('click', e => { e.stopPropagation(); lbPeriod = t.dataset.p; lbLoad(); }));
   $('lbShuffle').addEventListener('click', e => { e.stopPropagation(); lbNick = newNick(); store.set('lr_vent_nick', lbNick); $('lbNick').textContent = lbNick; lbLoad(); });
   $('winLater').addEventListener('click', e => { e.stopPropagation(); $('winScreen').classList.remove('on'); $('titleScreen').classList.add('on'); });
-  // did this device win last month?
+  // does this device hold a prize? (last month's win, or one passed down to it: vr-winner.mjs)
   const p = new Intl.DateTimeFormat('en-GB', { timeZone: 'Europe/London', year: 'numeric', month: '2-digit' }).formatToParts(new Date());
   let y = +p.find(x => x.type === 'year').value, m = +p.find(x => x.type === 'month').value - 1; if (m === 0) { m = 12; y--; }
   const month = y + '-' + String(m).padStart(2, '0');
   lbPost('vr-winner', { month, deviceKey: lbDeviceKey() }).then(r => {
     if (!r || !r.won || r.claimed || state !== 'title') return;
-    const mn = new Date(Date.UTC(y, m - 1, 15)).toLocaleString('en-GB', { month: 'long', timeZone: 'UTC' });
-    $('winText').textContent = `${r.nick}, your ${r.dist.toLocaleString()} m run was the furthest in ${mn}!`;
+    const wm = r.month || month, [wy, wmo] = wm.split('-').map(Number);   // a prize can pass down to this device months later
+    const mn = new Date(Date.UTC(wy, wmo - 1, 15)).toLocaleString('en-GB', { month: 'long', timeZone: 'UTC' });
+    $('winText').textContent = r.passedDown
+      ? `${r.nick}, the ${mn} prize has passed to you: your ${r.dist.toLocaleString()} m run is next in line!`
+      : `${r.nick}, your ${r.dist.toLocaleString()} m run was the furthest in ${mn}!`;
+    if (r.claimBy) $('winNote').textContent = `Claim your Labrats T-shirt with this code by ${r.claimBy}. If you're under 18, ask a parent or guardian to claim it for you. Prizes can only be posted to UK addresses.`;
     $('winCode').textContent = r.claimCode;
-    $('winClaim').href = `/games/claim/?month=${month}&code=${encodeURIComponent(r.claimCode)}`;
+    $('winClaim').href = `/games/claim/?month=${wm}&code=${encodeURIComponent(r.claimCode)}`;
     $('titleScreen').classList.remove('on'); $('winScreen').classList.add('on');
   }).catch(() => {});
 }

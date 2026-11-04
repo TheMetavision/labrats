@@ -1,44 +1,106 @@
-// POST /api/vr-claim  { month, claimCode, guardianName, email, address1, address2, town, postcode, size, consent }
-// Sends the claim to contact@labrats.uk and a receipt to the parent/guardian. Personal details are NOT stored here,
-// only the fact that the prize was claimed.
-import { vrStore, json, readJson, rateLimited, esc, monthName, CONTACT_EMAIL } from '../lib/vr-shared.mjs';
+// POST /api/vr-claim
+//   { month, claimCode, claimant: 'winner' | 'guardian', name, email, address1, address2, town, postcode,
+//     design, garment: 'tshirt' | 'kids-tshirt', colour, size, consent }
+// Claims the prize for whoever holds the offer (netlify/lib/vr-prize.mjs):
+//   1. checks the form, the UK postcode (England, Scotland, Wales, NI: src/lib/uk-postcode.mjs) and the code;
+//      a claim after the window passes the prize down instead;
+//   2. checks the T-shirt against that design's real Printful variants (Sanity, read only) and the Printful store;
+//   3. holds the offer (offer.claiming), creates the Printful order as a DRAFT (confirm=false, always;
+//      external_id vr-<month>-<place>, so a retry finds the same draft), then emails the team (with the draft
+//      link, or what went wrong with Printful) and sends whoever claimed a receipt;
+//   4. if either email fails, the hold is released and the claim can be made again; otherwise it is final.
+// Personal details are NOT stored: they go only in the team email and the Printful draft. Nothing here writes
+// to Sanity or touches the shop's order, shipping, post-delivery, referral or MailerLite flows.
+import { vrStore, json, readJson, rateLimited } from '../lib/vr-shared.mjs';
 import { sendEmail } from '../lib/vr-email.mjs';
+import { update, isLocked, passDown, sanityRead, PRIZE_ONE_QUERY, PRIZE_GARMENTS, resolvePrize, prizeOrder, prizeExternalId } from '../lib/vr-prize.mjs';
+import { claimTeamEmail, receiptEmail, passDownEmail, CLAIMANTS } from '../lib/vr-prize-emails.mjs';
+import { ukPostcode } from '../../src/lib/uk-postcode.mjs';
+import printful from '../../src/lib/printful-order.cjs';
 
-const SIZES = ['Kids 3-4', 'Kids 5-6', 'Kids 7-8', 'Kids 9-11', 'Kids 12-14', 'Adult S', 'Adult M', 'Adult L', 'Adult XL'];
-const str = (v, max) => typeof v === 'string' && v.trim().length > 0 && v.trim().length <= max ? v.trim() : null;
+const { createPrintfulOrder, checkStoreVariants } = printful;
+const PRINTFUL_BUDGET_MS = 6000;
+const NOT_OURS = 'NOT_IN_STORE';
+const str = (v, max) => (typeof v === 'string' && v.trim().length > 0 && v.trim().length <= max ? v.trim() : null);
+
+/** Release the hold so the same code can be used again. */
+const release = (store, month, code) => update(store, month, (rec) => {
+  if (!rec.offer || rec.offer.claimCode !== code || !rec.offer.claiming) return null;
+  delete rec.offer.claiming; return rec;
+});
 
 export default async (req, context) => {
   if (req.method !== 'POST') return json({ error: 'method' }, 405);
   const store = await vrStore();
   if (await rateLimited(store, req, context, 'claim', 10)) return json({ ok: false, reason: 'slow down' }, 429);
   const b = await readJson(req, 3000);
-  if (!b || !/^\d{4}-\d{2}$/.test(b.month) || b.consent !== true) return json({ ok: false, reason: 'form' }, 400);
-  const f = { name: str(b.guardianName, 80), email: str(b.email, 120), a1: str(b.address1, 120), a2: b.address2 ? str(b.address2, 120) : '', town: str(b.town, 80), pc: str(b.postcode, 12), size: SIZES.includes(b.size) ? b.size : null };
-  if (!f.name || !f.email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(f.email) || !f.a1 || !f.town || !f.pc || !f.size || f.a2 === null) return json({ ok: false, reason: 'form' }, 400);
-  const key = `winners/${b.month}`;
-  const cur = await store.getWithMetadata(key, { type: 'json' });
-  const w = cur && cur.data;
-  if (!w || w.disqualified || typeof b.claimCode !== 'string' || b.claimCode.toUpperCase() !== w.claimCode) return json({ ok: false, reason: 'code' }, 400);
-  if (w.claimed) return json({ ok: false, reason: 'claimed' }, 409);
-  const res = await store.setJSON(key, { ...w, claimed: true, claimedAt: Date.now() }, { onlyIfMatch: cur.etag });
-  if (res && res.modified === false) return json({ ok: false, reason: 'busy' }, 409);
-  const month = monthName(b.month);
-  await sendEmail({
-    to: CONTACT_EMAIL, replyTo: f.email,
-    subject: `Vent Runner prize claim: ${month} (${w.nick})`,
-    html: `<h2>Vent Runner prize claim: ${esc(month)}</h2>
-      <p><b>Winner:</b> ${esc(w.nick)}, ${w.dist.toLocaleString('en-GB')} m on ${esc(w.stage)} as ${esc(w.runner)}${w.flag ? ' <b>(flagged for review: run was close to the fastest possible time)</b>' : ''}</p>
-      <p><b>Parent/guardian:</b> ${esc(f.name)}<br><b>Email:</b> ${esc(f.email)}<br><b>T-shirt size:</b> ${esc(f.size)}</p>
-      <p><b>Deliver to:</b><br>${esc(f.a1)}<br>${f.a2 ? esc(f.a2) + '<br>' : ''}${esc(f.town)}<br>${esc(f.pc)}</p>
-      <p>Consent confirmed: claimant states they are the parent or guardian (18+) and agrees to the leaderboard terms.</p>
-      <p>Delete these details once the prize has been sent.</p>`,
+  if (!b || !/^\d{4}-\d{2}$/.test(b.month) || b.consent !== true || !(b.claimant in CLAIMANTS)) return json({ ok: false, reason: 'form' }, 400);
+  const f = { name: str(b.name, 80), email: str(b.email, 120), a1: str(b.address1, 120), a2: b.address2 ? str(b.address2, 120) : '', town: str(b.town, 80), pc: str(b.postcode, 12) };
+  const pick = { design: str(b.design, 120), garment: b.garment in PRIZE_GARMENTS ? b.garment : null, colour: str(b.colour, 60), size: str(b.size, 20) };
+  if (!f.name || !f.email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(f.email) || !f.a1 || !f.town || !f.pc || f.a2 === null || !pick.design || !pick.garment || !pick.colour || !pick.size) return json({ ok: false, reason: 'form' }, 400);
+  const pc = ukPostcode(f.pc);
+  if (!pc.ok) return json({ ok: false, reason: 'postcode-' + pc.reason }, 400);
+  f.pc = pc.postcode;
+  const code = typeof b.claimCode === 'string' ? b.claimCode.trim().toUpperCase() : '';
+  const month = b.month, now = Date.now();
+
+  // The code must be the current offer's; after its window the prize passes on instead.
+  let reason = null, expired = null;
+  const check = await update(store, month, (rec) => {
+    if (rec.status === 'claimed' && rec.claim && rec.claim.claimCode === code) { reason = 'claimed'; return null; }
+    if (rec.status !== 'open' || !rec.offer || rec.offer.claimCode !== code) { reason = 'code'; return null; }
+    if (isLocked(rec.offer, now)) { reason = 'busy'; return null; }
+    if (now >= rec.offer.deadline) { reason = 'expired'; return passDown(rec, 'expired', now); }
+    return null;
   });
-  await sendEmail({
-    customer: true,
-    to: f.email,
-    subject: 'Your Labrats Vent Runner prize claim',
-    title: 'Prize claim received',
-    html: `<p>Hi ${esc(f.name)},</p><p>Thanks for claiming the ${esc(month)} Vent Runner leaderboard prize for <b>${esc(w.nick)}</b>. We'll check the winning run and post the t-shirt (size ${esc(f.size)}) within 28 days.</p><p>We only use these details to send the prize, and delete them once it has been sent.</p><p>The Labrats team</p>`,
+  if (!check.rec) return json({ ok: false, reason: 'code' }, 400);
+  if (reason === 'expired' && check.changed) expired = check;
+  if (expired) await sendEmail(passDownEmail({ before: expired.before, rec: expired.rec })).catch((e) => console.error('[VR-PRIZE] pass-down email failed:', e.message));
+  if (reason) return json({ ok: false, reason }, reason === 'busy' || reason === 'claimed' ? 409 : 400);
+  const idx = check.rec.offer.idx;
+
+  // The T-shirt: one of that design's real variants, still in the Printful store.
+  let prize;
+  try { prize = resolvePrize(await sanityRead(PRIZE_ONE_QUERY, { slug: pick.design }), pick); }
+  catch (e) { console.error('[VR-PRIZE] catalogue read failed:', e.message); return json({ ok: false, reason: 'other' }, 503); }
+  if (!prize) return json({ ok: false, reason: 'prize' }, 400);
+  const apiKey = process.env.PRINTFUL_API_KEY;
+  const deadline = Date.now() + PRINTFUL_BUDGET_MS;
+  if (apiKey) {
+    const { problems, unverified } = await checkStoreVariants({ apiKey, ids: [prize.syncVariantId], deadline, notOursText: NOT_OURS });
+    if (problems.some((p) => p.includes(NOT_OURS))) return json({ ok: false, reason: 'prize' }, 400);
+    if (problems.length || unverified.length) console.warn('[VR-PRIZE] variant check:', [...problems, ...unverified].join('; '));
+  }
+
+  // Hold the offer while the draft and the emails go.
+  const held = await update(store, month, (rec) => {
+    if (rec.status !== 'open' || !rec.offer || rec.offer.claimCode !== code || isLocked(rec.offer)) return null;
+    rec.offer.claiming = { at: Date.now() }; return rec;
   });
+  if (!held.changed) return json({ ok: false, reason: 'busy' }, 409);
+
+  // The Printful order: a DRAFT for the team to confirm. Never confirmed here, whatever PRINTFUL_AUTO_CONFIRM says.
+  const externalId = prizeExternalId(month, idx);
+  let draft;
+  if (!apiKey) draft = { ok: false, error: 'PRINTFUL_API_KEY is not set' };
+  else draft = await createPrintfulOrder({ apiKey, order: prizeOrder({ month, idx, f, prize }), confirm: false, deadline });
+  draft = { ...draft, externalId };
+  if (!draft.ok) console.error(`[VR-PRIZE] ${externalId}: Printful draft not created: ${draft.error}`);
+
+  try {
+    await sendEmail(claimTeamEmail({ rec: held.rec, idx, claimant: b.claimant, f, prize, draft }));
+    await sendEmail(receiptEmail({ rec: held.rec, idx, claimant: b.claimant, f, prize }));
+  } catch (e) {
+    console.error(`[VR-PRIZE] ${externalId}: email failed, claim released:`, e.message);
+    await release(store, month, code).catch((err) => console.error('[VR-PRIZE] release failed:', err.message));
+    return json({ ok: false, reason: 'email' }, 502);
+  }
+
+  const done = await update(store, month, (rec) => {
+    if (!rec.offer || rec.offer.claimCode !== code) return null;
+    rec.claim = { idx, claimCode: code, at: Date.now(), claimant: b.claimant, design: prize.design, garment: prize.garment, colour: prize.colour, size: prize.size, printfulOrderId: draft.ok ? draft.id ?? null : null, draftOk: !!draft.ok };
+    rec.offer = null; rec.status = 'claimed'; return rec;
+  });
+  if (!done.changed) console.error(`[VR-PRIZE] ${externalId}: claim emailed but the record could not be marked claimed.`);
   return json({ ok: true });
 };

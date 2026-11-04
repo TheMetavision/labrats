@@ -38,6 +38,9 @@ export function readTicket(token) {
   if (got.length !== want.length || !timingSafeEqual(got, want)) return null;
   try { return JSON.parse(Buffer.from(body, 'base64url').toString()); } catch { return null; }
 }
+/** An HMAC of `text` under the leaderboard secret (the team's disqualify links, vr-prize.mjs). */
+export const signText = (text) => createHmac('sha256', secret()).update(String(text)).digest('base64url');
+export const sameText = (a, b) => { const x = Buffer.from(String(a)), y = Buffer.from(String(b)); return x.length === y.length && timingSafeEqual(x, y); };
 export const newId = (n = 12) => randomBytes(n).toString('base64url');
 export function claimCode() {               // 8 characters, no look-alikes (0/O, 1/I/L)
   const abc = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789', b = randomBytes(8);
