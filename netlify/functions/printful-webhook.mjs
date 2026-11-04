@@ -66,7 +66,7 @@ const brand = () => ({
   name: process.env.BRAND_NAME || 'Labrats',
   accent: process.env.BRAND_ACCENT || '#00c2d4',
   headerBg: process.env.EMAIL_HEADER_BG || '#0a0a0a',
-  logoUrl: process.env.LOGO_URL || '',
+  logoUrl: setting('LOGO_URL'), // site-config's logo unless LOGO_URL is set
   from: setting('EMAIL_FROM'),
   replyTo: setting('EMAIL_REPLY_TO'),
 });
@@ -93,7 +93,7 @@ export const WALL_ART_NOTE = 'Your wall art is made by us and ships separately, 
 const safeUrl = (u) => (/^https?:\/\//i.test(String(u || '')) ? String(u) : '');
 
 // "It's shipped" email in the Labrats order-confirmation palette (stripe-webhook.cjs).
-function buildShippedEmailHtml(order, shipment, b = brand()) {
+export function buildShippedEmailHtml(order, shipment, b = brand()) {
   const ref = esc(order.orderRef || '');
   const carrier = esc(shipment.carrier || 'the carrier');
   const num = esc(shipment.tracking_number || '');
