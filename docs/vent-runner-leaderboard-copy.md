@@ -2,13 +2,15 @@
 
 Decisions made: delivery to England, Scotland, Wales and Northern Ireland only (no Channel Islands, Isle of Man or BFPO); monthly leaderboards kept for 24 months; the prize is claimed by the winner if 18 or over, or by their parent or guardian; the winner chooses any Labrats T-shirt design (adult, or kids where the design has kids variants); 30 days to claim for the winner, then 14 days for each next player, down the top 10.
 
-Status (feat/vr-prize-flow): pages 1 and 2 are in the code on the branch, not published. The privacy-policy addition lives in Sanity and has NOT been changed: publish it there before (or with) the branch going live.
+Status (feat/vr-prize-flow): pages 1 and 2 are in the code on the branch, not published. The privacy-policy wording below is saved as a DRAFT on legalPage.privacy-policy in Sanity (section 10, paragraphs 2-4; it keeps its closing link to the rules page): publish it there before (or with) the branch going live.
 
 ---
 
 ## Page 1: /games/leaderboard-terms/ — "Vent Runner leaderboard rules"
 
 **Who runs it.** The Vent Runner leaderboard is run by The Metavision Multimedia Limited (company number 16282479), 167-169 Great Portland Street, London, trading as Labrats ("we").
+
+**Promoter:** Labrats, 5th Floor, 167-169 Great Portland Street, London W1W 5PF. **Contact:** contact@labrats.uk.
 
 **Free to play, no purchase needed.** Every run of Vent Runner played on labrats.uk is entered automatically under the player's racing name. Nobody has to buy anything or sign up to take part.
 
