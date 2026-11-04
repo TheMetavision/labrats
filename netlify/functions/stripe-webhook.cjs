@@ -50,7 +50,9 @@ const RESEND_URL = 'https://api.resend.com/emails';
 const { setting } = require('./_shared/site-config.mjs');
 // site-config's logo unless LOGO_URL is set, so a missing env var can't drop it.
 const LOGO_URL = setting('LOGO_URL');
-const HEADER_BG = process.env.EMAIL_HEADER_BG || '#0a0a0a';
+const { readableOn } = require('./_shared/readable-colour.mjs');
+// Header colour through site-config (the env var if set, else the committed value), read per call.
+const headerBg = () => setting('EMAIL_HEADER_BG');
 const MERCHANT_TO = process.env.ORDER_NOTIFICATION_TO || process.env.NOTIFICATION_TO || '';
 const MERCHANT_FROM = process.env.NOTIFICATION_FROM || setting('TEAM_EMAIL_FROM');
 const SANITY_PROJECT_ID = process.env.SANITY_PROJECT_ID || 'o9qrmykx';
@@ -201,6 +203,7 @@ function buildOrderEmailHtml(session, lineItems, promo = {}) {
     ? [ship.name, a.line1, a.line2, a.city, [a.state, a.postal_code].filter(Boolean).join(' '), a.country]
         .filter(Boolean).map(esc).join('<br>')
     : 'On file with your payment';
+  const hb = headerBg();
 
   const rows = (lineItems.data || []).map((li) => `
     <tr>
@@ -216,10 +219,10 @@ function buildOrderEmailHtml(session, lineItems, promo = {}) {
   <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:${C.pageBg};padding:32px 16px;">
     <tr><td align="center">
       <table role="presentation" width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;background:${C.cardBg};border:1px solid ${C.teal};">
-        <tr><td style="background:${HEADER_BG};padding:22px 28px;text-align:center;">
+        <tr><td style="background:${hb};padding:22px 28px;text-align:center;">
           ${LOGO_URL
             ? `<img src="${esc(LOGO_URL)}" alt="Labrats" width="240" style="max-width:240px;width:240px;height:auto;display:inline-block;border:0;" />`
-            : `<span style="font-family:Arial,Helvetica,sans-serif;font-size:20px;font-weight:800;letter-spacing:3px;color:${C.teal};text-transform:uppercase;">Labrats</span>`}
+            : `<span style="font-family:Arial,Helvetica,sans-serif;font-size:20px;font-weight:800;letter-spacing:3px;color:${readableOn(C.teal, hb)};text-transform:uppercase;">Labrats</span>`}
         </td></tr>
         <tr><td style="padding:32px 28px 8px;">
           <h1 style="margin:0 0 6px;font-family:Arial,Helvetica,sans-serif;font-size:24px;letter-spacing:1px;color:${C.yellow};text-transform:uppercase;">Order confirmed</h1>
@@ -343,7 +346,7 @@ async function sendMerchantEmail(session, lineItems, status, printfulOrderId, pr
           <div style="margin:0 0 16px;border:2px solid #1d4ed8;border-radius:8px;padding:14px 16px;">
             <p style="margin:0 0 8px;font-size:13px;font-weight:700;color:#1d4ed8;text-transform:uppercase;letter-spacing:.04em;">&#128230; Make &amp; dispatch in-house</p>
             <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
-              <tr><th align="left" style="font-size:11px;color:#888;text-transform:uppercase;padding-bottom:4px;">Piece / spec</th><th style="font-size:11px;color:#888;text-transform:uppercase;padding-bottom:4px;">Qty</th></tr>
+              <tr><th align="left" style="font-size:11px;color:#666;text-transform:uppercase;padding-bottom:4px;">Piece / spec</th><th style="font-size:11px;color:#666;text-transform:uppercase;padding-bottom:4px;">Qty</th></tr>
               ${inhouseRows}
             </table>
             <p style="margin:8px 0 0;font-size:12px;color:#555;">Print, frame and post to the address below. These are NOT in Printful.</p>
@@ -364,9 +367,9 @@ async function sendMerchantEmail(session, lineItems, status, printfulOrderId, pr
           ${promo.referralNote ? `<p style="background:#fff4e5;color:#8a4b00;padding:12px 16px;border-radius:6px;font-size:14px;margin:0 0 16px;"><strong>&#9888; FRIEND CODE &mdash; NO REWARD</strong><br>${esc(promo.referralNote)}</p>` : ''}
           <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:0 0 16px;">
             <tr>
-              <th align="left" style="font-size:11px;color:#888;text-transform:uppercase;padding-bottom:4px;">Item</th>
-              <th style="font-size:11px;color:#888;text-transform:uppercase;padding-bottom:4px;">Qty</th>
-              <th align="right" style="font-size:11px;color:#888;text-transform:uppercase;padding-bottom:4px;">Price</th>
+              <th align="left" style="font-size:11px;color:#666;text-transform:uppercase;padding-bottom:4px;">Item</th>
+              <th style="font-size:11px;color:#666;text-transform:uppercase;padding-bottom:4px;">Qty</th>
+              <th align="right" style="font-size:11px;color:#666;text-transform:uppercase;padding-bottom:4px;">Price</th>
             </tr>
             ${rows}
             ${promo.amountPence ? `<tr><td style="padding:8px 0;font-size:14px;color:#666;">${esc(discountLabel(promo.codes))}</td><td></td><td style="padding:8px 0;font-size:14px;text-align:right;color:#666;">&minus;${gbp(promo.amountPence)}</td></tr>` : ''}
@@ -374,9 +377,9 @@ async function sendMerchantEmail(session, lineItems, status, printfulOrderId, pr
             <tr><td style="padding:10px 0 0;font-size:15px;font-weight:700;">Total</td><td></td><td style="padding:10px 0 0;font-size:15px;font-weight:700;text-align:right;">${gbp(session.amount_total)}</td></tr>
           </table>
           ${inhouseSection}
-          <p style="margin:0 0 4px;font-size:11px;color:#888;text-transform:uppercase;">Customer</p>
+          <p style="margin:0 0 4px;font-size:11px;color:#666;text-transform:uppercase;">Customer</p>
           <p style="margin:0 0 16px;font-size:14px;">${esc(cust.name || '\u2014')}<br><a href="mailto:${esc(cust.email || '')}">${esc(cust.email || '\u2014')}</a></p>
-          <p style="margin:0 0 4px;font-size:11px;color:#888;text-transform:uppercase;">Ship to</p>
+          <p style="margin:0 0 4px;font-size:11px;color:#666;text-transform:uppercase;">Ship to</p>
           <p style="margin:0;font-size:14px;line-height:1.6;">${addrLines}</p>
         </td></tr>
       </table>

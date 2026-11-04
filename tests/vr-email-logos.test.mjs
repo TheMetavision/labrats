@@ -3,13 +3,16 @@
  * The month close and a prize claim run end to end on an in-memory Blobs store
  * (as netlify/tests/vr-leaderboard.test.mjs does); fetch is stubbed, so the
  * Resend payloads are recorded and nothing is sent. LOGO_URL is not set, so the
- * logo has to come from site-config.
+ * logo has to come from site-config. Every one of them must also be readable (WCAG
+ * contrast, tests/_email-contrast.mjs); the winning run is close to the fastest possible
+ * time, so the team emails carry their "flagged" warnings too.
  */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { setStoreForTests, monthId, sha256, signTicket } from '../netlify/lib/vr-shared.mjs';
 import { SITE_CONFIG } from '../netlify/functions/_shared/site-config.mjs';
 import { esc } from '../netlify/functions/_shared/dispatch-email.mjs';
+import { assertReadable } from './_email-contrast.mjs';
 
 const LOGO = 'https://labrats.uk/labrats-email-logo.png';
 const FOREIGN = ['thefuglys', 'catsoncrack', 'cats on crack', 'bikerbabies', 'biker babies', 'v518t53u', 'wyrmfuel', 'pixel8multimedia', 'comicstripcanvas', 'dottyandfriends', 'metavision'];
@@ -52,7 +55,7 @@ test('the Labrats site-config logo is the one expected', () => {
 
 test('month close, prize claim and receipt: Labrats logo on all three; team bar vs customer card', async () => {
   const key = 'b'.repeat(64);
-  const ticket = signTicket({ rid: 'r1', t: Date.now() - 300 * 1000, stage: 'ductways', runner: 'shadow', dev: sha256(key) });
+  const ticket = signTicket({ rid: 'r1', t: Date.now() - 90 * 1000, stage: 'ductways', runner: 'shadow', dev: sha256(key) });
   const r = await (await post(submit, { token: ticket, nick: 'TurboGouda07', dist: 2600, score: 100 })).json();
   assert.ok(r.ok, JSON.stringify(r));
   const [y, m] = monthId().split('-').map(Number);
@@ -75,6 +78,9 @@ test('month close, prize claim and receipt: Labrats logo on all three; team bar 
 
   assert.equal(receipt.to, 'pat@example.com');
   assertLabratsLogo(receipt.html, 'receipt');
+  assert.match(summary.html, /flagged/, 'monthly winner: the flag warning is shown');
+  assert.match(claimMail.html, /flagged for review/, 'prize claim: the flag warning is shown');
+  for (const [mail, label] of [[summary, 'monthly winner'], [claimMail, 'prize claim'], [receipt, 'receipt']]) assertReadable(mail.html, `Vent Runner ${label}`);
   assert.ok(receipt.html.includes('width="240"'), 'receipt: the customer card header');
   assert.ok(receipt.html.startsWith('<!doctype html>'), 'receipt: a full customer email');
   assert.ok(receipt.html.includes('Prize claim received'));
@@ -86,4 +92,7 @@ test('vrEmailHtml follows a LOGO_URL override and falls back to the name with no
   assert.ok(vrEmailHtml({ html: '<p>x</p>' }, b('https://example.com/l.png')).includes('src="https://example.com/l.png"'));
   assert.ok(vrEmailHtml({ html: '<p>x</p>', customer: true, title: 'T' }, b('https://example.com/l.png')).includes('src="https://example.com/l.png"'));
   assert.doesNotMatch(vrEmailHtml({ html: '<p>x</p>' }, b('')), /<img/);
+  // Readable whatever the palette: the wordmark and card text follow readable-colour.mjs.
+  assertReadable(vrEmailHtml({ html: '<p>x</p>' }, b('')), 'team, no logo');
+  assertReadable(vrEmailHtml({ html: '<p>x</p>', customer: true, title: 'T' }, b('')), 'customer, no logo');
 });
