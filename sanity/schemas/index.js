@@ -10,6 +10,8 @@
 // from src/lib/artwork-pricing.mjs; routed to in-house dispatch by the webhook.
 // 2026-10-05: added order (the Stripe/Printful webhook order log; documents
 // already existed with no schema).
+// 2026-11-12: added galleryImage (object) and game (document) for the private
+// reference galleries. Studio and Social Content Studio only, never the site.
 import character from './character';
 import episode from './episode';
 import blogPost from './blogPost';
@@ -27,6 +29,8 @@ import legalPage from './legalPage';
 import contactSubmission from './contactSubmission';
 import order from './order';
 import returnRequest from './returnRequest';
+import galleryImage from './galleryImage';
+import game from './game';
 export const schemaTypes = [
   siteSettings,
   worldLocation,
@@ -45,4 +49,6 @@ export const schemaTypes = [
   contactSubmission,
   order,
   returnRequest,
+  galleryImage,
+  game,
 ];
