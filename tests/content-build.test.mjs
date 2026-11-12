@@ -175,6 +175,7 @@ test('classify: drafts, versions, Sanity/system docs and operational types never
 
 test('a return request (shipping) never starts a build, though the webhook filter lets it through', () => {
   assert.deepEqual(classify({ _id: 'returnRequest.ret-1', _type: 'returnRequest' }), { build: false, reason: 'operational type returnRequest' });
+  assert.deepEqual(classify({ _id: 'game-1', _type: 'game' }), { build: false, reason: 'operational type game' });
 });
 
 test('classify: published content builds, including types added later', () => {
