@@ -7,7 +7,7 @@
 // 2026-11-12: referenceGallery now takes galleryImage items too, and sits in the
 // collapsed "Reference (private)" fieldset. Existing renders are untouched.
 
-import { referenceGalleryField, referencePrivateFieldset } from './galleryImage';
+import { referenceGalleryField, referencePrivateFieldset, GALLERY_KINDS } from './galleryImage';
 
 export default {
   name: 'worldLocation',
@@ -80,6 +80,16 @@ export default {
             { name: 'isMaster', title: 'Master plate', type: 'boolean', initialValue: false },
             { name: 'label', title: 'Label', type: 'string' },
             { name: 'higgsfieldJobId', title: 'Higgsfield job ID', type: 'string', readOnly: true },
+            // Optional, matching galleryImage, so canon renders can be captioned and
+            // found the same way. Optional because the existing renders have neither.
+            {
+              name: 'caption',
+              title: 'Caption',
+              type: 'string',
+              description: 'What the image shows, e.g. "Lab Zero corridor in a power cut, emergency lights only".',
+              validation: (Rule) => Rule.max(120),
+            },
+            { name: 'kind', title: 'Kind', type: 'string', options: { list: GALLERY_KINDS } },
           ],
           preview: {
             select: { title: 'label', subtitle: 'timeOfDay', media: 'asset' },
