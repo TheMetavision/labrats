@@ -1,7 +1,10 @@
+import { referenceGalleryField, referencePrivateFieldset } from './galleryImage';
+
 export default {
   name: 'character',
   title: 'Character',
   type: 'document',
+  fieldsets: [referencePrivateFieldset],
   fields: [
     { name: 'name', title: 'Name', type: 'string', validation: (Rule) => Rule.required() },
     { name: 'slug', title: 'Slug', type: 'slug', options: { source: 'name', maxLength: 96 }, validation: (Rule) => Rule.required() },
@@ -15,6 +18,8 @@ export default {
     { name: 'portrait', title: 'Character Portrait', type: 'image', options: { hotspot: true } },
     { name: 'characterSheet', title: 'Character Sheet / Turnaround', type: 'image', options: { hotspot: true }, description: 'Multi-angle turnaround or model sheet. Used alongside the portrait to build this character\u2019s Higgsfield reference element. Production reference only: not shown on the site.' },
     { name: 'galleryImages', title: 'Gallery Images', type: 'array', of: [{ type: 'image', options: { hotspot: true } }] },
+    // Private: never query this field from the website (galleryImages above may be public).
+    referenceGalleryField('Working and promo images for this character. Not shown on the website.'),
     { name: 'sortOrder', title: 'Display Order', type: 'number' },
     { name: 'seoTitle', title: 'SEO Title', type: 'string' },
     { name: 'seoDescription', title: 'SEO Description', type: 'text', rows: 2 },

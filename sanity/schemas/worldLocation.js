@@ -4,11 +4,16 @@
 // 2026-10-21: referenceGallery added (canon environment renders, copied from
 // The Fuglys schema with Labrats lighting states). Not rendered by the site.
 // image (hero) added before it to match The Fuglys.
+// 2026-11-12: referenceGallery now takes galleryImage items too, and sits in the
+// collapsed "Reference (private)" fieldset. Existing renders are untouched.
+
+import { referenceGalleryField, referencePrivateFieldset } from './galleryImage';
 
 export default {
   name: 'worldLocation',
   title: 'World Location',
   type: 'document',
+  fieldsets: [referencePrivateFieldset],
   fields: [
     {
       name: 'title',
@@ -44,15 +49,14 @@ export default {
         },
       ],
     },
-    {
-      name: 'referenceGallery',
-      title: 'Reference gallery (canon renders)',
-      description: 'Approved environment renders: the official look of this location for books, animation and games. Not shown on the site.',
-      type: 'array',
-      options: { layout: 'grid' },
-      of: [
+    referenceGalleryField(
+      'Working and promo images for this location, plus the approved canon environment renders (the official look for books, animation and games). Not shown on the website.',
+      [
         {
+          // Legacy canon render: keeps _type 'image' so the 40 renders written
+          // via the API on 2026-10-21 load unchanged. New uploads use galleryImage.
           type: 'image',
+          title: 'Canon render (environment plate)',
           options: { hotspot: true },
           fields: [
             {
@@ -82,7 +86,7 @@ export default {
           },
         },
       ],
-    },
+    ),
     {
       name: 'order',
       title: 'Display Order',
