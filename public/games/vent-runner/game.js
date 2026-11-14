@@ -233,7 +233,7 @@ scene.add(aheadLight);
 /* ---------- Ductways artwork (Higgsfield renders, processed: seam fixes + normal maps) ---------- */
 // all artwork is served as static files; textures load only when a stage that uses them is shown
 const VR_BASE = window.VR_BASE || '/games/vent-runner/';
-const TX = Object.fromEntries(Object.entries({"wall":"tex/wall.webp","wallN":"tex/wallN.webp","floor":"tex/floor.webp","floorN":"tex/floorN.webp","vista":"tex/vista.webp","fan":"tex/fan.webp","card":"tex/card.jpg","d0":"tex/d0.webp","d1":"tex/d1.webp","d2":"tex/d2.webp","d3":"tex/d3.webp","d4":"tex/d4.webp","d5":"tex/d5.webp","lz_wall":"tex/lz_wall.webp","lz_wallN":"tex/lz_wallN.webp","lz_floor":"tex/lz_floor.webp","lz_floorN":"tex/lz_floorN.webp","lz_vista":"tex/lz_vista.webp","lz_door":"tex/lz_door.webp","lz_card":"tex/lz_card.jpg","lzd0":"tex/lzd0.webp","lzd1":"tex/lzd1.webp","lzd2":"tex/lzd2.webp","lzd3":"tex/lzd3.webp","lzd4":"tex/lzd4.webp","lzd5":"tex/lzd5.webp","lzd6":"tex/lzd6.webp","lzd7":"tex/lzd7.webp","cv_wall":"tex/cv_wall.webp","cv_wallN":"tex/cv_wallN.webp","cv_floor":"tex/cv_floor.webp","cv_floorN":"tex/cv_floorN.webp","cv_vista":"tex/cv_vista.webp","cv_door":"tex/cv_door.webp","cv_card":"tex/cv_card.jpg","cvd0":"tex/cvd0.webp","cvd1":"tex/cvd1.webp","cvd2":"tex/cvd2.webp","cvd3":"tex/cvd3.webp","cvd4":"tex/cvd4.webp","cvd5":"tex/cvd5.webp"}).map(([k, f]) => [k, VR_BASE + f]));
+const TX = Object.fromEntries(Object.entries({"wall": "tex/wall.webp", "wallN": "tex/wallN.webp", "floor": "tex/floor.webp", "floorN": "tex/floorN.webp", "vista": "tex/vista.webp", "fan": "tex/fan.webp", "card": "tex/card.jpg", "d0": "tex/d0.webp", "d1": "tex/d1.webp", "d2": "tex/d2.webp", "d3": "tex/d3.webp", "d4": "tex/d4.webp", "d5": "tex/d5.webp", "lz_wall": "tex/lz_wall.webp", "lz_wallN": "tex/lz_wallN.webp", "lz_floor": "tex/lz_floor.webp", "lz_floorN": "tex/lz_floorN.webp", "lz_vista": "tex/lz_vista.webp", "lz_door": "tex/lz_door.webp", "lz_card": "tex/lz_card.jpg", "lzd0": "tex/lzd0.webp", "lzd1": "tex/lzd1.webp", "lzd2": "tex/lzd2.webp", "lzd3": "tex/lzd3.webp", "lzd4": "tex/lzd4.webp", "lzd5": "tex/lzd5.webp", "lzd6": "tex/lzd6.webp", "lzd7": "tex/lzd7.webp", "cv_wall": "tex/cv_wall.webp", "cv_wallN": "tex/cv_wallN.webp", "cv_floor": "tex/cv_floor.webp", "cv_floorN": "tex/cv_floorN.webp", "cv_vista": "tex/cv_vista.webp", "cv_door": "tex/cv_door.webp", "cv_card": "tex/cv_card.jpg", "cvd0": "tex/cvd0.webp", "cvd1": "tex/cvd1.webp", "cvd2": "tex/cvd2.webp", "cvd3": "tex/cvd3.webp", "cvd4": "tex/cvd4.webp", "cvd5": "tex/cvd5.webp", "card_p": "tex/card_p.jpg", "lz_card_p": "tex/lz_card_p.jpg", "cv_card_p": "tex/cv_card_p.jpg"}).map(([k, f]) => [k, VR_BASE + f]));
 const texLoader = new THREE.TextureLoader();
 function artTex(key, rx, ry, ox) {
   if (!TX[key]) return null;
@@ -762,18 +762,8 @@ function silentWavUrl() {  // half a second of silence, built in code (no file n
   return URL.createObjectURL(new Blob([buf], { type: 'audio/wav' }));
 }
 function ensureAudio() {
-  try { if (navigator.audioSession) navigator.audioSession.type = 'playback'; } catch (e) {}  // iOS 17+: play through the silent switch
-  if (!actx) { try { actx = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) { actx = null; } }
-  if (!actx) return;
-  if (actx.state !== 'running') { const r = actx.resume(); if (r && r.catch) r.catch(() => {}); }
-  if (!audioUnlocked) {
-    audioUnlocked = true;
-    try { const b = actx.createBuffer(1, 1, 22050), s = actx.createBufferSource(); s.buffer = b; s.connect(actx.destination); s.start(0); } catch (e) {}
-    // older iPhones only leave silent mode while an HTML audio element is playing
-    if (IS_IOS && !navigator.audioSession) {
-      try { silentEl = new Audio(silentWavUrl()); silentEl.loop = true; silentEl.setAttribute('playsinline', ''); const p = silentEl.play(); if (p && p.catch) p.catch(() => {}); } catch (e) {}
-    }
-  }
+  // one shared engine for music, voices and effects (game-audio.js): iPhone-safe unlock and keep-alive
+  GameAudio.unlock(); actx = GameAudio.ctx; if (actx) audioUnlocked = true;
 }
 function tone(f1, f2, d, wave, v, delay) {
   if (!actx || muted) return;
@@ -788,36 +778,12 @@ function tone(f1, f2, d, wave, v, delay) {
 const MUSIC_FILES = { theme: 'theme', ductways: 'ductways', labzero: 'labzero', vault: 'vault2' };
 const MUSIC_URLS = Object.fromEntries(Object.entries(MUSIC_FILES).map(([k, f]) => [k, [VR_BASE + 'audio/' + f + '.mp4', VR_BASE + 'audio/' + f + '.webm']]));
 const MUSIC_VOL = 0.42;
-const music = { gain: null, bufs: {}, loading: {}, cur: null, key: null, want: null, level: 1 };
-function musicGainNode() {
-  if (!actx) return null;
-  if (!music.gain) { music.gain = actx.createGain(); music.gain.gain.value = muted ? 0 : MUSIC_VOL * music.level; music.gain.connect(actx.destination); }
-  return music.gain;
-}
-function musicBuf(key) {
-  if (music.bufs[key]) return Promise.resolve(music.bufs[key]);
-  const urls = MUSIC_URLS[key]; if (!urls || !actx) return Promise.resolve(null);
-  // each track is hosted twice (AAC/MP4 and Opus/WebM): use whichever this browser decodes
-  const tryUrl = i => i >= urls.length ? Promise.resolve(null) : fetch(urls[i]).then(r => { if (!r.ok) throw new Error('music ' + r.status); return r.arrayBuffer(); })
-    .then(ab => new Promise((res, rej) => { const pr = actx.decodeAudioData(ab, res, rej); if (pr && pr.catch) pr.catch(() => {}); })).catch(() => tryUrl(i + 1));
-  if (!music.loading[key]) music.loading[key] = tryUrl(0).then(b => { if (b) music.bufs[key] = b; else delete music.loading[key]; return b; });
-  return music.loading[key];
-}
-async function playMusic(key) {
-  music.want = key;
-  if (!actx || (music.key === key && music.cur)) return;
-  const buf = await musicBuf(key);
-  if (!buf || music.want !== key || music.key === key) return;
-  const g = musicGainNode(), t = actx.currentTime;
-  if (music.cur) { const old = music.cur; old.g.gain.setTargetAtTime(0, t, 0.35); old.src.stop(t + 2.5); }
-  const src = actx.createBufferSource(); src.buffer = buf; src.loop = true;
-  const sg = actx.createGain(); sg.gain.setValueAtTime(0, t); sg.gain.setTargetAtTime(1, t, 0.4);
-  src.connect(sg); sg.connect(g); src.start(t);
-  music.cur = { src, g: sg }; music.key = key;
-}
+GameAudio.setMusic(MUSIC_URLS, MUSIC_VOL); GameAudio.setMuted(muted);
+const music = { level: 1, want: null };
+function playMusic(key) { music.want = key; GameAudio.play(key); }
 function musicDuck(level) {
   music.level = level;
-  if (music.gain && actx) music.gain.gain.setTargetAtTime(muted ? 0 : MUSIC_VOL * level, actx.currentTime, 0.25);
+  GameAudio.duck(level);
 }
 // browsers only allow sound after a tap or key press: start the title theme on the first one
 // browsers only allow sound after a tap or key press: keep trying on each one until audio is running, then start the title theme
@@ -1129,6 +1095,13 @@ renderMissions('missionsTitle');
 if (TX.card) $('titleScreen').style.backgroundImage = `radial-gradient(ellipse at center, rgba(5,8,10,.35) 0%, rgba(5,8,10,.88) 75%), url(${TX.card})`;
 if (TX.card) { $('titleScreen').style.backgroundSize = 'cover'; $('titleScreen').style.backgroundPosition = 'center'; }
 function stageUnlocked(i) { return UNLOCK_ALL || i === 0 || store.get('lr_vent_clear_' + STAGES[i - 1].id, false); }
+// phones held upright get the 9:16 version of the stage card behind the menu
+const PORTRAIT = matchMedia('(orientation: portrait) and (max-aspect-ratio: 4/5)');
+function paintTitleBg(st) {
+  const card = (PORTRAIT.matches && TX[st.card + '_p']) || TX[st.card];
+  if (card) $('titleScreen').style.backgroundImage = `radial-gradient(ellipse at center, rgba(5,8,10,.35) 0%, rgba(5,8,10,.88) 75%), url(${card})`;
+}
+(PORTRAIT.addEventListener ? PORTRAIT.addEventListener.bind(PORTRAIT, 'change') : PORTRAIT.addListener.bind(PORTRAIT))(() => paintTitleBg(STAGES[stageIdx]));
 function applyStage(i) {
   stageIdx = i; store.set('lr_vent_stage', i);
   const st = STAGES[i], T = stageTex(st);
@@ -1144,7 +1117,7 @@ function applyStage(i) {
   decorateSegments(st);
   setTheme(0, true);
   $('warn').textContent = `${st.chaserName} is right behind you`;
-  if (TX[st.card]) $('titleScreen').style.backgroundImage = `radial-gradient(ellipse at center, rgba(5,8,10,.35) 0%, rgba(5,8,10,.88) 75%), url(${TX[st.card]})`;
+  paintTitleBg(st);
   if (typeof syncChaser === 'function') syncChaser();
   renderStagePicker();
   if (typeof renderRunnerPicker === 'function') renderRunnerPicker();
@@ -1190,7 +1163,7 @@ function setMuteIcon() {
   $('muteBtn').setAttribute('aria-label', muted ? 'Turn sound on' : 'Mute sound');
 }
 setMuteIcon();
-$('muteBtn').addEventListener('click', e => { e.stopPropagation(); muted = !muted; store.set('lr_vent_muted', muted); setMuteIcon(); ensureAudio(); musicDuck(music.level); });
+$('muteBtn').addEventListener('click', e => { e.stopPropagation(); muted = !muted; GameAudio.setMuted(muted); store.set('lr_vent_muted', muted); setMuteIcon(); ensureAudio(); musicDuck(music.level); });
 $('pauseBtn').addEventListener('click', e => { e.stopPropagation(); if (state === 'run') pause(); });
 $('playBtn').addEventListener('click', startRun);
 $('againBtn').addEventListener('click', startRun);
