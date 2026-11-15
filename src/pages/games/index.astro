@@ -11,6 +11,13 @@ const games = [
     blurb: "Outrun the Rat Pack's enemies through the facility",
     href: '/games/vent-runner/',
   },
+  {
+    title: 'Rat Race Rally',
+    blurb: 'Kart racing with the Rat Pack: three tracks, drift boosts and lab mischief',
+    href: '/games/rat-race-rally/',
+    image: '/games/rat-race-rally/tex/title_card.jpg',
+    alt: 'Rat Race Rally: Sprocket, Tank, Boomer and Twirl race off the start line with The Rat King behind',
+  },
 ];
 
 // Eager: the card is above the fold on desktop.
@@ -21,7 +28,7 @@ const CARD_SIZES = '(max-width: 640px) calc(100vw - 48px), (max-width: 1024px) c
 
 <Layout
   title="Games | Labrats"
-  description="Play Labrats games in your browser. Run with the Rat Pack in Vent Runner: dodge, jump and slide through the facility and collect the cheese."
+  description="Play Labrats games in your browser. Run with the Rat Pack in Vent Runner, or race their karts through the facility in Rat Race Rally. Free, no sign-up."
   canonical="/games"
   ogImage={new URL('/games/vent-runner/img/banner/vent-runner-share-v2.jpg', Astro.site).href}
   ogImageWidth={1200}
@@ -47,7 +54,9 @@ const CARD_SIZES = '(max-width: 640px) calc(100vw - 48px), (max-width: 1024px) c
           {games.map((game) => (
             <article class="game-card">
               <a href={game.href} class="game-card__thumb" tabindex="-1" aria-hidden="true">
-                <VentRunnerBanner class="game-card__banner" loading="eager" sizes={CARD_SIZES} />
+                {game.image
+                  ? <img class="game-card__banner game-card__img" src={game.image} alt={game.alt} width="1600" height="900" loading="eager" decoding="async" />
+                  : <VentRunnerBanner class="game-card__banner" loading="eager" sizes={CARD_SIZES} />}
               </a>
               <div class="game-card__body">
                 <h2 class="game-card__title">{game.title}</h2>
@@ -159,6 +168,15 @@ const CARD_SIZES = '(max-width: 640px) calc(100vw - 48px), (max-width: 1024px) c
   /* The stacked (narrow) banner sits on the card's own background. */
   .game-card__thumb :global(.game-card__banner) {
     --vr-banner-bg: color-mix(in srgb, var(--color-white) 5%, var(--color-black));
+  }
+
+  /* a game whose card is a plain title-card image (16:9, same as the Vent Runner banner) */
+  .game-card__img {
+    display: block;
+    width: 100%;
+    height: auto;
+    aspect-ratio: 16 / 9;
+    object-fit: cover;
   }
 
   .game-card__body {

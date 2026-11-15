@@ -117,3 +117,37 @@
   for = "/games/vent-runner/play/*"
   [headers.values]
     Content-Security-Policy = "frame-ancestors 'self'"
+
+# ── Rat Race Rally (public/games/rat-race-rally/) ─────────────────────────
+# A static full-screen game page (same engine as Junkyard Racers and Wheelie
+# Wild Racers). Its GLTFLoader decodes kart textures with fetch() on blob:
+# URLs, which the site-wide connect-src does not list, so this path gets the
+# same report-only policy as /* plus blob: in connect-src.
+[[headers]]
+  for = "/games/rat-race-rally/*"
+  [headers.values]
+    Content-Security-Policy-Report-Only = "default-src 'self'; script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://challenges.cloudflare.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://cdn.sanity.io https://www.googletagmanager.com https://*.google-analytics.com https://*.analytics.google.com; font-src 'self'; connect-src 'self' blob: https://cdn.sanity.io https://*.api.sanity.io https://www.googletagmanager.com https://*.google-analytics.com https://*.analytics.google.com; media-src 'self' https://cdn.sanity.io; frame-src https://www.youtube-nocookie.com https://www.youtube.com https://challenges.cloudflare.com; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'"
+
+# Assets keep their filenames between releases (no content hash), so every
+# game file is revalidated on each visit (an updated model, texture, track or
+# font is picked up at once; unchanged files come back as a 304).
+[[headers]]
+  for = "/games/rat-race-rally/models/*"
+  [headers.values]
+    Content-Type = "model/gltf-binary"
+    Cache-Control = "public, max-age=0, must-revalidate"
+
+[[headers]]
+  for = "/games/rat-race-rally/tex/*"
+  [headers.values]
+    Cache-Control = "public, max-age=0, must-revalidate"
+
+[[headers]]
+  for = "/games/rat-race-rally/audio/*"
+  [headers.values]
+    Cache-Control = "public, max-age=0, must-revalidate"
+
+[[headers]]
+  for = "/games/rat-race-rally/fonts/*"
+  [headers.values]
+    Cache-Control = "public, max-age=0, must-revalidate"
