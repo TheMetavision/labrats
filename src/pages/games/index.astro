@@ -22,9 +22,9 @@ const games = [
 ];
 
 // Eager: the card is above the fold on desktop.
-// Rendered card width: one column to 640px, two to 1024px, then three in the
-// 1280px container (24px gutters, 28px gaps).
-const CARD_SIZES = '(max-width: 640px) calc(100vw - 48px), (max-width: 1024px) calc(50vw - 38px), 392px';
+// Rendered card width: one column to 768px, then two per row in the
+// 1280px container (24px gutters, 28px gap), as on the other IP brand sites.
+const CARD_SIZES = '(max-width: 768px) calc(100vw - 48px), (max-width: 1280px) calc(50vw - 38px), 602px';
 ---
 
 <Layout
@@ -139,9 +139,10 @@ const CARD_SIZES = '(max-width: 640px) calc(100vw - 48px), (max-width: 1024px) c
     background: var(--color-black);
   }
 
+  /* Two cards per row, the same size as the games cards on the other IP brand sites. */
   .game-grid {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(2, 1fr);
     gap: 28px;
   }
 
@@ -228,11 +229,7 @@ const CARD_SIZES = '(max-width: 640px) calc(100vw - 48px), (max-width: 1024px) c
     align-self: flex-start;
   }
 
-  @media (max-width: 1024px) {
-    .game-grid { grid-template-columns: repeat(2, 1fr); }
-  }
-
-  @media (max-width: 640px) {
+  @media (max-width: 768px) {
     .game-grid { grid-template-columns: 1fr; }
   }
 </style>
