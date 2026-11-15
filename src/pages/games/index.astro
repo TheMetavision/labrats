@@ -15,8 +15,9 @@ const games = [
     title: 'Rat Race Rally',
     blurb: 'Kart racing with the Rat Pack: three tracks, drift boosts and lab mischief',
     href: '/games/rat-race-rally/',
-    image: '/games/rat-race-rally/tex/title_card.jpg',
-    alt: 'Rat Race Rally: Sprocket, Tank, Boomer and Twirl race off the start line with The Rat King behind',
+    image: '/games/rat-race-rally/tex/title_card_titled.jpg',
+    imageSmall: '/games/rat-race-rally/tex/title_card_titled-960.jpg',
+    alt: 'Rat Race Rally title card: Sprocket, Tank, Boomer and Twirl race off the start line with The Rat King behind',
   },
 ];
 
@@ -55,7 +56,7 @@ const CARD_SIZES = '(max-width: 640px) calc(100vw - 48px), (max-width: 1024px) c
             <article class="game-card">
               <a href={game.href} class="game-card__thumb" tabindex="-1" aria-hidden="true">
                 {game.image
-                  ? <img class="game-card__banner game-card__img" src={game.image} alt={game.alt} width="1600" height="900" loading="eager" decoding="async" />
+                  ? <img class="game-card__banner game-card__img" src={game.image} srcset={game.imageSmall ? `${game.imageSmall} 960w, ${game.image} 1600w` : undefined} sizes={CARD_SIZES} alt={game.alt} width="1600" height="900" loading="eager" decoding="async" />
                   : <VentRunnerBanner class="game-card__banner" loading="eager" sizes={CARD_SIZES} />}
               </a>
               <div class="game-card__body">
