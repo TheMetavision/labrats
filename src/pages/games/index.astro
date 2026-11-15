@@ -63,7 +63,7 @@ const CARD_SIZES = '(max-width: 768px) calc(100vw - 48px), (max-width: 1280px) c
               <div class="game-card__body">
                 <h2 class="game-card__title">{game.title}</h2>
                 <p class="game-card__desc">{game.blurb}</p>
-                <a href={game.href} class="btn btn-outline game-card__btn">Play</a>
+                <a href={game.href} class="btn btn-outline game-card__btn">Play now →</a>
               </div>
             </article>
           ))}
@@ -225,8 +225,23 @@ const CARD_SIZES = '(max-width: 768px) calc(100vw - 48px), (max-width: 1280px) c
     flex: 1;
   }
 
+  /* "Play now →" as on the other IP brand sites: brand teal, brand yellow on
+     rollover (also when the card is hovered). The description grows to fill
+     the card, so the buttons line up across a row whatever the blurb length. */
   .game-card__btn {
     align-self: flex-start;
+    margin-top: 4px;
+    padding: 12px 28px;
+  }
+
+  .game-card:hover .game-card__btn,
+  .game-card__btn:hover,
+  .game-card__btn:focus-visible {
+    background: var(--color-yellow);
+    border-color: var(--color-yellow);
+    color: var(--color-black);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
   }
 
   @media (max-width: 768px) {
