@@ -557,6 +557,34 @@ const OG = {
 const beamGeo = w => new THREE.CylinderGeometry(0.035, 0.035, w, 6);
 const BEAM = { lane: beamGeo(LANE_W), full: beamGeo(FULL_W) };
 
+/* ---------- Higgsfield prop models (models/prop-*.glb): supply cart, cheese wedge, Fizzy's vial, steam pipe.
+   The hand-built versions below stay as the fallback until each model loads (or if it fails). ---------- */
+const PROP = {};
+(function loadProps() {
+  if (!THREE.GLTFLoader) return;
+  ['cart', 'cheese', 'vial', 'pipe'].forEach(k => fetch(VR_BASE + 'models/prop-' + k + '.glb')
+    .then(r => r.ok ? r.arrayBuffer() : null)
+    .then(buf => { if (!buf) return; new THREE.GLTFLoader().parse(buf, '', gltf => {
+      const obj = new THREE.Group(); obj.add(gltf.scene);
+      gltf.scene.traverse(o => { if (o.isMesh && o.material) { o.material.envMapIntensity = 0.8; if (k === 'vial') { o.material.emissive = new THREE.Color(0x0a3a12); } } });
+      obj.updateMatrixWorld(true); const bb = new THREE.Box3().setFromObject(obj);
+      PROP[k] = { obj, size: bb.getSize(new THREE.Vector3()), center: bb.getCenter(new THREE.Vector3()), min: bb.min.clone() };
+      if (k === 'cart') {   // oncoming carts keep their red warning colour
+        const red = obj.clone(true); red.traverse(o => { if (o.isMesh) { o.material = o.material.clone(); o.material.color = new THREE.Color(1.0, 0.42, 0.42); } });
+        PROP.cartRed = Object.assign({}, PROP.cart, { obj: red });
+      }
+    }, e => console.warn('prop failed', k, e)); })
+    .catch(() => {}));
+})();
+// clone a prop and fit it to a box (w, h, d); 'uniform' keeps proportions inside the box
+function prop(k, w, h, d, uniform) {
+  const p = PROP[k]; if (!p) return null;
+  const o = p.obj.clone(true); let sx = w / p.size.x, sy = h / p.size.y, sz = d / p.size.z;
+  if (uniform) sx = sy = sz = Math.min(sx, sy, sz);
+  o.scale.set(sx, sy, sz); o.position.set(-p.center.x * sx, -p.min.y * sy, -p.center.z * sz);
+  const g = new THREE.Group(); g.add(o); return g;
+}
+
 const FAN_GEO = new THREE.PlaneGeometry(1.5, 1.54);
 const FAN_MAT = TX.fan ? new THREE.MeshStandardMaterial({ map: artTex('fan'), metalness: 0.4, roughness: 0.5, emissive: 0x161a1d }) : null;
 function buildFan() {
@@ -585,19 +613,25 @@ function buildLaser(full) {
 function buildSteam(full) {
   const w = full ? FULL_W : LANE_W;
   const g = new THREE.Group();
-  const pipe = new THREE.Mesh(OG.pipeR, M.steel); pipe.scale.y = w; pipe.rotation.z = Math.PI / 2; pipe.position.y = 0.3; g.add(pipe);
-  [-1, 1].forEach(s => { const f = new THREE.Mesh(OG.flange, M.rib); f.rotation.y = Math.PI / 2; f.position.set(s * w / 2, 0.3, 0); g.add(f); });
-  const band = new THREE.Mesh(new THREE.BoxGeometry(w, 0.08, 0.46), M.hazard); band.position.y = 0.03; g.add(band);
+  const n = full ? 3 : 1;
+  if (PROP.pipe) {   // pipe sections (each with its own red valve wheel) laid end to end across the lane(s)
+    for (let i = 0; i < n; i++) { const sec = prop('pipe', w / n, 0.6, 0.46); sec.position.x = -w / 2 + w * (i + 0.5) / n; g.add(sec); }
+  } else {
+    const pipe = new THREE.Mesh(OG.pipeR, M.steel); pipe.scale.y = w; pipe.rotation.z = Math.PI / 2; pipe.position.y = 0.3; g.add(pipe);
+    [-1, 1].forEach(s => { const f = new THREE.Mesh(OG.flange, M.rib); f.rotation.y = Math.PI / 2; f.position.set(s * w / 2, 0.3, 0); g.add(f); });
+    const band = new THREE.Mesh(new THREE.BoxGeometry(w, 0.08, 0.46), M.hazard); band.position.y = 0.03; g.add(band);
+  }
   const plumes = [];
-  const n = full ? 4 : 1;
   for (let i = 0; i < n; i++) {
     const x = full ? (-w / 2 + w * (i + 0.5) / n) : 0;
-    const v = new THREE.Mesh(OG.valve, M.red); v.position.set(x, 0.55, 0); v.rotation.x = Math.PI / 2; g.add(v);
+    if (!PROP.pipe) { const v = new THREE.Mesh(OG.valve, M.red); v.position.set(x, 0.55, 0); v.rotation.x = Math.PI / 2; g.add(v); }
     const pl = new THREE.Mesh(OG.plume, M.steam); pl.rotation.x = Math.PI; pl.position.set(x, 1.05, 0); g.add(pl); plumes.push(pl);
   }
   return { g, plumes, ymin: 0, ymax: 0.62, hd: 0.26, lethal: false, w, emitXs: plumes.map(p => p.position.x) };
 }
 function buildCheese() {
+  const pc = prop('cheese', 0.5, 0.42, 0.42, true);
+  if (pc) { pc.children[0].position.y -= 0.21; return pc; }
   const g = new THREE.Group();
   const w = new THREE.Mesh(OG.wedge, M.cheese); w.rotation.x = Math.PI / 2; g.add(w);
   [[0.06, 0.04, -0.11], [-0.1, -0.06, 0.11], [0.12, -0.09, 0.11], [-0.03, 0.1, -0.11]].forEach(([x, y, z]) => {
@@ -607,6 +641,8 @@ function buildCheese() {
   return g;
 }
 function buildVial() {
+  const pv = prop('vial', 0.42, 0.6, 0.42, true);
+  if (pv) { pv.children[0].position.y -= 0.3; return pv; }
   const g = new THREE.Group();
   g.add(new THREE.Mesh(OG.vial, M.glass));
   const l = new THREE.Mesh(OG.liquid, M.formula); l.position.y = -0.06; g.add(l);
@@ -622,6 +658,19 @@ const CG = {
 function buildCart(len, ramp, moving) {
   const g = new THREE.Group();
   const bodyH = CART_H - 0.28;
+  const pk = moving ? 'cartRed' : 'cart';
+  if (PROP[pk]) {   // lab carts parked nose-to-tail along the cart's length (each stretched at most ~25%)
+    const nat = PROP.cart.size.x * (CART_W / PROP.cart.size.z), n = Math.max(1, Math.round(len / nat)), seg = len / n;
+    for (let k = 0; k < n; k++) { const c = prop(pk, seg - 0.08, CART_H, CART_W); c.rotation.y = Math.PI / 2; c.position.z = -len / 2 + seg * (k + 0.5); g.add(c); }   // model length runs along x, turned to run down the lane
+    const lamps = [];
+    [-1, 1].forEach(sd => { const l = new THREE.Mesh(OG.bulb, moving ? M.lamp : M.red); l.scale.setScalar(moving ? 1.7 : 1); l.position.set(sd * 0.48, 1.0, len / 2 + 0.04); g.add(l); lamps.push(l); });
+    if (ramp) {
+      const a = Math.atan2(CART_H, RAMP_L), hyp = Math.hypot(CART_H, RAMP_L);
+      const rp = new THREE.Mesh(new THREE.BoxGeometry(CART_W - 0.05, 0.1, hyp), M.floor); rp.rotation.x = a; rp.position.set(0, CART_H / 2 - 0.04, len / 2 + RAMP_L / 2); g.add(rp);
+      const chev = new THREE.Mesh(new THREE.BoxGeometry(0.22, 0.02, hyp - 0.2), M.hazard); chev.rotation.x = a; chev.position.set(0, CART_H / 2 + 0.02, len / 2 + RAMP_L / 2); g.add(chev);
+    }
+    return { g, lamps, len, ramp, moving };
+  }
   const body = new THREE.Mesh(new THREE.BoxGeometry(CART_W, bodyH, len), moving ? M.cartRed : M.cart); body.position.y = 0.28 + bodyH / 2; g.add(body);
   const top = new THREE.Mesh(new THREE.BoxGeometry(CART_W + 0.06, 0.06, len + 0.04), M.floor); top.position.y = CART_H - 0.02; g.add(top);
   const skirt = new THREE.Mesh(new THREE.BoxGeometry(CART_W - 0.1, 0.22, len - 0.3), M.dark); skirt.position.y = 0.17; g.add(skirt);
