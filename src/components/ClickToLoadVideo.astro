@@ -19,7 +19,7 @@ interface Props {
   class?: string;
 }
 const { videoId, title, fit = 'cover', thumbnail, class: frameClass } = Astro.props;
-const src = `https://www.youtube-nocookie.com/embed/${encodeURIComponent(videoId)}?autoplay=1&rel=0`;
+const src = `https://www.youtube-nocookie.com/embed/${encodeURIComponent(videoId)}?autoplay=1&rel=0&cc_load_policy=0&enablejsapi=1`;
 ---
 
 <div class:list={['ctl-frame', frameClass]}>
@@ -44,6 +44,18 @@ const src = `https://www.youtube-nocookie.com/embed/${encodeURIComponent(videoId
 <p class="ctl__note">Plays from YouTube, which may set cookies.</p>
 
 <script>
+  // Trailers play with YouTube captions off: cc_load_policy=0 stops them auto-loading, and the captions module is unloaded once the player is ready (needs enablejsapi=1).
+  function ytCaptionsOff(f: HTMLIFrameElement) {
+    const send = () => {
+      const w = f.contentWindow;
+      if (!w) return;
+      w.postMessage('{"event":"listening","id":1}', '*');
+      w.postMessage('{"event":"command","func":"unloadModule","args":["captions"]}', '*');
+      w.postMessage('{"event":"command","func":"unloadModule","args":["cc"]}', '*');
+    };
+    f.addEventListener('load', () => [600, 1500, 3000, 6000].forEach((t) => setTimeout(send, t)));
+  }
+
   document.querySelectorAll<HTMLElement>('.ctl').forEach((el) => {
     el.querySelector('button')?.addEventListener('click', () => {
       const iframe = document.createElement('iframe');
@@ -53,6 +65,7 @@ const src = `https://www.youtube-nocookie.com/embed/${encodeURIComponent(videoId
       iframe.referrerPolicy = 'strict-origin-when-cross-origin';
       iframe.allowFullscreen = true;
       iframe.className = 'ctl__frame';
+      ytCaptionsOff(iframe);
       el.replaceChildren(iframe);
       iframe.focus(); // keep keyboard focus on the video
     }, { once: true });
