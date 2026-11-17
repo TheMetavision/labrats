@@ -1,0 +1,93 @@
+---
+// src/components/ClickToLoadVideo.astro
+//
+// Click-to-load YouTube video (same pattern as The Metavision's / Biker Babies
+// ClickToLoadVideo). Until the visitor presses play this shows a self-hosted
+// thumbnail (public/video-thumbs/<id>.jpg)
+// and makes NO request to YouTube or ytimg.com, so no cookie banner is needed.
+// On click it swaps in a youtube-nocookie.com player with autoplay, so one
+// click plays. The frame keeps its size from the wrapper, so nothing shifts.
+// No dependencies; the script below is shared by every instance.
+interface Props {
+  videoId: string;
+  title: string;
+  /** How the thumbnail fills the frame (contain suits a portrait Short in a 16:9 frame). */
+  fit?: 'cover' | 'contain';
+  /** Override the self-hosted thumbnail path. */
+  thumbnail?: string;
+  /** The page's sized frame class (gives the aspect ratio, radius, shadow). */
+  class?: string;
+}
+const { videoId, title, fit = 'cover', thumbnail, class: frameClass } = Astro.props;
+const src = `https://www.youtube-nocookie.com/embed/${encodeURIComponent(videoId)}?autoplay=1&rel=0`;
+---
+
+<div class:list={['ctl-frame', frameClass]}>
+  <div class="ctl" data-ctl-src={src} data-ctl-title={title}>
+    <button type="button" class="ctl__btn" aria-label={`Play video: ${title} (loads from YouTube)`}>
+      <img
+        src={thumbnail || `/video-thumbs/${videoId}.jpg`}
+        alt=""
+        class:list={['ctl__thumb', `ctl__thumb--${fit}`]}
+        loading="lazy"
+        decoding="async"
+        onerror="this.remove()"
+      />
+      <span class="ctl__shade" aria-hidden="true">
+        <span class="ctl__play">
+          <svg viewBox="0 0 24 24" width="30" height="30" fill="currentColor"><path d="M8 5v14l11-7z" /></svg>
+        </span>
+      </span>
+    </button>
+  </div>
+</div>
+<p class="ctl__note">Plays from YouTube, which may set cookies.</p>
+
+<script>
+  document.querySelectorAll<HTMLElement>('.ctl').forEach((el) => {
+    el.querySelector('button')?.addEventListener('click', () => {
+      const iframe = document.createElement('iframe');
+      iframe.src = el.dataset.ctlSrc!;
+      iframe.title = el.dataset.ctlTitle || 'Video';
+      iframe.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share';
+      iframe.referrerPolicy = 'strict-origin-when-cross-origin';
+      iframe.allowFullscreen = true;
+      iframe.className = 'ctl__frame';
+      el.replaceChildren(iframe);
+      iframe.focus(); // keep keyboard focus on the video
+    }, { once: true });
+  });
+</script>
+
+<style>
+  /* The frame gets its size from the page class; the player fills it. */
+  .ctl-frame { position: relative; }
+  .ctl { position: absolute; inset: 0; background: #0d0d18; }
+  .ctl__btn {
+    position: absolute; inset: 0; width: 100%; height: 100%;
+    padding: 0; border: 0; background: transparent; cursor: pointer; display: block;
+  }
+  .ctl__btn:focus-visible { outline: 4px solid var(--color-teal, #00c2c7); outline-offset: -4px; }
+  .ctl__thumb { position: absolute; inset: 0; width: 100%; height: 100%; }
+  .ctl__thumb--cover { object-fit: cover; }
+  .ctl__thumb--contain { object-fit: contain; }
+  .ctl__shade {
+    position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+    background: rgba(0, 0, 0, 0.3); transition: background 0.2s ease;
+  }
+  .ctl__btn:hover .ctl__shade { background: rgba(0, 0, 0, 0.4); }
+  .ctl__play {
+    width: 64px; height: 64px; border-radius: 9999px; padding-left: 4px;
+    display: flex; align-items: center; justify-content: center;
+    background: var(--color-teal, #00c2c7); color: var(--color-black, #0b0b12); box-shadow: 0 0 20px color-mix(in srgb, var(--color-teal, #00c2c7) 55%, transparent);
+    transition: transform 0.2s ease;
+  }
+  .ctl__btn:hover .ctl__play { transform: scale(1.1); }
+  @media (prefers-reduced-motion: reduce) {
+    .ctl__shade, .ctl__play { transition: none; }
+    .ctl__btn:hover .ctl__play { transform: none; }
+  }
+  .ctl :global(.ctl__frame) { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
+  /* Pages can set --ctl-note to keep contrast on a coloured section. */
+  .ctl__note { margin: 0.5rem 0 0; font-size: 0.75rem; color: var(--ctl-note, #9a9a9a); text-align: center; }
+</style>
