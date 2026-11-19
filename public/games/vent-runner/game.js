@@ -936,7 +936,7 @@ function resetRun() {
     t: 0, dist: 0, speed: 14, speedMul: 1, lane: 1, x: 0, y: 0, vy: 0,
     slideT: 0, jumpBuf: 0, slideBuf: 0, chaserT: 0, invulnT: 0, boostT: 0, boostMax: 6,
     sinceSpawn: -20, cheese: 0, cheesePts: 0, bonusPts: 0, combo: 0, comboT: 0,
-    section: 0, laneMoveT: 9, prevLane: 1, shake: 0, flash: 0, dyingT: 0, deathCause: '', lean: 0, nextAlarm: 0,
+    section: 0, laneMoveT: 9, prevLane: 1, shake: 0, flash: 0, dyingT: 0, deathCause: '', lean: 0, vx: 0, yaw: 0, nextAlarm: 0,
     stageClear: false, chLane: null, chHop: 0, chDuck: 0, magnetT: 0, rocketT: 0, springT: 0, dblT: 0, boardT: 0, grounded: true, ground: 0, distPts: 0, airSince: 0, airLane: 1
   });
   setTheme(0, true);
@@ -1074,7 +1074,7 @@ function moveLane(dir) {
   if (state !== 'run') return;
   const n = Math.max(0, Math.min(2, S.lane + dir));
   if (n === S.lane) { S.shake = Math.max(S.shake, 0.08); return; }
-  S.prevLane = S.lane; S.lane = n; S.laneMoveT = 0; S.lean = -dir;
+  S.prevLane = S.lane; S.lane = n; S.laneMoveT = 0;
   sfx.lane();
 }
 function jump() {
@@ -1471,7 +1471,10 @@ function update(dt) {
 
   // rat physics: ground can be the floor, a ramp or a cart roof
   const targetX = LANES[S.lane];
-  S.x += (targetX - S.x) * Math.min(1, dt * 16);
+  // lane glide: a critically damped spring, so the move eases in and out with no first-frame snap.
+  // LANE_SNAP 34 clears an obstacle in the same time as the old straight ease (about 0.07s).
+  { const LANE_SNAP = 34, e = Math.exp(-LANE_SNAP * dt), d = S.x - targetX, tmp = (S.vx + LANE_SNAP * d) * dt;
+    S.vx = (S.vx - LANE_SNAP * tmp) * e; S.x = targetX + (d + tmp) * e; }
   const sup = supportAt(); S.ground = sup.h;
   if (S.rocketT > 0) {
     S.grounded = false; S.vy = 0;
@@ -1615,10 +1618,11 @@ function update(dt) {
   const r = rat;
   r.root.position.set(S.x, S.y + (S.boardT > 0 ? 0.12 : 0), 0);
   r.board.visible = S.boardT > 0; r.jet.visible = S.rocketT > 0;
-  S.lean += (0 - S.lean) * Math.min(1, dt * 6);
+  // lean and turn follow sideways speed (not distance left), so they build up and release smoothly
+  { const k = 1 - Math.exp(-dt * 14); S.lean += (S.vx * -0.025 - S.lean) * k; S.yaw += (S.vx * -0.014 - S.yaw) * k; }
   const runPhase = S.t * (8 + S.speed * 0.42);
   const air = !S.grounded;
-  r.pivot.rotation.z = (targetX - S.x) * -0.25;
+  r.pivot.rotation.z = S.lean;
   if (dying) {
     r.pivot.rotation.x += dt * 9; r.pivot.position.y = 0.2;
   } else if (sliding) {
@@ -1637,16 +1641,16 @@ function update(dt) {
     l.rotation.x = air ? (i < 2 ? -0.8 : 0.9) : (sliding ? (i < 2 ? -1.2 : 1.2) : Math.sin(ph) * 0.95);
   });
   r.head.rotation.x = air ? -0.15 : Math.sin(runPhase * 2) * 0.05;
-  r.head.rotation.y = (targetX - S.x) * -0.25;
+  r.head.rotation.y = S.yaw;
   for (let i = 0; i < r.tail.length; i++) {
     const t = i / r.tail.length;
     const wave = Math.sin(S.t * 9 - i * 0.55) * 0.12 * t * 2;
-    r.tail[i].position.set(wave + (targetX - S.x) * 0.25 * t, 0.06 * Math.sin(t * 3) + (air ? -t * 0.3 : t * 0.1), i * 0.075);
+    r.tail[i].position.set(wave + S.lean * -1.1 * t, 0.06 * Math.sin(t * 3) + (air ? -t * 0.3 : t * 0.1), i * 0.075);
   }
   // Shadow's animation state: run / jump / slide / stumble, picked from the same game state
   if (runnerCh()) {
     const c = runnerCh();
-    c.holder.rotation.z = (targetX - S.x) * -0.22;
+    c.holder.rotation.z = S.lean * 0.9; c.holder.rotation.y = S.yaw;
     heroFill.position.set(S.x, S.y + 1.7, 2.2); heroFill.intensity = RUNNERS[runnerIdx].fill;
     c.holder.rotation.x = 0;
     if (S.stumbleAnim > 0) S.stumbleAnim -= dt;
@@ -1655,7 +1659,7 @@ function update(dt) {
     else if (S.stumbleAnim > 0 && S.grounded) playClip(c, 'stumble', { once: true, timeScale: 1.6 });
     else if (sliding) playClip(c, 'slide', { once: true, timeScale: 1.9, fade: 0.06 });
     else if (air) playClip(c, 'jump', { once: true, timeScale: 1.9, startAt: 0.35, fade: 0.06 });
-    else playClip(c, 'run', { timeScale: running ? Math.max(0.9, S.speed / 17) : 0.75, fade: 0.1 });
+    else playClip(c, 'run', { timeScale: running ? Math.max(0.9, S.speed / 17) * (1 + Math.min(0.35, Math.abs(S.vx) * 0.018)) : 0.75, fade: 0.1 });   // quicker feet through a sidestep
     c.mixer.update(dt);
   }
   // glow when boosted
@@ -1725,7 +1729,7 @@ function update(dt) {
     S.shake = Math.max(0, S.shake - dt * 1.8);
   }
   camera.lookAt(S.x * 0.75, 0.95 - camClose * 0.35 + S.y * (S.rocketT > 0 ? 0.75 : 0.4), -8);
-  camera.rotateZ((targetX - S.x) * 0.035);
+  camera.rotateZ(S.lean * -0.16);
   const fov = 60 + Math.max(0, S.speed - 14) * 0.42 + (S.boostT > 0 ? 7 : 0);
   camera.fov += (fov - camera.fov) * Math.min(1, dt * 3); camera.updateProjectionMatrix();
 
