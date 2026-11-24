@@ -1,4 +1,8 @@
 ---
+import SceneHero from '../components/SceneHero.astro';
+// Hero scene, 2400x1600 (Pixar-style crew art).
+import { socialImg as heroSocial } from '../lib/sanityImage';
+const HERO_IMG = '/images/heroes/merch.webp';
 import { sanityImg, sanitySrcset, sanityDims, localImg, localSrcset, productImg, productSrcset, productDims } from '../lib/sanityImage';
 import Layout from '../layouts/Layout.astro';
 import Navbar from '../components/Navbar.astro';
@@ -71,10 +75,11 @@ const categories = categoryOrder.map((cat, catIdx) => ({
 const defaultCat = categories[0]?.key || (wallArt.length ? 'wallart' : 'tshirt');
 ---
 
-<Layout title="Merch — Labrats" description="Official Labrats merchandise. Tees, hoodies, kids sizes, baby grows, wall art and more. Where genius meets mischief.">
+<Layout ogImage={heroSocial(HERO_IMG)} title="Merch — Labrats" description="Official Labrats merchandise. Tees, hoodies, kids sizes, baby grows, wall art and more. Where genius meets mischief.">
   <Navbar />
   <main class="page">
-    <section class="page-hero">
+    <section class="has-scene page-hero">
+      <SceneHero src={HERO_IMG} alt="Patchy Paws and Sprocket Sparksqueak running a rat-sized Labrats merch stall in the Ductways, with tees, hoodies and mugs on display" />
       <div class="container page-hero__content">
         <span class="page-hero__label">Straight From The Lab</span>
         <h1 class="page-hero__title">Gear Up, Rebel</h1>
