@@ -3,16 +3,32 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Labrats: Vent Runner</title>
+<title>Vent Runner | Labrats</title>
+<meta name="description" content="Play Labrats: Vent Runner free in your browser. Race through The Ductways, Lab Zero and The Cheese Vault, unlock Dr. Basil Whiskerworth, and top the monthly leaderboard to win a Labrats T-shirt.">
+<link rel="canonical" href="https://labrats.uk/games/vent-runner/">
+<meta property="og:title" content="Vent Runner | Labrats">
+<meta property="og:description" content="A free Labrats endless runner. The furthest run each month wins a Labrats T-shirt.">
+<meta property="og:image" content="https://labrats.uk/games/vent-runner/img/banner/vent-runner-share-v2.jpg">
+<meta name="theme-color" content="#0a0a0a">
 <link rel="stylesheet" href="/fonts/fonts.css">
 <link rel="icon" href="/favicon.ico">
-<link rel="stylesheet" href="../title-lockup.css">
-<link rel="stylesheet" href="../game.css">
+<link rel="stylesheet" href="title-lockup.css">
+<link rel="stylesheet" href="game.css">
 <style>
   /* game title: its own display face, matched to the title card lettering (no brand logo, Nov 2026) */
-  @font-face { font-family: 'GameTitle'; src: url('../fonts/bungee-title.woff2') format('woff2'); font-display: swap; }
+  @font-face { font-family: 'GameTitle'; src: url('fonts/bungee-title.woff2') format('woff2'); font-display: swap; }
   h1.title, h1.title::before, h1.title span { font-family: 'GameTitle', var(--display), sans-serif; }
   h1.title { font-size: clamp(40px, 9.5vw, 76px); letter-spacing: 2px; margin-top: 8px; }
+  /* menu links under the main button, as on the other IP brand games: three equal columns */
+  .sitelinks { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; margin-top: 12px; }
+  .sitelinks .btn { text-decoration: none; }
+  #titleScreen .sitelinks { display: grid; grid-template-columns: repeat(3, minmax(max-content, 1fr)); gap: 10px; width: 100%; max-width: 640px; margin-left: auto; margin-right: auto; }
+  .sitelinks .btn.small { width: 100%; height: 44px; min-height: 0; box-sizing: border-box; padding: 0 8px; font-size: 16px; letter-spacing: 1px;
+    display: flex; align-items: center; justify-content: center; text-align: center; line-height: 1; white-space: nowrap; overflow: hidden; margin: 0; }
+  #titleScreen .sitelinks .btn.small { margin: 0; padding: 0 16px; letter-spacing: .6px; }
+  body.lb #titleScreen .sitelinks .lb-only, #titleScreen .sitelinks .btn.small { display: flex; }
+  #titleScreen .sitelinks #lbOpenTitle { margin-top: 0; }
+  @media (max-width: 520px) { #titleScreen .sitelinks { grid-template-columns: 1fr; max-width: 300px; } .sitelinks .btn.small { font-size: 18px; } }
 </style>
 </head>
 <body>
@@ -53,7 +69,7 @@
     <div class="stages" id="stagePicker"></div>
     <div class="runners" id="runnerPicker"></div>
     <button class="btn" id="playBtn">Start running</button>
-    <button class="btn ghost small lb-only" id="lbOpenTitle">Leaderboard</button>
+    <div class="sitelinks"><button class="btn ghost small lb-only" id="lbOpenTitle">Leaderboard</button><a class="btn ghost small" href="/games/">◀ More games</a><a class="btn ghost small" href="/">Back to Labrats</a></div>
     <div class="controls" id="controlsHelp"></div>
     <div class="missions" id="missionsTitle"></div>
     <div class="best" id="titleBest" style="margin-top:16px"></div>
@@ -139,18 +155,18 @@
 
 <div id="err">This game needs WebGL. Try a recent version of Chrome, Safari, Edge or Firefox.</div>
 
-<script src="../vendor/three.min.js"></script>
-<script src="../vendor/CopyShader.js"></script>
-<script src="../vendor/LuminosityHighPassShader.js"></script>
-<script src="../vendor/Pass.js"></script>
-<script src="../vendor/ShaderPass.js"></script>
-<script src="../vendor/MaskPass.js"></script>
-<script src="../vendor/EffectComposer.js"></script>
-<script src="../vendor/RenderPass.js"></script>
-<script src="../vendor/UnrealBloomPass.js"></script>
-<script src="../vendor/GLTFLoader.js"></script>
-<script src="../game-audio.js"></script>
+<script src="vendor/three.min.js"></script>
+<script src="vendor/CopyShader.js"></script>
+<script src="vendor/LuminosityHighPassShader.js"></script>
+<script src="vendor/Pass.js"></script>
+<script src="vendor/ShaderPass.js"></script>
+<script src="vendor/MaskPass.js"></script>
+<script src="vendor/EffectComposer.js"></script>
+<script src="vendor/RenderPass.js"></script>
+<script src="vendor/UnrealBloomPass.js"></script>
+<script src="vendor/GLTFLoader.js"></script>
+<script src="game-audio.js"></script>
 <script>window.VR_BASE = "/games/vent-runner/"; window.VR_API = "/api";</script>
-<script src="../game.js"></script>
+<script src="game.js"></script>
 </body>
 </html>
