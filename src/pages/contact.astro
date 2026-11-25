@@ -1,4 +1,8 @@
 ---
+import SceneHero from '../components/SceneHero.astro';
+// Hero scene, 2400x1600 (Pixar-style crew art).
+import { socialImg as heroSocial } from '../lib/sanityImage';
+const HERO_IMG = '/images/heroes/contact.webp';
 import Layout from '../layouts/Layout.astro';
 import Navbar from '../components/Navbar.astro';
 import Footer from '../components/Footer.astro';
@@ -12,14 +16,15 @@ const contactEmail = settings?.contactEmail || 'squeak@labrats.uk';
 const socialLinks = SOCIAL_LINKS;
 ---
 
-<Layout
+<Layout ogImage={heroSocial(HERO_IMG)}
   title="Contact — Labrats"
   description="Get in touch with the Labrats team. Questions about the books, animated series, merchandise, or press enquiries — we want to hear from you."
   canonical="/contact"
 >
   <Navbar />
   <main>
-    <section class="contact-hero">
+    <section class="has-scene contact-hero">
+      <SceneHero src={HERO_IMG} position="100% 40%" alt="Byte C. Cheddar at a homemade radio transmitter and Torque Gearsnout tuning a colander satellite dish on a city rooftop at sunset" navOffset={80} />
       <div class="container contact-hero__inner">
         <span class="section-label">Get In Touch</span>
         <h1 class="contact-hero__heading">Send a Transmission</h1>

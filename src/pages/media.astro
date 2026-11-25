@@ -1,4 +1,8 @@
 ---
+import SceneHero from '../components/SceneHero.astro';
+// Hero scene, 2400x1600 (Pixar-style crew art).
+import { socialImg as heroSocial } from '../lib/sanityImage';
+const HERO_IMG = '/images/heroes/media.webp';
 import ClickToLoadVideo from '../components/ClickToLoadVideo.astro';
 import Layout from '../layouts/Layout.astro';
 import Navbar from '../components/Navbar.astro';
@@ -43,11 +47,12 @@ const allEpisodes = await getAllEpisodes();
 const videos = allEpisodes.filter((ep) => ep.videoType !== 'trailer');
 ---
 
-<Layout title="Media — Labrats" description="Books, animated series, and YouTube character content from the world of Labrats. Explore the full Labrats media universe." canonical="/media">
+<Layout ogImage={heroSocial(HERO_IMG)} title="Media — Labrats" description="Books, animated series, and YouTube character content from the world of Labrats. Explore the full Labrats media universe." canonical="/media">
   <Navbar />
   <main class="page">
 
-    <section class="page-hero">
+    <section class="has-scene page-hero">
+      <SceneHero src={HERO_IMG} alt="Ziggy Zappertail, Fizzy Furlough, Boomer Blazeclaw and Elixir Wiskermore watching a cartoon on a handkerchief screen during movie night in the Watch Room" />
       <div class="page-hero__bg"></div>
       <div class="container page-hero__content">
         <span class="page-hero__label">Explore The World</span>
