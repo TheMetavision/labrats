@@ -1,4 +1,7 @@
 ---
+import SceneHero from '../../components/SceneHero.astro';
+// Kart race through the Ductways (Pixar-style crew art).
+const HERO_IMG = '/images/heroes/games.webp';
 import Layout from '../../layouts/Layout.astro';
 import Navbar from '../../components/Navbar.astro';
 import Footer from '../../components/Footer.astro';
@@ -38,7 +41,8 @@ const CARD_SIZES = '(max-width: 768px) calc(100vw - 48px), (max-width: 1280px) c
   <Navbar />
   <main class="page">
 
-    <section class="page-hero">
+    <section class="has-scene page-hero">
+      <SceneHero src={HERO_IMG} alt="Boomer Blazeclaw in his firework-rocket kart leads Ziggy Zappertail's bumper car and Twirl Tailspin's circus wagon in a race through the Ductways" width={2048} height={1365} />
       <div class="page-hero__bg"></div>
       <div class="container page-hero__content">
         <span class="page-hero__label">Play In Your Browser</span>
