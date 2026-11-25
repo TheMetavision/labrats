@@ -16,7 +16,7 @@ interface Props {
 const { src, alt, width = 2400, height = 1600, position = '78% 40%', navOffset = 0 } = Astro.props;
 ---
 <img
-  class="scene-hero__img"
+  class:list={["scene-hero__img", { "scene-hero__img--offset": navOffset > 0 }]}
   src={localImg(src, 1600)}
   srcset={localSrcset(src, 1920, width)}
   sizes="100vw"
@@ -32,12 +32,14 @@ const { src, alt, width = 2400, height = 1600, position = '78% 40%', navOffset =
   :global(section.has-scene) {
     position: relative;
     overflow: hidden;
-    min-height: min(72vh, 680px);
+    /* height follows width so the 3:2 scene isn't cropped top and bottom on short windows */
+    min-height: clamp(420px, 40vw, 720px);
     display: flex;
     align-items: center;
     background: #0a0a0a;
   }
-  :global(.has-scene > .container) { position: relative; z-index: 2; width: 100%; }
+  :global(.has-scene > .container) { position: relative; z-index: 2; width: 100%; max-width: 1200px !important; margin: 0 auto; padding: 0 24px; }
+  :global(section.has-scene:has(> .scene-hero__img--offset)) { min-height: calc(clamp(420px, 40vw, 720px) + 80px); }
   :global(.has-scene > .container > *) { max-width: 470px !important; }
   :global(.has-scene .page-hero__title) { font-size: clamp(44px, 6vw, 96px) !important; }
   :global(.has-scene .page-hero__bg) { display: none; }
