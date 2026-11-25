@@ -107,16 +107,14 @@
   [headers.values]
     Cache-Control = "public, max-age=604800"
 
-# The game page is shown in an iframe on /games/vent-runner/, but "/*" above
-# sends X-Frame-Options: DENY, which refuses framing even by this site.
-# Netlify merges every matching rule, so a second X-Frame-Options here would be
-# joined to DENY as a conflicting pair, which browsers treat as a block.
-# Instead: an enforced CSP that only sets frame-ancestors. Browsers obey
-# frame-ancestors in place of X-Frame-Options, and it allows this site alone.
-[[headers]]
-  for = "/games/vent-runner/play/*"
-  [headers.values]
-    Content-Security-Policy = "frame-ancestors 'self'"
+# The game used to sit inside a framed page at /games/vent-runner/ with the game
+# itself at /games/vent-runner/play/. It is now a full-screen page at
+# /games/vent-runner/ like the other games; old /play/ links land there.
+[[redirects]]
+  from = "/games/vent-runner/play/*"
+  to = "/games/vent-runner/"
+  status = 301
+  force = true
 
 # ── Rat Race Rally (public/games/rat-race-rally/) ─────────────────────────
 # A static full-screen game page (same engine as Junkyard Racers and Wheelie
