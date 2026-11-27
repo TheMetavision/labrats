@@ -1223,7 +1223,7 @@ function toast(msg) { const el = $('toast'); el.textContent = msg; el.classList.
 let shoutT = 0;
 /* character voices (from the voice programme): <id>_<kind>[1|2].mp3 in audio/voice/.
    Only racers listed here have lines; anyone else just shows the text shout. */
-const VOICED = {};   // Labrats voice lines to come from the character voice programme
+const VOICED = { basil: 1, sprocket: 1, shadow: 1, boomer: 1, twirl: 1, byte: 1, tank: 1, ziggy: 1, mecha: 1, cerberus: 1, ratking: 1 };   // canon voices from the Labrats voice programme (Sanity voice slots)
 const VO_VARIANTS = { hit: 2, item: 2, pass: 2, start: 0, win: 0 };
 let voBusyUntil = 0;
 function voice(id, kind, force) {
