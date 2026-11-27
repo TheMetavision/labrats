@@ -7,6 +7,7 @@ export default defineConfig({
   plugins: [structureTool({
     structure: (S) => S.list().title('Content').items([
       S.listItem().title('Site Settings').child(S.document().schemaType('siteSettings').documentId('siteSettings')),
+      S.listItem().title('Brand Canon (consistency)').child(S.document().schemaType('brandCanon').documentId('brandCanon')),
       S.divider(),
       S.documentTypeListItem('worldLocation').title('World Locations'),
       S.documentTypeListItem('character').title('Characters'),

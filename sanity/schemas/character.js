@@ -1,4 +1,5 @@
 import { referenceGalleryField, referencePrivateFieldset } from './galleryImage';
+import { proportionsField } from './canon';
 
 export default {
   name: 'character',
@@ -19,6 +20,7 @@ export default {
     { name: 'characterSheet', title: 'Character Sheet / Turnaround', type: 'image', options: { hotspot: true }, description: 'Multi-angle turnaround or model sheet. Used alongside the portrait to build this character\u2019s Higgsfield reference element. Production reference only: not shown on the site.' },
     { name: 'galleryImages', title: 'Gallery Images', type: 'array', of: [{ type: 'image', options: { hotspot: true } }] },
     // Private: never query this field from the website (galleryImages above may be public).
+    proportionsField,
     referenceGalleryField('Working and promo images for this character. Not shown on the website.'),
     { name: 'sortOrder', title: 'Display Order', type: 'number' },
     { name: 'seoTitle', title: 'SEO Title', type: 'string' },

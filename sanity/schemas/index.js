@@ -13,6 +13,7 @@
 // 2026-11-12: added galleryImage (object) and game (document) for the private
 // reference galleries. Studio and Social Content Studio only, never the site.
 import character from './character';
+import { brandCanon } from './canon';
 import episode from './episode';
 import blogPost from './blogPost';
 import product from './product';
@@ -32,6 +33,7 @@ import returnRequest from './returnRequest';
 import galleryImage from './galleryImage';
 import game from './game';
 export const schemaTypes = [
+  brandCanon,
   siteSettings,
   worldLocation,
   character,
